@@ -8,10 +8,10 @@ final class WidgetTargetChoices {
   WidgetTargetChoices(this.dependencies, this.device);
   final RemoteEditorHost dependencies;
   final RemoteDevice device;
-  final _cache = <GridWidgetKind, List<(String, String)>>{};
-  DeviceController? _owner;
+  final _cache = <String, List<(String, String)>>{};
+  RemoteBase? _owner;
 
-  Future<List<(String, String)>> load(GridWidgetKind kind) async {
+  Future<List<(String, String)>> load(String definitionId) async {
     final connection = dependencies.live.connection;
     if (connection.selected.value?.id != device.id ||
         connection.state.value != DeviceConnectionState.connected) {
@@ -25,11 +25,11 @@ final class WidgetTargetChoices {
       _cache.clear();
       _owner = owner;
     }
-    final cached = _cache[kind];
+    final cached = _cache[definitionId];
     if (cached != null) {
       return cached;
     }
-    final choices = await _query(kind);
+    final choices = await _query(definitionId);
     if (!identical(owner, connection.controller) ||
         connection.state.value != DeviceConnectionState.connected) {
       throw const RemoteException(
@@ -37,20 +37,20 @@ final class WidgetTargetChoices {
         'The TV connection changed. Try again.',
       );
     }
-    return _cache[kind] = List.unmodifiable(choices);
+    return _cache[definitionId] = List.unmodifiable(choices);
   }
 
-  List<(String, String)>? cached(GridWidgetKind kind) {
+  List<(String, String)>? cached(String definitionId) {
     if (!identical(_owner, dependencies.live.connection.controller) ||
         dependencies.live.connection.state.value !=
             DeviceConnectionState.connected) {
       return null;
     }
-    return _cache[kind];
+    return _cache[definitionId];
   }
 
-  Future<List<(String, String)>> _query(GridWidgetKind kind) async {
-    final elements = RemoteItemRegistry.resolve(kind).elements;
+  Future<List<(String, String)>> _query(String definitionId) async {
+    final elements = RemoteItemRegistry.resolve(definitionId).elements;
     final collection = elements
         .whereType<RemoteCollection<TvRemoteDevice, Object>>()
         .firstOrNull;

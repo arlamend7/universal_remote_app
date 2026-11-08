@@ -6,38 +6,34 @@ import 'package:remote_ui/remote_ui.dart';
 import '../support/muted_remote_panel.dart';
 
 const _structural = {
-  GridWidgetKind.group,
-  GridWidgetKind.spacer,
-  GridWidgetKind.unknown,
-  GridWidgetKind.previous,
-  GridWidgetKind.next,
-  GridWidgetKind.seek,
-  GridWidgetKind.artwork,
+  'group',
+  'spacer',
+  'unknown',
+  'previous',
+  'next',
+  'seek',
+  'artwork',
 };
 
 void main() {
   test('catalog distinguishes volume feedback from write controls and uses device capabilities', () {
     const capabilities = {RemoteCapability.volume};
-    final adjustment = WidgetCatalog.definition(GridWidgetKind.volumeUp);
-    final level = WidgetCatalog.definition(GridWidgetKind.volumeLevel);
-    final group = WidgetCatalog.definition(GridWidgetKind.group);
-    final rocker = RemoteItemRegistry.resolve(
-      GridWidgetKind.volumeDisplayRocker,
-    );
-    final temperature = WidgetCatalog.definition(
-      GridWidgetKind.targetTemperature,
-    );
+    final adjustment = RemoteItemRegistry.resolve('volumeUp');
+    final level = RemoteItemRegistry.resolve('volumeLevel');
+    final group = RemoteItemRegistry.resolve('group');
+    final rocker = RemoteItemRegistry.resolve('volumeDisplayRocker');
+    final temperature = RemoteItemRegistry.resolve('targetTemperature');
 
     expect(
-      RemoteItemRegistry.resolve(temperature.kind),
-      isA<RemoteItemDefinition<AcDeviceController>>(),
+      RemoteItemRegistry.resolve(temperature.id),
+      isA<RemoteItemDefinition<ACRemoteBase>>(),
     );
     expect(
-      RemoteItemRegistry.resolve(adjustment.kind),
+      RemoteItemRegistry.resolve(adjustment.id),
       isA<RemoteItemDefinition<TvRemoteDevice>>(),
     );
     expect(
-      RemoteItemRegistry.resolve(group.kind),
+      RemoteItemRegistry.resolve(group.id),
       isA<RemoteItemDefinition<RemotePanel>>(),
     );
     expect(rocker.category, RemoteItemCategory.audio);
@@ -47,74 +43,62 @@ void main() {
       'current_volume',
       'volume_down',
     ]);
-    expect(
-      isCatalogCompatible(temperature, {RemoteCapability.climate}),
-      isTrue,
-    );
-    expect(isCatalogCompatible(temperature, capabilities), isFalse);
-    expect(isCatalogCompatible(adjustment, capabilities), isTrue);
-    expect(isCatalogCompatible(level, capabilities), isFalse);
-    expect(isCatalogCompatible(group, {}), isTrue);
-    expect(
-      isCatalogCompatible(level, {RemoteCapability.volumeFeedback}),
-      isTrue,
-    );
+    expect(temperature.isCompatibleWith({RemoteCapability.climate}), isTrue);
+    expect(temperature.isCompatibleWith(capabilities), isFalse);
+    expect(adjustment.isCompatibleWith(capabilities), isTrue);
+    expect(level.isCompatibleWith(capabilities), isFalse);
+    expect(group.isCompatibleWith({}), isTrue);
+    expect(level.isCompatibleWith({RemoteCapability.volumeFeedback}), isTrue);
   });
 
   test(
     'the horizontal volume slider takes two slots beside a one-slot level',
     () {
-      final slider = WidgetCatalog.definition(GridWidgetKind.volumeSlider);
+      final slider = RemoteItemRegistry.resolve('volumeSlider');
       expect(slider.elements.map((element) => element.id), [
         'current_volume',
         'volume_slider',
       ]);
       expect(slider.elements.map((element) => element.slots), [1, 2]);
       expect((slider.width, slider.height), (3, 1));
-      final vertical = WidgetCatalog.definition(
-        GridWidgetKind.volumeVerticalSlider,
-      );
+      final vertical = RemoteItemRegistry.resolve('volumeVerticalSlider');
       expect((vertical.width, vertical.height), (1, 3));
     },
   );
 
   test('wake is shared and requires wake support separately from power', () {
-    final wake = WidgetCatalog.definition(GridWidgetKind.wake);
+    final wake = RemoteItemRegistry.resolve('wake');
     expect(wake, isA<RemoteItemDefinition<RemotePanel>>());
-    expect(isCatalogCompatible(wake, {RemoteCapability.wake}), isTrue);
-    expect(isCatalogCompatible(wake, {RemoteCapability.power}), isFalse);
+    expect(wake.isCompatibleWith({RemoteCapability.wake}), isTrue);
+    expect(wake.isCompatibleWith({RemoteCapability.power}), isFalse);
   });
 
   test('optional controls require their own provider capability', () {
     const controls = {
-      GridWidgetKind.voice: RemoteCapability.voice,
-      GridWidgetKind.gameMode: RemoteCapability.gameMode,
-      GridWidgetKind.watch: RemoteCapability.watch,
+      'voice': RemoteCapability.voice,
+      'gameMode': RemoteCapability.gameMode,
+      'watch': RemoteCapability.watch,
     };
     for (final entry in controls.entries) {
-      final definition = WidgetCatalog.definition(entry.key);
-      expect(
-        definition.elements.single,
-        isA<RemoteAction<TvRemoteDevice, Null>>(),
-      );
-      expect(
-        isCatalogCompatible(definition, {RemoteCapability.power}),
-        isFalse,
-      );
-      expect(isCatalogCompatible(definition, {entry.value}), isTrue);
+      final definition = RemoteItemRegistry.resolve(entry.key);
+      expect(definition.elements.single, isA<RemoteAction<TvRemoteDevice>>());
+      expect(definition.isCompatibleWith({RemoteCapability.power}), isFalse);
+      expect(definition.isCompatibleWith({entry.value}), isTrue);
     }
   });
 
-  test('every registered control has elements with icons', () {
-    for (final definition in WidgetCatalog.definitions) {
-      if (_structural.contains(definition.kind)) {
+  test('every registered element has an icon or resolves one', () {
+    for (final definition in RemoteItemRegistry.definitions) {
+      if (_structural.contains(definition.id) || definition.id == 'keypad') {
         continue;
       }
-      expect(definition.elements, isNotEmpty, reason: definition.kind.name);
+      expect(definition.elements, isNotEmpty, reason: definition.id);
       expect(
-        definition.elements.every((element) => element.icon != null),
+        definition.elements.every(
+          (element) => element is RemoteAction || element.icon != null,
+        ),
         isTrue,
-        reason: definition.kind.name,
+        reason: definition.id,
       );
     }
   });
@@ -122,26 +106,29 @@ void main() {
   test(
     'mute toggle icons follow device state and fixed actions stay explicit',
     () {
-      IconData icon(GridWidgetKind kind, bool muted) =>
-          WidgetCatalog.definition(kind).elements.single.icon!(
-            RemoteElementContext(
-              kind: kind,
-              remote: MutedRemotePanel(muted: muted),
-            ),
-          );
+      IconData? icon(String definitionId, bool muted) {
+        final panel = MutedRemotePanel(muted: muted);
+        return GridRemoteViewModel(panel)
+            .resolve(
+              RemoteItemRegistry.resolve(definitionId).elements.single
+                  as RemoteAction<Object>,
+              RemoteElementContext(remote: panel),
+            )!
+            .icon;
+      }
 
-      expect(icon(GridWidgetKind.mute, false), Icons.volume_off_outlined);
-      expect(icon(GridWidgetKind.mute, true), Icons.volume_up_outlined);
-      expect(icon(GridWidgetKind.muteOn, true), Icons.volume_off_outlined);
-      expect(icon(GridWidgetKind.muteOff, false), Icons.volume_up_outlined);
+      expect(icon('mute', false), Icons.volume_off_outlined);
+      expect(icon('mute', true), Icons.volume_up_outlined);
+      expect(icon('muteOn', true), Icons.volume_off_outlined);
+      expect(icon('muteOff', false), Icons.volume_up_outlined);
     },
   );
 
   test('current input is a readout with its own capability', () {
-    final input = WidgetCatalog.definition(GridWidgetKind.currentInput);
+    final input = RemoteItemRegistry.resolve('currentInput');
     expect(input.elements.single, isA<RemoteInfo<TvRemoteDevice>>());
     expect((input.width, input.height), (2, 1));
-    expect(isCatalogCompatible(input, {RemoteCapability.inputs}), isFalse);
-    expect(isCatalogCompatible(input, {RemoteCapability.currentInput}), isTrue);
+    expect(input.isCompatibleWith({RemoteCapability.inputs}), isFalse);
+    expect(input.isCompatibleWith({RemoteCapability.currentInput}), isTrue);
   });
 }

@@ -2,7 +2,6 @@ import 'package:remote_core/remote_core.dart';
 
 /// TV operations used by typed dashboard definitions. Eligibility is external.
 abstract interface class TvRemoteDevice {
-  int? get volumeLevel;
   CurrentContent? get currentActivity;
   DeviceInput? get currentInput;
   Future<void> startVoiceControl();

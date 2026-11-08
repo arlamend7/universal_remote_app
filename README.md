@@ -72,7 +72,6 @@ only when reported by the TV; use Re-pair if an older authorization lacks the
 required feedback permissions.
 
 See [the grid guide](docs/contexts/flutter/modular-grid-controller.md)
-and [the original layout guide](docs/contexts/flutter/minimal-controller-layout.md)
 and actual Flutter previews under artifacts/design/implemented-v1.
 
 ## Connect a TV
@@ -168,13 +167,11 @@ flutter build ios --simulator --debug --no-pub
 ```
 
 The TLS tests create and remove temporary self-signed certificates; no production
-credential is hardcoded. The older SDK-only smoke runner remains available as
-`dart run tool/smoke_test.dart`. CI performs formatting, analysis, dependency audit,
+credential is hardcoded. CI performs formatting, analysis, dependency audit,
 package/widget tests and an Android debug build; no releases are published.
 
 ## Documentation
 
-- [Context and readability refactor](docs/refactor-report.md)
 - [Architecture and lifecycle](docs/architecture.md)
 - [Capability evidence](docs/capability-model.md)
 - [Discovery, transport and protocol boundaries](docs/protocols.md)
@@ -183,7 +180,5 @@ package/widget tests and an Android debug build; no releases are published.
 - [Adding a provider](docs/adding-a-provider.md)
 - [Hardware checklist](docs/hardware-checklist.md)
 - [Roadmap](docs/roadmap.md)
-- [Implementation and validation report](docs/implementation-report.md)
 
 Native builds are compile checks, not evidence of physical TV or mobile behavior.
-See the report for exact results, environmental failures, and remaining limits.

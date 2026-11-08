@@ -9,7 +9,7 @@ final class PreviewPanelSession implements RemotePanelSession {
   final RemotePanelSession live;
 
   @override
-  DeviceController? get controller => null;
+  RemoteBase? get controller => null;
   @override
   ValueListenable<RemoteDevice?> get selected => live.selected;
   @override

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/app_dependencies.dart';
 
-import 'package:remote_ui/remote_ui.dart';
-
 final class SettingsViewModel {
   SettingsViewModel(this.dependencies);
   final AppDependencies dependencies;
@@ -17,29 +15,6 @@ final class SettingsViewModel {
   int get accent => dependencies.settings.accent.value;
   bool get feedback => dependencies.settings.feedback.value;
   bool get diagnostics => dependencies.settings.diagnostics.value;
-  Future<void> importOlderProfiles(BuildContext context) async {
-    final importer = dependencies.importLegacyPreferences;
-    if (importer == null) {
-      return;
-    }
-    final confirmed = await ConfirmationDialog.ask(
-      context,
-      title: 'Import older saved TVs?',
-      confirmLabel: 'Import',
-      message: 'This reads settings and TV profiles saved by older versions. macOS may request Keychain permission. Pairing keys stay protected.',
-    );
-    if (!confirmed || !context.mounted) {
-      return;
-    }
-    await _protect(context, () => _importPreferences(importer));
-  }
-
-  Future<void> _importPreferences(Future<void> Function() importer) async {
-    await importer();
-    await dependencies.savedDevices.initialize();
-    await dependencies.settings.initialize();
-  }
-
   Future<void> setTheme(BuildContext context, ThemeMode? mode) async {
     if (mode == null) {
       return;

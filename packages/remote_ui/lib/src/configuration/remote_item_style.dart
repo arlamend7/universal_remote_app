@@ -1,3 +1,5 @@
+import 'style_json.dart';
+
 /// A dashboard item's visual overrides, stored independently of its elements.
 final class RemoteItemStyle {
   const RemoteItemStyle({
@@ -60,28 +62,21 @@ final class RemoteItemStyle {
       return const RemoteItemStyle();
     }
     return RemoteItemStyle(
-      background: _color(value['background']),
-      foreground: _color(value['foreground']),
-      padding: _number(value['padding'], 0, 8, 0),
-      opacity: _number(value['opacity'], .3, 1, 1),
+      background: parseStyleColor(value['background']),
+      foreground: parseStyleColor(value['foreground']),
+      padding: parseStyleNumber(value['padding'], 0, 8, 0),
+      opacity: parseStyleNumber(value['opacity'], .3, 1, 1),
       showBorder: value['border'] == true,
-      borderColor: _color(value['borderColor']),
-      borderWidth: _number(value['borderWidth'], 1, 4, 1),
-      cornerRadius: _number(value['radius'], 0, 28, defaultCornerRadius),
+      borderColor: parseStyleColor(value['borderColor']),
+      borderWidth: parseStyleNumber(value['borderWidth'], 1, 4, 1),
+      cornerRadius: parseStyleNumber(
+        value['radius'],
+        0,
+        28,
+        defaultCornerRadius,
+      ),
     );
   }
-
-  static int? _color(Object? value) =>
-      value is int && value >= 0 && value <= 0xffffffff ? value : null;
-
-  static double _number(
-    Object? value,
-    double min,
-    double max,
-    double fallback,
-  ) => value is num && value.isFinite
-      ? value.toDouble().clamp(min, max)
-      : fallback;
 
   Map<String, Object?> toJson() => {
     if (background != null) 'background': background,

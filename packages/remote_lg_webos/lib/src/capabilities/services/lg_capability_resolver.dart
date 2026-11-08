@@ -7,15 +7,11 @@ import '../../pointer/services/lg_pointer_connection.dart';
 import '../../protocol/services/ssap_client.dart';
 import '../applications/lg_application_controller.dart';
 import '../inputs/lg_input_controller.dart';
-import '../navigation/lg_navigation_controller.dart';
 import '../power/lg_power_controller.dart';
 import '../volume/lg_volume_controller.dart';
 import '../content/lg_current_content_controller.dart';
-import '../channels/lg_channel_controller.dart';
 import 'lg_capability_registry.dart';
-import '../media/lg_media_controller.dart';
 import '../text/lg_text_controller.dart';
-import '../pointer/lg_pointer_controller.dart';
 import '../channels/lg_channel_selection_controller.dart';
 
 final class LgCapabilityResolver {
@@ -47,12 +43,12 @@ final class LgCapabilityResolver {
     );
     registry.enable(
       RemoteCapability.channels,
-      LgChannelController(commands),
+      commands,
       CapabilityAvailability.known,
     );
     registry.enable(
       RemoteCapability.media,
-      LgMediaController(commands),
+      commands,
       CapabilityAvailability.known,
     );
     registry.enable(
@@ -117,11 +113,8 @@ final class LgCapabilityResolver {
     await _probe(RemoteCapability.inputs, controller, controller.inputs);
   }
 
-  Future<void> _navigation() => _probe(
-    RemoteCapability.navigation,
-    LgNavigationController(pointer),
-    _openPointer,
-  );
+  Future<void> _navigation() =>
+      _probe(RemoteCapability.navigation, pointer, _openPointer);
   Future<void> _openPointer() async {
     final response = await client.request(
       'com.webos.service.networkinput/getPointerInputSocket',
@@ -133,7 +126,7 @@ final class LgCapabilityResolver {
     if (isCurrent()) {
       registry.enable(
         RemoteCapability.pointer,
-        LgPointerController(pointer),
+        pointer,
         CapabilityAvailability.verified,
       );
     }

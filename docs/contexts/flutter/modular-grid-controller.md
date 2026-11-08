@@ -72,14 +72,21 @@ disconnect/device changes; it is not a native TV timer or background guarantee.
 - `packages/remote_ui/lib/src/items`: built-in Standard, TV and AC controls.
   Each Dart entry declares its display metadata, category, and any required
   capabilities and elements. The catalog reads those entries from the registry.
-  Linear controls derive their footprint from element slots and default position.
-  Composite controls keep their intrinsic footprints.
+  Every definition has one `layout` (`definitions/layouts`). `LinearLayout`
+  derives its size from element slots and default position; other layouts own
+  their size and only the settings they need. A definition's `id` is the
+  persisted identity of a placed item; an unknown saved id resolves to the
+  unavailable placeholder and is saved back unchanged. A definition declares
+  its own `settings` (toggle, number, slider) and the editor builds its form
+  from them, so the editor never checks item ids.
+  Elements are plain data: each `RemoteAction` declares its own icon, label
+  and command, and similar controls simply repeat that small declaration.
 - `presentation/widgets/grid`: shared geometry for editing and runtime.
 - `packages/remote_ui/lib/src/host/device_sleep_controller.dart`: session-owned timer.
 
 The `dashboards.v1` preference stores active grids separately from device profiles.
-Older active `remoteGrid.v2` grids migrate from profile metadata. Items without a rotation field
-load at 0°. Classic-only profiles and invalid grids use the starter grid.
+Items without a rotation field load at 0°. Profiles without a saved grid and
+invalid grids use the starter grid.
 Validation bounds item counts, dimensions, group depth and collisions.
 
 ## Validation

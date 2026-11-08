@@ -3,7 +3,6 @@ import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
-import '../widgets/structured_input_editor.dart';
 import '../widgets/item_appearance_editor.dart';
 import '../../widgets/sheets/app_sheet.dart';
 import '../../widgets/dialogs/device_choice_sheet.dart';
@@ -13,26 +12,17 @@ import '../widgets/control_style_picker.dart';
 import '../viewmodels/widget_target_choices.dart';
 import 'widget_settings_sheet.dart';
 
+/// The form for one placed item. Everything specific to the item comes from
+/// its registered definition: its layout, elements and declared settings.
 class WidgetSettingsState extends State<WidgetSettingsSheet> {
-  late GridWidgetKind kind = widget.item.kind;
-  late ItemOrientation orientation = widget.item.orientation;
+  late String definitionId = widget.item.definitionId;
   late RemoteItemStyle style = widget.item.style;
   late final elementStyles = {...widget.item.elementStyles};
-  late TouchpadConfiguration touchpad = TouchpadConfiguration.fromSettings(
-    widget.item.config,
-  );
-  late KeyboardConfiguration keyboard = KeyboardConfiguration.fromSettings(
-    widget.item.config,
-  );
   late int quarterTurns = widget.item.quarterTurns;
   late int width = widget.item.w, height = widget.item.h;
-  late final fields = <String, TextEditingController>{
-    'label': TextEditingController(text: widget.item.config['label']),
-    'value': TextEditingController(text: widget.item.config['value'] ?? '15'),
-    'minutes': TextEditingController(
-      text: widget.item.config['minutes'] ?? '30',
-    ),
-  };
+  late final label = TextEditingController(text: widget.item.config['label']);
+  late final settings = {...widget.item.config};
+  final _numbers = <String, TextEditingController>{};
   late final targets = widgetTargets(widget.item.config['targets']);
   late final _choices = WidgetTargetChoices(
     widget.dependencies,
@@ -41,15 +31,27 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   late bool showLabel = widget.item.config['showLabel'] != 'false';
   late bool showIcon = widget.item.config['showIcon'] != 'false';
   late bool hold = widget.item.config['hold'] == 'true';
-  late bool confirm = widget.item.config['confirm'] != 'false';
-  late bool showTitle = widget.item.config['showTitle'] == 'true';
   String? error;
   bool loading = false;
-  RemoteItemCategory get category => WidgetCatalog.definition(kind).category;
+
+  RemoteItemDefinition<Object> get _definition =>
+      RemoteItemRegistry.resolve(definitionId);
+  RemoteItemLayout get _layout => _definition.layout;
+  bool get _isGroup => _layout is GroupLayout;
+  List<RemoteAction<Object>> get _pressable =>
+      _definition.elements.whereType<RemoteAction<Object>>().toList();
+  bool get _holdable => _pressable.any((action) => action.holdable);
+  CollectionPresentation? get _presentation => switch (_layout) {
+    CollectionLayout(:final presentation) => presentation,
+    _ => null,
+  };
+  bool get _choosesTargets => _presentation?.choosesTargets ?? false;
+
   @override
   void dispose() {
-    for (final field in fields.values) {
-      field.dispose();
+    label.dispose();
+    for (final controller in _numbers.values) {
+      controller.dispose();
     }
     super.dispose();
   }
@@ -57,32 +59,27 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   @override
   Widget build(BuildContext context) =>
       AppSheet(title: 'Edit control', child: _form());
+
   GridItem get draft => widget.item.copy(
-    kind: kind,
+    definitionId: definitionId,
     w: width,
     h: height,
     quarterTurns: quarterTurns,
-    orientation: orientation,
     style: style,
     elementStyles: elementStyles,
     config: _configuration(),
   );
+
   Map<String, String> _configuration() {
-    final config = {...widget.item.config}..remove('label');
+    final text = label.text.trim();
     return {
-      ...config,
-      if (fields['label']!.text.trim().isNotEmpty)
-        'label': fields['label']!.text.trim(),
+      for (final setting in _definition.settings)
+        setting.key: _numbers[setting.key]?.text ?? setting.read(settings),
+      if (text.isNotEmpty) 'label': text,
       'showLabel': '$showLabel',
       'showIcon': '$showIcon',
-      'hold': '$hold',
-      'confirm': '$confirm',
-      'showTitle': '$showTitle',
-      'value': fields['value']!.text,
-      'minutes': fields['minutes']!.text,
-      'targets': encodeWidgetTargets(targets),
-      if (kind == GridWidgetKind.touchpad) ...touchpad.toSettings(),
-      if (kind == GridWidgetKind.keyboard) ...keyboard.toSettings(),
+      if (_holdable) 'hold': '$hold',
+      if (_choosesTargets) 'targets': encodeWidgetTargets(targets),
     };
   }
 
@@ -98,7 +95,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
       _name(),
       const SizedBox(height: 16),
       ControlStylePicker(
-        kind: kind,
+        definitionId: definitionId,
         columns: widget.model.columns,
         onChanged: _style,
         capabilities: widget.dependencies.capabilitiesFor(widget.model.device),
@@ -112,7 +109,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
           height = h;
         }),
       ),
-      if (kind != GridWidgetKind.group)
+      if (!_isGroup)
         TextButton.icon(
           onPressed: height <= widget.model.columns && height <= 4
               ? _rotate
@@ -120,27 +117,14 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
           icon: const Icon(Icons.rotate_right),
           label: Text('Rotate · ${quarterTurns * 90}°'),
         ),
-      if (kind == GridWidgetKind.volumeRocker ||
-          kind == GridWidgetKind.volumeHorizontal)
-        _orientationPicker(),
       ItemAppearanceEditor(
         style: style,
         onChanged: (next) => setState(() => style = next),
       ),
-      ..._elementOptions(),
-      StructuredInputEditor(
-        kind: kind,
-        touchpad: touchpad,
-        keyboard: keyboard,
-        onTouchpad: (value) => setState(() => touchpad = value),
-        onKeyboard: (value) => setState(() => keyboard = value),
-      ),
-      if (_hasTargets) _targets(),
-      if (kind == GridWidgetKind.volumePreset)
-        _field('value', 'Volume (0–100)', number: true),
-      if (kind == GridWidgetKind.sleep)
-        _field('minutes', 'Turn off after this many minutes', number: true),
-      if (kind == GridWidgetKind.group)
+      if (_pressable.isNotEmpty) _largerIcons(),
+      for (final setting in _definition.settings) _setting(setting),
+      if (_choosesTargets) _targets(),
+      if (_isGroup)
         TextButton.icon(
           onPressed: _editGroup,
           icon: const Icon(Icons.dashboard_customize_outlined),
@@ -174,18 +158,12 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
       ),
     ],
   );
+
   Widget _name() => TextField(
-    controller: fields['label'],
+    controller: label,
     decoration: const InputDecoration(labelText: 'Name (optional)'),
     onChanged: (_) => setState(() {}),
   );
-  bool get _hasTargets =>
-      kind != GridWidgetKind.apps &&
-      kind != GridWidgetKind.inputs &&
-      kind != GridWidgetKind.recentApps &&
-      RemoteItemRegistry.resolve(kind).elements.any(
-        (element) => element is RemoteCollection<TvRemoteDevice, Object>,
-      );
 
   Widget _more() => ExpansionTile(
     tilePadding: EdgeInsets.zero,
@@ -201,28 +179,15 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
         value: showLabel,
         onChanged: (v) => setState(() => showLabel = v),
       ),
-      if (category == RemoteItemCategory.audio ||
-          category == RemoteItemCategory.navigation ||
-          category == RemoteItemCategory.channels)
+      if (_holdable)
         SwitchListTile(
           title: const Text('Keep repeating when held'),
           value: hold,
           onChanged: (v) => setState(() => hold = v),
         ),
-      if (kind == GridWidgetKind.power)
-        SwitchListTile(
-          title: const Text('Ask before turning off'),
-          value: confirm,
-          onChanged: (v) => setState(() => confirm = v),
-        ),
-      if (kind == GridWidgetKind.group)
-        SwitchListTile(
-          title: const Text('Show group name'),
-          value: showTitle,
-          onChanged: (v) => setState(() => showTitle = v),
-        ),
     ],
   );
+
   void _rotate() => setState(() {
     final previousWidth = width;
     width = height;
@@ -230,87 +195,78 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     quarterTurns = (quarterTurns + 1) % 4;
   });
 
-  List<Widget> _elementOptions() {
-    final ids = RemoteItemRegistry.resolve(kind).elements
-        .map((element) => element.id);
-    return [
-      if (ids.contains(TvItems.volumeUp.id))
-        _elementSize(TvItems.volumeUp.id, 'Larger volume up icon'),
-      if (ids.contains(TvItems.volumeDown.id))
-        _elementSize(TvItems.volumeDown.id, 'Larger volume down icon'),
-    ];
-  }
-
-  Widget _elementSize(String id, String label) => SwitchListTile(
-    title: Text(label),
-    value: (elementStyles[id]?.iconSize ?? 24) > 24,
+  Widget _largerIcons() => SwitchListTile(
+    title: const Text('Larger icons'),
+    value: _pressable.every(
+      (element) => (elementStyles[element.id]?.iconSize ?? 24) > 24,
+    ),
     onChanged: (enabled) => setState(() {
-      elementStyles[id] = RemoteElementStyle(
-        iconSize: enabled ? 32 : 24,
-        foreground: elementStyles[id]?.foreground,
-      );
+      for (final element in _pressable) {
+        elementStyles[element.id] = RemoteElementStyle(
+          iconSize: enabled ? 32 : 24,
+          foreground: elementStyles[element.id]?.foreground,
+        );
+      }
     }),
   );
 
-  Widget _orientationPicker() => DropdownButtonFormField<ItemOrientation>(
-    initialValue: orientation,
-    decoration: const InputDecoration(labelText: 'Control orientation'),
-    items: [
-      for (final option in ItemOrientation.values)
-        DropdownMenuItem(value: option, child: Text(option.name)),
-    ],
-    onChanged: _orient,
-  );
-
-  void _orient(ItemOrientation? value) {
-    if (value == null) {
-      return;
-    }
-    setState(() {
-      orientation = value;
-      final definition = WidgetCatalog.definition(draft.layoutKind);
-      final minWidth = quarterTurns.isOdd
-          ? definition.minimumHeight
-          : definition.minimumWidth;
-      final minHeight = quarterTurns.isOdd
-          ? definition.minimumWidth
-          : definition.minimumHeight;
-      if (minWidth <= widget.model.columns) {
-        width = width.clamp(minWidth, widget.model.columns);
-      }
-      height = height.clamp(minHeight, 16);
-    });
-  }
-
-  void _style(GridWidgetKind next) => setState(() {
-    orientation = ItemOrientation.automatic;
+  void _style(String next) => setState(() {
     quarterTurns = 0;
-    kind = next;
-    final definition = WidgetCatalog.definition(next);
+    definitionId = next;
+    final definition = RemoteItemRegistry.resolve(next);
     width = definition.width.clamp(
       definition.minimumWidth,
       widget.model.columns,
     );
     height = definition.height;
   });
-  Widget _field(String key, String label, {bool number = false}) => TextField(
-    controller: fields[key],
-    keyboardType: number ? TextInputType.number : TextInputType.text,
-    decoration: InputDecoration(labelText: label),
-  );
+
+  Widget _setting(RemoteSetting setting) => switch (setting.type) {
+    RemoteSettingType.toggle => SwitchListTile(
+      title: Text(setting.label),
+      value: setting.isOn(settings),
+      onChanged: (value) => setState(() => settings[setting.key] = '$value'),
+    ),
+    RemoteSettingType.number => TextField(
+      controller: _numbers.putIfAbsent(
+        setting.key,
+        () => TextEditingController(text: setting.read(settings)),
+      ),
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(labelText: setting.label),
+    ),
+    RemoteSettingType.slider => Column(
+      children: [
+        Text(setting.label),
+        Slider(
+          value: setting.number(settings),
+          min: setting.minimum.toDouble(),
+          max: setting.maximum.toDouble(),
+          divisions: setting.divisions,
+          label: setting.number(settings).toStringAsFixed(2),
+          onChanged: (value) =>
+              setState(() => settings[setting.key] = '$value'),
+        ),
+      ],
+    ),
+  };
+
   Widget _targets() => Column(
     children: [
       for (var index = 0; index < targets.length; index++) _targetRow(index),
       TextButton.icon(
         onPressed: loading ? null : _choose,
         icon: const Icon(Icons.add),
-        label: Text(loading ? 'Loading…' : 'Choose ${category.name}'),
+        label: Text(
+          loading ? 'Loading…' : 'Choose ${_definition.category.name}',
+        ),
       ),
     ],
   );
+
   Widget _targetRow(int index) {
     final target = targets[index];
-    final choices = _choices.cached(kind);
+    final choices = _choices.cached(definitionId);
     final missing =
         choices != null && !choices.any((item) => item.$1 == target.$1);
     return ListTile(
@@ -351,7 +307,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
       error = null;
     });
     try {
-      final choices = await _choices.load(kind);
+      final choices = await _choices.load(definitionId);
       if (!mounted) {
         return;
       }
@@ -379,14 +335,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   }
 
   void _remember((String, String) target) {
-    final single = {
-      'appShortcut',
-      'appIcon',
-      'inputShortcut',
-      'channelShortcut',
-    }.contains(kind.name);
     setState(() {
-      if (single) {
+      if (_presentation?.isSingle ?? false) {
         targets.clear();
       }
       targets.removeWhere((item) => item.$1 == target.$1);
@@ -394,26 +344,32 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     });
   }
 
-  bool _apply({bool close = true}) {
+  String? _problem() {
     if (!showIcon && !showLabel) {
-      setState(
-        () =>
-            error = 'Keep an icon or a name so you can recognize this control.',
+      return 'Keep an icon or a name so you can recognize this control.';
+    }
+    for (final setting in _definition.settings) {
+      final problem = setting.problem(
+        _numbers[setting.key]?.text ?? setting.read(settings),
       );
+      if (problem != null) {
+        return problem;
+      }
+    }
+    return null;
+  }
+
+  bool _apply({bool close = true}) {
+    final problem = _problem();
+    if (problem != null) {
+      setState(() => error = problem);
       return false;
     }
-    final volume = int.tryParse(fields['value']!.text),
-        minutes = int.tryParse(fields['minutes']!.text);
-    if (volume == null ||
-        volume < 0 ||
-        volume > 100 ||
-        minutes == null ||
-        minutes < 1 ||
-        minutes > 180) {
-      setState(() => error = 'Check the volume or timer value.');
-      return false;
-    }
-    final children = showTitle && widget.item.config['showTitle'] != 'true'
+    final titled =
+        _isGroup &&
+        settings['showTitle'] == 'true' &&
+        widget.item.config['showTitle'] != 'true';
+    final children = titled
         ? widget.item.children
               .map((child) => child.copy(y: child.y + 1))
               .toList()

@@ -38,12 +38,10 @@ abstract interface class HardwareAddressResolver {
   Future<String?> resolve(InternetAddress address);
 }
 
-typedef DeviceController = RemoteBase;
-
 /// Owns one driver and its state subscription; disposal can be awaited repeatedly.
 final class DeviceSession {
   DeviceSession(this.controller);
-  final DeviceController controller;
+  final RemoteBase controller;
   StreamSubscription<DeviceConnectionState>? _states;
   Future<void>? _disposeFuture;
   void observe(void Function(DeviceConnectionState) onState) {
@@ -61,7 +59,7 @@ final class DeviceSession {
 enum DisconnectReason { user, poweredOff, connectionLost, suspended }
 
 /// Use resolved driver evidence. Discovery advertisements alone are insufficient.
-Set<RemoteCapability> resolvedCapabilities(DeviceController controller) => {
+Set<RemoteCapability> resolvedCapabilities(RemoteBase controller) => {
   for (final item in controller.evidence)
     if (item.availability == CapabilityAvailability.verified ||
         item.availability == CapabilityAvailability.known)

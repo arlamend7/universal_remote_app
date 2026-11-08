@@ -9,7 +9,6 @@ import 'package:remote_network/remote_network.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
 import '../data/storage/adapters/native_preferences_storage.dart';
-import '../data/storage/services/legacy_preferences_importer.dart';
 import '../data/pairing/repositories/secure_credential_store.dart';
 import '../data/pairing/repositories/session_credential_store.dart';
 import '../data/network/services/platform_hardware_address_resolver.dart';
@@ -62,14 +61,13 @@ abstract final class AppBootstrap {
     await saved.initialize();
     await settings.initialize();
     final grids = DeviceGridsController(LocalDashboardRepository(preferences));
-    await grids.initialize(saved.devices.value);
+    await grids.initialize();
     final connection = ConnectionController(
       providers,
       saved,
       logger,
       wakeLearner: DeviceWakeLearner(
-        lookup: (id) =>
-            saved.devices.value.where((item) => item.id == id).firstOrNull,
+        lookup: saved.byId,
         update: saved.updateExisting,
         registry: providers,
         resolver: hardwareAddressResolver ?? PlatformHardwareAddressResolver(),
@@ -88,12 +86,8 @@ abstract final class AppBootstrap {
       connection: connection,
       disposeCredentials: sessionCredentials?.dispose,
       sleep: DeviceSleepController(connection),
-      canWakeDevice: providers.canWake,
+      providers: providers,
       inspectCertificate: inspectCertificate ?? inspectTvCertificate,
-      importLegacyPreferences: LegacyPreferencesImporter(
-        legacy: protectedStorage,
-        preferences: preferences,
-      ).import,
     );
   }
 }

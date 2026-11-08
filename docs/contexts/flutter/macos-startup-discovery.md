@@ -20,12 +20,6 @@ The app now separates ordinary native preferences from protected credentials:
 - Startup performs zero credential-store reads; credential access begins when the
   user connects/pairs, not while loading the initial screen.
 
-Older preference/profile records are preserved in Keychain. Settings → Import
-older saved TVs explicitly imports missing records; it may request Keychain access.
-It never reads pairing keys, does not overwrite current preferences, and validates
-older profiles before storing them in the new startup preferences. Failed imports
-leave the protected original intact.
-
 Ad-hoc debug rebuilds can change the code identity macOS uses for protected access.
 The app does not promise that actual pairing-key access can never require OS
 approval. It no longer requests that approval just to render startup settings.
@@ -71,8 +65,6 @@ the normal lib/main.dart application was rebuilt afterward.
 - Startup and ordinary settings do not read protected credentials.
 - Client keys are routed only to protected storage.
 - Native preferences support read/write/delete but reject credential record names.
-- Older profiles import only on explicit request; current preferences and protected
-  originals are preserved; invalid legacy data cannot break the new startup store.
 - Permission/route messages are actionable and omit raw exception details.
 - A failed interface cannot discard another interface's result; duplicate UUIDs
   collapse; all-route failures remain distinguishable from a successful empty search.

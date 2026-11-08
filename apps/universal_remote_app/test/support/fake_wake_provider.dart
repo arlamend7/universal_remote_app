@@ -14,7 +14,7 @@ class FakeWakeProvider extends FakeProvider
   int startupFailures;
 
   @override
-  DeviceController createController(RemoteDevice device) {
+  RemoteBase createController(RemoteDevice device) {
     if (wakes == 0 || startupFailures == 0) {
       return super.createController(device);
     }

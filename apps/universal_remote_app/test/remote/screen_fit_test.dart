@@ -15,23 +15,16 @@ import '../support/test_device.dart';
 GridLayout phoneLayout() => GridLayout([
   GridItem(
     id: 'content',
-    kind: GridWidgetKind.currentActivity,
+    definitionId: 'currentActivity',
     x: 0,
     y: 0,
     w: 4,
     h: 1,
   ),
-  GridItem(
-    id: 'pad',
-    kind: GridWidgetKind.directionPad,
-    x: 0,
-    y: 1,
-    w: 2,
-    h: 3,
-  ),
+  GridItem(id: 'pad', definitionId: 'directionPad', x: 0, y: 1, w: 2, h: 3),
   GridItem(
     id: 'volume',
-    kind: GridWidgetKind.volumeDisplayRocker,
+    definitionId: 'volumeDisplayRocker',
     x: 2,
     y: 1,
     w: 1,
@@ -39,30 +32,23 @@ GridLayout phoneLayout() => GridLayout([
   ),
   GridItem(
     id: 'channel',
-    kind: GridWidgetKind.channelDisplayRocker,
+    definitionId: 'channelDisplayRocker',
     x: 3,
     y: 1,
     w: 1,
     h: 3,
   ),
-  GridItem(id: 'apps', kind: GridWidgetKind.appStrip, x: 0, y: 4, w: 4, h: 1),
+  GridItem(id: 'apps', definitionId: 'appStrip', x: 0, y: 4, w: 4, h: 1),
   GridItem(
     id: 'channel-name',
-    kind: GridWidgetKind.channelDisplay,
+    definitionId: 'channelDisplay',
     x: 0,
     y: 5,
     w: 2,
     h: 1,
   ),
-  GridItem(id: 'mute', kind: GridWidgetKind.mute, x: 2, y: 5, w: 1, h: 1),
-  GridItem(
-    id: 'status',
-    kind: GridWidgetKind.connection,
-    x: 3,
-    y: 5,
-    w: 1,
-    h: 1,
-  ),
+  GridItem(id: 'mute', definitionId: 'mute', x: 2, y: 5, w: 1, h: 1),
+  GridItem(id: 'status', definitionId: 'connection', x: 3, y: 5, w: 1, h: 1),
 ]);
 
 void main() {
@@ -145,7 +131,8 @@ void main() {
             (widget) => widget is GridRemoteItem && widget.item.id == 'content',
           ),
         );
-        expect(first.top - header.bottom, closeTo(8, 1));
+        // Column spacing (8) + 1px divider + spacing (8).
+        expect(first.top - header.bottom, closeTo(17, 1));
         await tester.tap(find.byTooltip('Louder'));
         await tester.pumpAndSettle();
         expect(provider.last!.volumeControl.level, 21);
@@ -209,7 +196,7 @@ void main() {
           .widget<GridRemoteCanvas>(find.byType(GridRemoteCanvas))
           .remote;
       expect(preview.connection.supports(RemoteCapability.volume), isFalse);
-      await preview.volumeUp();
+      await GridRemoteViewModel(preview).volumeUp();
       await preview.connection.execute(
         () => app.connection.tvWith(RemoteCapability.volume)!.volumeUp(),
       );

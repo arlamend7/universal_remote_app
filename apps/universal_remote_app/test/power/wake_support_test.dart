@@ -13,7 +13,7 @@ void main() {
       registry: ProviderRegistry()..register(FakeProvider()),
     );
     expect(
-      fake.canWakeDevice(
+      fake.providers.canWake(
         copyDevice(tv, metadata: {'macAddress': 'AA:BB:CC:DD:EE:FF'}),
       ),
       isFalse,
@@ -21,13 +21,15 @@ void main() {
     await fake.dispose();
     final lg = await AppBootstrap.initialize(storage: MemoryStorage());
     final device = RemoteDevice(id: 'lg', name: 'LG', providerId: 'lg.webos');
-    expect(lg.canWakeDevice(device), isFalse);
+    expect(lg.providers.canWake(device), isFalse);
     expect(
-      lg.canWakeDevice(copyDevice(device, metadata: {'macAddress': 'invalid'})),
+      lg.providers.canWake(
+        copyDevice(device, metadata: {'macAddress': 'invalid'}),
+      ),
       isFalse,
     );
     expect(
-      lg.canWakeDevice(
+      lg.providers.canWake(
         copyDevice(device, metadata: {'macAddress': 'AA:BB:CC:DD:EE:FF'}),
       ),
       isTrue,

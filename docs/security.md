@@ -15,10 +15,7 @@ native adapters restrict writes to the three non-secret preference records;
 client-key entries are rejected. Profiles never contain a pairing key.
 
 Startup reads only these ordinary preferences. It does not query Keychain merely
-to render Devices or Settings. Older versions stored these records in Keychain;
-**Preferences → Import older saved TVs** performs an explicit migration. It may request
-Keychain access, never reads pairing-key records, preserves the protected original,
-and does not overwrite preferences already saved by the current version.
+to render Devices or Settings.
 
 On iOS, credentials use first-unlock-this-device accessibility and the runner has
 a Keychain entitlement. macOS retains native non-data-protection Keychain for actual

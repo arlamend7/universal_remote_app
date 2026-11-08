@@ -13,22 +13,15 @@ import '../support/capture_design.dart';
 
 void main() {
   setUpAll(loadDesignFont);
-  test(
-    'every saved control kind has a catalog entry and a valid default size',
-    () {
+  test('every registered control has a valid default size and a valid default size', () {
+    for (final definition in RemoteItemRegistry.definitions) {
       expect(
-        WidgetCatalog.definitions.map((item) => item.kind),
-        GridWidgetKind.values,
+        definition.accepts(definition.width, definition.height),
+        isTrue,
+        reason: definition.id,
       );
-      for (final definition in WidgetCatalog.definitions) {
-        expect(
-          definition.accepts(definition.width, definition.height),
-          isTrue,
-          reason: definition.kind.name,
-        );
-      }
-    },
-  );
+    }
+  });
   testWidgets(
     'full page previews edit safely, size choices reflow neighbors, and corner resizing supports undo before save',
     (tester) async {
@@ -49,7 +42,7 @@ void main() {
         GridLayout([
           GridItem(
             id: 'volume',
-            kind: GridWidgetKind.volumeRocker,
+            definitionId: 'volumeRocker',
             x: 0,
             y: 0,
             w: 1,
@@ -57,7 +50,7 @@ void main() {
           ),
           GridItem(
             id: 'app',
-            kind: GridWidgetKind.appShortcut,
+            definitionId: 'appShortcut',
             x: 1,
             y: 0,
             w: 1,
@@ -170,8 +163,8 @@ void main() {
       await app.grids.save(
         tv,
         GridLayout([
-          GridItem(id: 'a', kind: GridWidgetKind.mute, x: 0, y: 0, w: 1, h: 1),
-          GridItem(id: 'b', kind: GridWidgetKind.power, x: 1, y: 0, w: 1, h: 1),
+          GridItem(id: 'a', definitionId: 'mute', x: 0, y: 0, w: 1, h: 1),
+          GridItem(id: 'b', definitionId: 'power', x: 1, y: 0, w: 1, h: 1),
         ]),
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));

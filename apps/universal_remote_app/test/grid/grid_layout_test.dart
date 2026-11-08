@@ -10,7 +10,7 @@ void main() {
   test('quarter turns persist with their rotated collision footprint', () {
     final rocker = GridItem(
       id: 'rocker',
-      kind: GridWidgetKind.volumeRocker,
+      definitionId: 'volumeRocker',
       x: 0,
       y: 0,
       w: 1,
@@ -44,8 +44,8 @@ void main() {
         tv,
         initial: GridLayout([]),
       );
-      final first = editor.add(GridWidgetKind.volumeRocker)!;
-      final second = editor.add(GridWidgetKind.volumeRocker)!;
+      final first = editor.add('volumeRocker')!;
+      final second = editor.add('volumeRocker')!;
       expect(first.id, isNot(second.id));
       expect(GridGeometry.overlaps(first, second), false);
       editor.update(second.copy(x: first.x, y: first.y));
@@ -65,7 +65,7 @@ void main() {
   test('group coordinates, bounds, nested groups and versioned serialization are checked', () {
     final child = GridItem(
       id: 'volume',
-      kind: GridWidgetKind.volumeRocker,
+      definitionId: 'volumeRocker',
       x: 0,
       y: 0,
       w: 1,
@@ -73,7 +73,7 @@ void main() {
     );
     final group = GridItem(
       id: 'audio',
-      kind: GridWidgetKind.group,
+      definitionId: 'group',
       x: 0,
       y: 0,
       w: 2,
@@ -87,8 +87,8 @@ void main() {
           .single
           .children
           .single
-          .kind,
-      GridWidgetKind.volumeRocker,
+          .definitionId,
+      'volumeRocker',
     );
     expect(GridGeometry.valid([group.copy(w: 1, h: 1)]), false);
     expect(
@@ -108,13 +108,10 @@ void main() {
         copyDevice(tv, metadata: {'remoteLayout.v1': 'legacy layout'}),
       );
       final draft = GridEditorViewModel(app.grids, tv);
-      draft.add(GridWidgetKind.volumeRocker);
+      draft.add('volumeRocker');
       expect(app.grids.forDevice(tv), isNull);
       expect(await draft.save(), true);
-      expect(
-        app.grids.forDevice(tv)!.items.last.kind,
-        GridWidgetKind.volumeRocker,
-      );
+      expect(app.grids.forDevice(tv)!.items.last.definitionId, 'volumeRocker');
       expect(
         app.savedDevices.devices.value.single.metadata['remoteLayout.v1'],
         'legacy layout',
@@ -124,8 +121,8 @@ void main() {
       final reloaded = await AppBootstrap.initialize(storage: memory);
       expect(reloaded.grids.forDevice(tv), isNotNull);
       expect(
-        reloaded.grids.forDevice(tv)!.items.last.kind,
-        GridWidgetKind.volumeRocker,
+        reloaded.grids.forDevice(tv)!.items.last.definitionId,
+        'volumeRocker',
       );
       await reloaded.dispose();
     },

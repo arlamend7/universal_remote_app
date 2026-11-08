@@ -28,12 +28,11 @@ class FakeProvider implements DeviceProvider {
     DiscoveryCancellation cancellation,
   ) async => [tv];
   @override
-  DeviceController createController(RemoteDevice device) =>
-      last = FakeController(
-        device,
-        failure: fail,
-        waitPairing: pairing,
-        enabledControls: enabledControls,
-        wakeAddress: wakeAddress,
-      );
+  RemoteBase createController(RemoteDevice device) => last = FakeController(
+    device,
+    failure: fail,
+    waitPairing: pairing,
+    enabledControls: enabledControls,
+    wakeAddress: wakeAddress,
+  );
 }

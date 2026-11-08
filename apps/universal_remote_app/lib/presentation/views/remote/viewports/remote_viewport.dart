@@ -18,7 +18,11 @@ class RemoteViewport extends StatelessWidget {
           spacing: 8,
           children: [
             RemoteHeader(model: model),
-            Divider(height: 1, thickness: 1, color: Theme.of(context).dividerColor),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: Theme.of(context).dividerColor,
+            ),
             Expanded(child: _controls()),
           ],
         ),

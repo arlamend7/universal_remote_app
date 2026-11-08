@@ -11,7 +11,7 @@ void main() {
           body: SizedBox(
             width: 100,
             height: 100,
-            child: GridButton(
+            child: ActionButton(
               label: 'Louder',
               icon: Icons.add,
               repeat: true,
@@ -22,7 +22,7 @@ void main() {
       ),
     );
     final gesture = await tester.startGesture(
-      tester.getCenter(find.byType(GridButton)),
+      tester.getCenter(find.byType(ActionButton)),
     );
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 700));

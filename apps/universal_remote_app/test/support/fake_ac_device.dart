@@ -4,7 +4,7 @@ import 'package:remote_core/remote_core.dart';
 
 import 'fake_climate.dart';
 
-final class FakeAcDevice extends AcDeviceController {
+final class FakeAcDevice extends ACRemoteBase {
   final FakeClimate temperature = FakeClimate();
 
   @override

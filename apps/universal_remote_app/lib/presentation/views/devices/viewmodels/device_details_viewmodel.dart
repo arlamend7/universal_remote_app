@@ -14,12 +14,9 @@ final class DeviceDetailsViewModel {
   final AppDependencies dependencies;
   final RemoteDevice original;
   RemoteDevice get device =>
-      dependencies.savedDevices.devices.value
-          .where((item) => item.id == original.id)
-          .firstOrNull ??
-      original;
+      dependencies.savedDevices.byId(original.id) ?? original;
   String get wakeStatus {
-    if (!dependencies.canWakeDevice(device)) {
+    if (!dependencies.providers.canWake(device)) {
       return 'Not configured';
     }
     return DeviceWakeLearner.wasLearned(device)

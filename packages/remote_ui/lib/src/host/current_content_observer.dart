@@ -14,7 +14,7 @@ final class CurrentContentObserver {
   int _generation = 0;
   bool _reading = false;
 
-  Future<void> observe(DeviceController controller) async {
+  Future<void> observe(RemoteBase controller) async {
     final detaching = detach();
     final generation = _generation;
     await detaching;

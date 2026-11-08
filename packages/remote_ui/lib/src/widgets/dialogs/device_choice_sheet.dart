@@ -8,15 +8,20 @@ class DeviceChoiceSheet extends StatefulWidget {
     required this.title,
     required this.choices,
     this.selectedId,
+    this.grid = false,
   });
   final String title;
   final List<(String, String)> choices;
   final String? selectedId;
+
+  /// Shows large icons with a search box instead of a plain list.
+  final bool grid;
   static Future<String?> choose(
     BuildContext context,
     String title,
     List<(String, String)> choices, {
     String? selectedId,
+    bool grid = false,
   }) => showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
@@ -26,6 +31,7 @@ class DeviceChoiceSheet extends StatefulWidget {
       title: title,
       choices: choices,
       selectedId: selectedId,
+      grid: grid,
     ),
   );
   @override

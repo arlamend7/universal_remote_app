@@ -1,3 +1,5 @@
+> Historical specification. `AGENTS.md` and `docs/architecture.md` are current: state management uses AppBootstrap/AppDependencies with constructor injection and ValueNotifier/ListenableBuilder, not Riverpod.
+
 # Project: Universal Remote — Flutter & Dart Ecosystem
 
 You are a senior Flutter/Dart engineer, software architect, and technical lead.

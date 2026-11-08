@@ -41,7 +41,7 @@ final class GridEditorActions {
         ),
       );
   Future<void> library(BuildContext context) async {
-    final kind = await showModalBottomSheet<GridWidgetKind>(
+    final definitionId = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -52,14 +52,14 @@ final class GridEditorActions {
         insideGroup: group != null,
       ),
     );
-    if (kind == null || !context.mounted) {
+    if (definitionId == null || !context.mounted) {
       return;
     }
-    final item = model.add(kind);
+    final item = model.add(definitionId);
     if (item == null) {
       return;
     }
-    if (kind == GridWidgetKind.group) {
+    if (item.isGroup) {
       await editGroup(context, item);
     }
   }

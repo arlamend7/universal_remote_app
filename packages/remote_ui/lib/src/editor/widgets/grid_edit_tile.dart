@@ -19,7 +19,7 @@ class GridEditTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => UniversalRemoteItem(
     id: item.id,
-    label: item.config['label'] ?? WidgetCatalog.definition(item.kind).name,
+    label: item.config['label'] ?? item.definition.name,
     width: item.w,
     height: item.h,
     quarterTurns: item.quarterTurns,

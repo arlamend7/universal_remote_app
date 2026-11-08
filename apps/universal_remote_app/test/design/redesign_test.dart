@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
-import 'package:remote_ui/remote_ui.dart';
 
 import '../support/capture_design.dart';
 import '../support/fake_provider.dart';
@@ -73,7 +72,7 @@ void main() {
         app.grids
             .forDevice(tv)!
             .items
-            .any((item) => item.kind == GridWidgetKind.inputs),
+            .any((item) => item.definitionId == 'inputs'),
         isFalse,
       );
       expect(app.grids.forDevice(bedroom), isNull);

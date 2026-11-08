@@ -11,7 +11,7 @@ class DeviceEditorState extends State<DeviceEditor> {
   void initState() {
     super.initState();
     final device = widget.device;
-    final registry = widget.dependencies.connection.registry;
+    final registry = widget.dependencies.providers;
     model = DeviceEditorViewModel(
       configuration: device == null
           ? const DeviceNetworkConfiguration()

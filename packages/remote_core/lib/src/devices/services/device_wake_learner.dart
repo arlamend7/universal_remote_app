@@ -41,7 +41,7 @@ final class DeviceWakeLearner {
   }
 
   Future<void> learn(
-    DeviceController controller,
+    RemoteBase controller,
     RemoteDevice device, {
     required bool Function() isCurrent,
   }) async {
@@ -53,7 +53,7 @@ final class DeviceWakeLearner {
   }
 
   Future<void> _learn(
-    DeviceController controller,
+    RemoteBase controller,
     RemoteDevice device,
     bool Function() isCurrent,
   ) async {
@@ -117,7 +117,7 @@ final class DeviceWakeLearner {
   }
 
   Future<(DeviceWakeAddress?, String)> _detect(
-    DeviceController controller,
+    RemoteBase controller,
     InternetAddress address,
     bool Function() isCurrent,
   ) async {
@@ -135,7 +135,7 @@ final class DeviceWakeLearner {
     return (mac == null ? null : DeviceWakeAddress(mac), 'localNeighbor');
   }
 
-  Future<DeviceWakeAddress?> _reported(DeviceController controller) async {
+  Future<DeviceWakeAddress?> _reported(RemoteBase controller) async {
     if (controller is! DeviceWakeAddressSource) {
       return null;
     }

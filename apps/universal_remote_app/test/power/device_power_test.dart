@@ -26,12 +26,12 @@ void main() {
       await tester.tap(find.text('Living room'));
       await tester.pumpAndSettle();
       final controlsPosition = tester.getTopLeft(
-        find.byType(GridNavigationWidget).first,
+        find.byType(NavigationSurface).first,
       );
       app.connection.volume.value = const VolumeState(32, false);
       await tester.pump();
       expect(
-        tester.getTopLeft(find.byType(GridNavigationWidget).first),
+        tester.getTopLeft(find.byType(NavigationSurface).first),
         controlsPosition,
       );
       await tester.tap(find.byTooltip('Remote options'));

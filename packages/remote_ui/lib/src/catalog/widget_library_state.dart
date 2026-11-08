@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
@@ -42,7 +41,7 @@ class WidgetLibraryState extends State<WidgetLibrarySheet> {
         prefixIcon: Icon(Icons.search),
         hintText: 'Search controls…',
       ),
-      onChanged: (value) => setState(() => query = _normalize(value)),
+      onChanged: (value) => setState(() => query = value),
     ),
   );
   Widget _catalog() =>
@@ -52,9 +51,11 @@ class WidgetLibraryState extends State<WidgetLibrarySheet> {
     final capabilities = widget.dependencies.capabilitiesFor(
       widget.model.device,
     );
-    final choices = WidgetCatalog.definitions
-        .where((item) => _matches(item, capabilities))
-        .toList();
+    final choices = RemoteItemRegistry.search(
+      capabilities: capabilities,
+      query: query,
+      where: _fits,
+    );
     if (choices.isEmpty) {
       return const Center(
         child: Text(
@@ -75,27 +76,17 @@ class WidgetLibraryState extends State<WidgetLibrarySheet> {
     );
   }
 
-  bool _matches(
-    RemoteItemDefinition<Object> definition,
-    Set<RemoteCapability> capabilities,
-  ) =>
-      (!widget.insideGroup || definition.kind != GridWidgetKind.group) &&
+  bool _fits(RemoteItemDefinition<Object> definition) =>
+      (!widget.insideGroup || definition.layout is! GroupLayout) &&
       definition.minimumWidth <= widget.model.columns &&
       definition.minimumHeight <=
-          widget.model.maxRows - widget.model.reservedRows &&
-      isCatalogCompatible(definition, capabilities) &&
-      query.split(' ').every(_normalize(definition.searchText).contains);
-
-  String _normalize(String text) => text
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
-      .trim();
+          widget.model.maxRows - widget.model.reservedRows;
 
   Widget _preview(RemoteItemDefinition<Object> definition) =>
       CatalogPreviewCard(
         definition: definition,
         dependencies: widget.dependencies,
         device: widget.model.device,
-        onAdd: () => Navigator.pop(context, definition.kind),
+        onAdd: () => Navigator.pop(context, definition.id),
       );
 }

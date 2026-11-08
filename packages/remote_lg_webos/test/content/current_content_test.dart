@@ -1,6 +1,5 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_lg_webos/src/capabilities/content/lg_current_content_controller.dart';
-import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_controller.dart';
 import 'package:remote_lg_webos/src/commands/services/lg_command_channel.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:test/test.dart';
@@ -46,9 +45,9 @@ void main() {
     expect(live.isLiveTv, true);
     expect(live.channelNumber, '7.1');
     expect(live.channelName, 'CBC');
-    await LgChannelController(channel).channelUp();
+    await channel.send(RemoteCapability.channels, 'tv/channelUp');
     expect(transport.sent.last['uri'], 'ssap://tv/channelUp');
-    await LgChannelController(channel).channelDown();
+    await channel.send(RemoteCapability.channels, 'tv/channelDown');
     expect(transport.sent.last['uri'], 'ssap://tv/channelDown');
     expect(unavailable, isEmpty);
     await client.close();

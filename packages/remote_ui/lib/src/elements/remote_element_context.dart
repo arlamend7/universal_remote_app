@@ -1,20 +1,24 @@
-import 'package:flutter/widgets.dart' show Axis;
+import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:remote_core/remote_core.dart';
 
 import '../host/remote_panel.dart';
-import '../layout/models/enums/grid_widget_kind.dart';
 
 /// Everything an element may inspect: the full remote panel and its device.
 final class RemoteElementContext {
   const RemoteElementContext({
-    required this.kind,
     required this.remote,
-    this.position = Axis.horizontal,
+    this.settings = const {},
+    this.buildContext,
   });
 
-  final GridWidgetKind kind;
   final RemotePanel remote;
-  final Axis position;
+
+  /// The placed item's saved settings, such as a label or preset value.
+  final Map<String, String> settings;
+
+  /// Where the element is drawn, for actions that open dialogs. Null when an
+  /// element is resolved outside the widget tree.
+  final BuildContext? buildContext;
 
   /// The stored device profile (name, endpoints, metadata) when one is selected.
   RemoteDevice? get device => remote.device;

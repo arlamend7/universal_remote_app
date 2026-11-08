@@ -16,9 +16,8 @@ final class AppDependencies {
     required this.settings,
     required this.grids,
     required this.sleep,
-    required this.canWakeDevice,
+    required this.providers,
     required this.inspectCertificate,
-    this.importLegacyPreferences,
     this.disposeCredentials,
   });
   final DiscoveryController discovery;
@@ -27,9 +26,8 @@ final class AppDependencies {
   final SettingsController settings;
   final DeviceGridsController grids;
   final DeviceSleepController sleep;
-  final bool Function(RemoteDevice) canWakeDevice;
+  final ProviderRegistry providers;
   final Future<PeerCertificate> Function(Uri) inspectCertificate;
-  final Future<void> Function()? importLegacyPreferences;
   final void Function()? disposeCredentials;
   Future<void>? _disposeFuture;
   Future<void> dispose() => _disposeFuture ??= _dispose();

@@ -1,11 +1,7 @@
 import 'package:remote_lg_webos/src/capabilities/applications/lg_application_controller.dart';
-import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_selection_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/content/lg_current_content_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/inputs/lg_input_controller.dart';
-import 'package:remote_lg_webos/src/capabilities/media/lg_media_controller.dart';
-import 'package:remote_lg_webos/src/capabilities/navigation/lg_navigation_controller.dart';
-import 'package:remote_lg_webos/src/capabilities/pointer/lg_pointer_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/power/lg_power_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/text/lg_text_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/volume/lg_volume_controller.dart';
@@ -58,7 +54,6 @@ final class LgDeviceController extends TVRemoteBase
   bool _wanted = false;
   Timer? _retry;
   int _retryCount = 0;
-  RemoteException? lastError;
   @override
   DeviceConnectionState state = DeviceConnectionState.disconnected;
   @override
@@ -79,12 +74,12 @@ final class LgDeviceController extends TVRemoteBase
   }
 
   LgVolumeController get _volume => _use(RemoteCapability.volume);
-  LgNavigationController get _navigation => _use(RemoteCapability.navigation);
-  LgChannelController get _channelKeys => _use(RemoteCapability.channels);
+  LgPointerConnection get _navigation => _use(RemoteCapability.navigation);
+  LgCommandChannel get _channelKeys => _use(RemoteCapability.channels);
   LgChannelSelectionController get _channelList =>
       _use(RemoteCapability.channelSelection);
-  LgMediaController get _media => _use(RemoteCapability.media);
-  LgPointerController get _pointerKeys => _use(RemoteCapability.pointer);
+  LgCommandChannel get _media => _use(RemoteCapability.media);
+  LgPointerConnection get _pointerKeys => _use(RemoteCapability.pointer);
   LgTextController get _text => _use(RemoteCapability.textInput);
   LgInputController get _inputs => _use(RemoteCapability.inputs);
   LgApplicationController get _apps => _use(RemoteCapability.applications);
@@ -114,25 +109,36 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Stream<VolumeState> watchVolume() => _volume.watchVolume();
   @override
-  Future<void> press(NavigationKey key) => _navigation.press(key);
+  Future<void> press(NavigationKey key) async => _navigation.press(key);
   @override
-  Future<void> channelUp() => _channelKeys.channelUp();
+  Future<void> channelUp() async {
+    await _channelKeys.send(RemoteCapability.channels, 'tv/channelUp');
+  }
+
   @override
-  Future<void> channelDown() => _channelKeys.channelDown();
+  Future<void> channelDown() async {
+    await _channelKeys.send(RemoteCapability.channels, 'tv/channelDown');
+  }
+
   @override
   Future<List<DeviceChannel>> channels() => _channelList.channels();
   @override
   Future<void> selectChannel(String id) => _channelList.selectChannel(id);
   @override
-  Future<void> sendMedia(MediaAction action) => _media.send(action);
+  Future<void> sendMedia(MediaAction action) async {
+    await _media.send(RemoteCapability.media, 'media.controls/${action.name}');
+  }
+
   @override
-  Future<void> movePointer(double dx, double dy) => _pointerKeys.move(dx, dy);
+  Future<void> movePointer(double dx, double dy) async =>
+      _pointerKeys.motion('move', dx, dy);
   @override
-  Future<void> scroll(double dx, double dy) => _pointerKeys.scroll(dx, dy);
+  Future<void> scroll(double dx, double dy) async =>
+      _pointerKeys.motion('scroll', dx, dy);
   @override
-  Future<void> click() => _pointerKeys.click();
+  Future<void> click() async => _pointerKeys.click();
   @override
-  Future<void> sendKey(RemoteKey key) => _pointerKeys.key(key);
+  Future<void> sendKey(RemoteKey key) async => _pointerKeys.specialKey(key);
   @override
   Future<void> sendText(String text) => _text.sendText(text);
   @override
@@ -213,7 +219,6 @@ final class LgDeviceController extends TVRemoteBase
   Future<void> _connect() async {
     final generation = ++_generation;
     _setState(DeviceConnectionState.connecting);
-    lastError = null;
     _capabilities.clear();
     SsapClient? client;
     String? savedKey;
@@ -225,8 +230,7 @@ final class LgDeviceController extends TVRemoteBase
       await _authorize(client, savedKey, generation);
       await _finishConnection(client, generation);
     } catch (error) {
-      await _connectionFailed(error, savedKey, client, generation);
-      throw lastError!;
+      throw await _connectionFailed(error, savedKey, client, generation);
     }
   }
 
@@ -305,14 +309,14 @@ final class LgDeviceController extends TVRemoteBase
     unawaited(_connectionLost());
   }
 
-  Future<void> _connectionFailed(
+  Future<RemoteException> _connectionFailed(
     Object error,
     String? savedKey,
     SsapClient? client,
     int generation,
   ) async {
     try {
-      lastError = await _pairingFailure(error, savedKey);
+      return await _pairingFailure(error, savedKey);
     } finally {
       await _closeFailedClient(client, generation);
     }
@@ -375,12 +379,6 @@ final class LgDeviceController extends TVRemoteBase
     _setState(state);
   }
 
-  Future<Map<String, Object?>> command(
-    RemoteCapability kind,
-    String path, {
-    Map<String, Object?> payload = const {},
-  }) => _commands.send(kind, path, payload: payload);
-
   Future<void> _closePointer() => _pointer.close();
 
   Future<void> _connectionLost() async {
@@ -438,11 +436,6 @@ final class LgDeviceController extends TVRemoteBase
     await _closePointer();
     await client?.close();
     _setState(DeviceConnectionState.disconnected);
-  }
-
-  Future<void> forget() async {
-    await disconnect();
-    await credentials.delete(device.id);
   }
 
   @override

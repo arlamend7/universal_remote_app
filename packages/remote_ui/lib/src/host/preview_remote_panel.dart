@@ -33,26 +33,12 @@ final class PreviewRemotePanel implements RemotePanel {
       ? live.volume
       : null;
   @override
+  bool supports(RemoteCapability capability) =>
+      sample || (_ownsSession && live.supports(capability));
+  @override
   bool get ready => sample || (_ownsSession && live.ready);
   @override
   bool get offline => !sample && (!_ownsSession || live.offline);
-  @override
-  bool get canChangeChannel =>
-      sample || (_ownsSession && live.canChangeChannel);
-  @override
-  bool get canChangeVolume => sample || (_ownsSession && live.canChangeVolume);
-  @override
-  bool get canLaunchApps => sample || (_ownsSession && live.canLaunchApps);
-  @override
-  bool get canNavigate => sample || (_ownsSession && live.canNavigate);
-  @override
-  bool get canPowerOff => sample || (_ownsSession && live.canPowerOff);
-  @override
-  bool get canSelectInput => sample || (_ownsSession && live.canSelectInput);
-  @override
-  bool get canSetVolume => sample || (_ownsSession && live.canSetVolume);
-  @override
-  bool get canToggleMute => sample || (_ownsSession && live.canToggleMute);
   @override
   bool get canWake => false;
 
@@ -108,21 +94,7 @@ final class PreviewRemotePanel implements RemotePanel {
     Future<void> Function()? onConfirmed,
   }) async {}
   @override
-  Future<void> press(NavigationKey key) async {}
-  @override
-  Future<void> channelDown() async {}
-  @override
-  Future<void> channelUp() async {}
-  @override
-  Future<void> volumeDown() async {}
-  @override
-  Future<void> volumeUp() async {}
-  @override
   void previewVolume(double value) {}
-  @override
-  Future<void> setVolume(double value) async {}
-  @override
-  Future<void> toggleMute() async {}
   @override
   Future<void> disconnect() async {}
   @override

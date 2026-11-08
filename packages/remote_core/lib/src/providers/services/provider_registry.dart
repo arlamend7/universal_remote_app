@@ -6,8 +6,6 @@ import 'package:remote_core/src/discovery.dart';
 import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/provider.dart';
 
-import '../../devices/services/device_connection_workflow.dart';
-
 final class ProviderRegistry {
   final Map<String, DeviceProvider> _providers = {};
   void register(DeviceProvider provider) {
@@ -154,54 +152,8 @@ final class ProviderRegistry {
     }
   }
 
-  Future<void> runConnection(
-    RemoteDevice device, {
-    required bool waking,
-    required Future<void> Function() connect,
-    required bool Function() isCurrent,
-    required Future<void> Function() reset,
-    bool Function()? waitingForStartup,
-    DeviceConnectionWorkflow workflow = const DeviceConnectionWorkflow(),
-  }) => workflow.run(
-    wake: waking ? () => wake(device) : null,
-    connect: connect,
-    isCurrent: isCurrent,
-    canRetry: (error) =>
-        (waitingForStartup?.call() ?? true) && canRetryAfterWake(device, error),
-    reset: reset,
-  );
-
-  Future<DeviceController> turnOn(
-    RemoteDevice device, {
-    DeviceConnectionWorkflow workflow = const DeviceConnectionWorkflow(),
-  }) async {
-    late DeviceController controller;
-    await runConnection(
-      device,
-      waking: true,
-      connect: () async {
-        controller = await connect(device);
-      },
-      isCurrent: () => true,
-      reset: () async {},
-      workflow: workflow,
-    );
-    return controller;
-  }
-
-  DeviceController createController(RemoteDevice device) =>
+  RemoteBase createController(RemoteDevice device) =>
       providerFor(device).createController(device);
-
-  Future<DeviceController> connect(RemoteDevice device) async {
-    final controller = createController(device);
-    try {
-      await controller.connect();
-      return controller;
-    } catch (_) {
-      await controller.dispose();
-      rethrow;
-    }
-  }
 
   Future<DiscoveryResult> discover({
     Duration timeout = const Duration(seconds: 6),

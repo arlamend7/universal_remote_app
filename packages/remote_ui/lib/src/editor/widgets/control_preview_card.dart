@@ -33,7 +33,7 @@ class ControlPreviewCard extends StatelessWidget {
       child: SizedBox(
         width: item.w * 80.0,
         height: item.h * 80.0,
-        child: UniversalRemoteItem.control(
+        child: StyledItem(
           quarterTurns: item.quarterTurns,
           style: item.style,
           child: GridItemPreview(
@@ -47,12 +47,12 @@ class ControlPreviewCard extends StatelessWidget {
   );
   Widget _information(BuildContext context) => ListTile(
     contentPadding: EdgeInsets.zero,
-    title: Text(WidgetCatalog.definition(item.kind).name),
+    title: Text(item.definition.name),
     subtitle: Text('Preview · ${item.w} × ${item.h}'),
     trailing: onAdd == null
         ? null
         : IconButton(
-            tooltip: 'Add ${WidgetCatalog.definition(item.kind).name}',
+            tooltip: 'Add ${item.definition.name}',
             onPressed: onAdd,
             icon: const Icon(Icons.add_circle_outline),
           ),

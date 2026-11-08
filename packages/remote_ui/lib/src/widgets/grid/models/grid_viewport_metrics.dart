@@ -32,19 +32,18 @@ final class GridViewportMetrics {
     double gap,
     double base,
   ) {
-    if (item.kind == GridWidgetKind.group) {
+    if (item.isGroup) {
       return item.children.fold<double>(
         base,
         (last, child) => math.max(last, _minimum(child, cellWidth, gap, base)),
       );
     }
-    final needed = switch (item.kind) {
-      GridWidgetKind.directionPad || GridWidgetKind.crossPad =>
-        144.0 + (item.config['shortcuts'] == 'true' ? 48 : 0),
-      GridWidgetKind.keypad =>
-        ((item.w * cellWidth + (item.w - 1) * gap) / 3 / 1.1) * 4,
-      _ => base,
-    };
+    final needed = item.definition.layout.minimumHeight(
+      width: item.w,
+      cellWidth: cellWidth,
+      gap: gap,
+      settings: item.config,
+    );
     return math.max(base, (needed - (item.h - 1) * gap) / item.h);
   }
 }

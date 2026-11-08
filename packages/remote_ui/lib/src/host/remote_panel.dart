@@ -13,15 +13,8 @@ abstract interface class RemotePanel {
   VolumeState? get volume;
   bool get ready;
   bool get offline;
-  bool get canChangeChannel;
-  bool get canChangeVolume;
-  bool get canLaunchApps;
-  bool get canNavigate;
-  bool get canPowerOff;
-  bool get canSelectInput;
-  bool get canSetVolume;
-  bool get canToggleMute;
   bool get canWake;
+  bool supports(RemoteCapability capability);
   String get contentSubtitle;
   String get contentTitle;
   String get displayName;
@@ -42,14 +35,7 @@ abstract interface class RemotePanel {
     BuildContext context, {
     Future<void> Function()? onConfirmed,
   });
-  Future<void> press(NavigationKey key);
-  Future<void> channelDown();
-  Future<void> channelUp();
-  Future<void> volumeDown();
-  Future<void> volumeUp();
   void previewVolume(double value);
-  Future<void> setVolume(double value);
-  Future<void> toggleMute();
   Future<void> disconnect();
   Future<void> retry();
   Future<void> wake();

@@ -36,7 +36,7 @@ void main() {
     final caps = {RemoteCapability.volume};
     final tv = RemoteDevice(id: 'id', name: 'TV', capabilities: caps);
     caps.clear();
-    expect(tv.supports(RemoteCapability.volume), isTrue);
+    expect(tv.capabilities, {RemoteCapability.volume});
     expect(() => tv.capabilities.clear(), throwsUnsupportedError);
     final client = TestController(tv);
     expect(client.supports(RemoteCapability.volume), isTrue);
@@ -107,25 +107,6 @@ void main() {
       cancellation.cancel();
       expect((await result).devices, isEmpty);
       expect(hanging.token!.isCancelled, isTrue);
-    },
-  );
-  test(
-    'failed connections dispose controller; successful lifecycle is explicit',
-    () async {
-      final broken = TestProvider('bad', [], failConnect: true);
-      final registry = ProviderRegistry()
-        ..register(broken)
-        ..register(TestProvider('good', []));
-      await expectLater(
-        registry.connect(device('bad')),
-        throwsA(isA<RemoteException>()),
-      );
-      expect(broken.last!.disposed, isTrue);
-      final connected = await registry.connect(device('good'));
-      expect(connected.state, DeviceConnectionState.connected);
-      await connected.disconnect();
-      expect(connected.state, DeviceConnectionState.disconnected);
-      await connected.dispose();
     },
   );
 }

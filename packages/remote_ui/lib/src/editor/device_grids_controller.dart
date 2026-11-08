@@ -5,39 +5,18 @@ import '../ui_model.dart';
 
 import 'dashboard_repository.dart';
 
-final class DeviceGridsController implements DashboardStore {
+final class DeviceGridsController {
   DeviceGridsController(this.repository);
   final DashboardRepository repository;
   final revision = ValueNotifier(0);
   Map<String, String> _dashboards = {};
   Future<void> _writes = Future.value();
 
-  Future<void> initialize(Iterable<RemoteDevice> profiles) async {
+  Future<void> initialize() async {
     _dashboards = await repository.load();
-    final migrated = {
-      for (final device in profiles)
-        if (!_dashboards.containsKey(device.id) && _legacyGrid(device) != null)
-          device.id: _legacyGrid(device)!,
-    };
-    if (migrated.isEmpty) {
-      return;
-    }
-    final combined = {..._dashboards, ...migrated};
-    await repository.save(combined);
-    _dashboards = combined;
   }
 
-  @override
-  GridLayout? forDevice(RemoteDevice device) =>
-      _decode(_dashboards[device.id] ?? _legacyGrid(device));
-
-  String? _legacyGrid(RemoteDevice device) {
-    final raw = device.metadata['remoteGrid.v2'];
-    return device.metadata['remoteGrid.active'] == 'true' &&
-            _decode(raw) != null
-        ? raw
-        : null;
-  }
+  GridLayout? forDevice(RemoteDevice device) => _decode(_dashboards[device.id]);
 
   GridLayout? _decode(String? raw) {
     if (raw == null) {
@@ -51,7 +30,6 @@ final class DeviceGridsController implements DashboardStore {
     }
   }
 
-  @override
   Future<void> save(RemoteDevice device, GridLayout layout) async {
     if (!GridGeometry.valid(layout.items)) {
       throw const RemoteException(

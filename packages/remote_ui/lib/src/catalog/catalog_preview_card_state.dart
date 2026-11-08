@@ -61,8 +61,8 @@ class CatalogPreviewCardState extends State<CatalogPreviewCard> {
       child: ExcludeSemantics(
         child: GridItemPreview(
           item: GridItem(
-            id: _definition.kind.name,
-            kind: _definition.kind,
+            id: _definition.id,
+            definitionId: _definition.id,
             x: 0,
             y: 0,
             w: _definition.width,

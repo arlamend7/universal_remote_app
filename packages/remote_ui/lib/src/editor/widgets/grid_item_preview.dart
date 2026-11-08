@@ -5,7 +5,7 @@ import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
-import '../../rendering/widgets/grid_remote_widget.dart';
+import '../../rendering/element_renderer.dart';
 import '../../rendering/viewmodels/grid_remote_viewmodel.dart';
 
 /// Exactly the runtime renderer and constraints. Editing never sends a command.
@@ -36,7 +36,7 @@ class GridItemPreview extends StatelessWidget {
         child: IgnorePointer(
           child: ListenableBuilder(
             listenable: remote.changes,
-            builder: (_, _) => GridRemoteWidget(item: item, model: model),
+            builder: (_, _) => ElementRenderer(item: item, model: model),
           ),
         ),
       ),

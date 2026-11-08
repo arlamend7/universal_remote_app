@@ -18,7 +18,7 @@ Future<void> openRemoteEditor(
       dependencies: RemoteEditorHost(
         grids: dependencies.grids,
         live: RemoteViewModel(dependencies),
-        canWakeDevice: dependencies.canWakeDevice,
+        canWakeDevice: dependencies.providers.canWake,
       ),
       device: device,
       parent: parent,

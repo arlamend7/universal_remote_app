@@ -20,10 +20,10 @@ void main() {
       final app = await AppBootstrap.initialize(storage: MemoryStorage());
       app.connection.selected.value = tv;
       final model = GridRemoteViewModel(RemoteViewModel(app));
-      for (final definition in WidgetCatalog.definitions) {
+      for (final definition in RemoteItemRegistry.definitions) {
         final item = GridItem(
           id: 'test',
-          kind: definition.kind,
+          definitionId: definition.id,
           x: 0,
           y: 0,
           w: definition.width,
@@ -37,7 +37,7 @@ void main() {
                 child: SizedBox(
                   width: item.w * 64 + (item.w - 1) * 8,
                   height: item.h * 80 + (item.h - 1) * 8,
-                  child: GridRemoteWidget(item: item, model: model),
+                  child: ElementRenderer(item: item, model: model),
                 ),
               ),
             ),
@@ -64,7 +64,7 @@ void main() {
         GridLayout([
           GridItem(
             id: 'rocker',
-            kind: GridWidgetKind.volumeDisplayRocker,
+            definitionId: 'volumeDisplayRocker',
             x: 0,
             y: 0,
             w: 1,
@@ -72,7 +72,7 @@ void main() {
           ),
           GridItem(
             id: 'launch',
-            kind: GridWidgetKind.appShortcut,
+            definitionId: 'appShortcut',
             x: 1,
             y: 0,
             w: 1,
@@ -81,7 +81,7 @@ void main() {
           ),
           GridItem(
             id: 'group',
-            kind: GridWidgetKind.group,
+            definitionId: 'group',
             x: 0,
             y: 3,
             w: 4,
@@ -89,7 +89,7 @@ void main() {
             children: [
               GridItem(
                 id: 'mute',
-                kind: GridWidgetKind.muteOn,
+                definitionId: 'muteOn',
                 x: 0,
                 y: 0,
                 w: 1,
@@ -188,10 +188,7 @@ void main() {
       await tester.tap(find.byTooltip('Done'));
       await tester.pumpAndSettle();
       final saved = app.grids.forDevice(tv)!;
-      expect(
-        saved.items.single.children.single.kind,
-        GridWidgetKind.volumeRocker,
-      );
+      expect(saved.items.single.children.single.definitionId, 'volumeRocker');
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
     },

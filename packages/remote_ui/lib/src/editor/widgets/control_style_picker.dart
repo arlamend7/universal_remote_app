@@ -6,38 +6,42 @@ import 'package:remote_ui/src/ui_model.dart';
 class ControlStylePicker extends StatelessWidget {
   const ControlStylePicker({
     super.key,
-    required this.kind,
+    required this.definitionId,
     required this.onChanged,
     required this.columns,
     required this.capabilities,
   });
-  final GridWidgetKind kind;
+  final String definitionId;
   final int columns;
   final Set<RemoteCapability> capabilities;
-  final ValueChanged<GridWidgetKind> onChanged;
+  final ValueChanged<String> onChanged;
   @override
   Widget build(BuildContext context) {
-    if (WidgetCatalog.definition(kind).category == RemoteItemCategory.groups) {
+    if (RemoteItemRegistry.resolve(definitionId).category ==
+        RemoteItemCategory.groups) {
       return const SizedBox.shrink();
     }
-    final choices = WidgetCatalog.variations(kind)
+    final choices = RemoteItemRegistry.variations(definitionId)
         .where(
           (item) =>
-              (item.kind == kind || isCatalogCompatible(item, capabilities)) &&
+              (item.id == definitionId ||
+                  item.isCompatibleWith(capabilities)) &&
               item.minimumWidth <= columns,
         )
         .toList();
     if (choices.length < 2) {
       return const SizedBox.shrink();
     }
-    return DropdownButtonFormField<GridWidgetKind>(
-      initialValue: choices.any((item) => item.kind == kind) ? kind : null,
+    return DropdownButtonFormField<String>(
+      initialValue: choices.any((item) => item.id == definitionId)
+          ? definitionId
+          : null,
       isExpanded: true,
       decoration: const InputDecoration(labelText: 'Style'),
       items: choices
           .map(
             (item) => DropdownMenuItem(
-              value: item.kind,
+              value: item.id,
               child: Text(item.name, overflow: TextOverflow.ellipsis),
             ),
           )

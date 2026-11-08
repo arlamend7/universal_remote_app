@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_ui/remote_ui.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 import 'package:universal_remote_app/data/devices/repositories/saved_device_repository.dart';
@@ -80,11 +81,18 @@ void main() {
       expect(provider.last, same(session));
       expect(
         tester
-            .widget<TextButton>(find.widgetWithText(TextButton, 'OK'))
+            .widget<ActionButton>(
+              find
+                  .ancestor(
+                    of: find.byTooltip('OK'),
+                    matching: find.byType(ActionButton),
+                  )
+                  .first,
+            )
             .onPressed,
         isNotNull,
       );
-      await tester.tap(find.text('OK'));
+      await tester.tap(find.byTooltip('OK'));
       await tester.pumpAndSettle();
       expect(provider.last!.navigationControl.last, NavigationKey.enter);
       expect(find.byType(Scrollable), findsNothing);
@@ -114,9 +122,14 @@ void main() {
       expect(find.text('Living room'), findsOneWidget);
       await tester.tap(find.text('Add'));
       await tester.pumpAndSettle();
-      expect(find.text('OK'), findsOneWidget);
-      final ok = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, 'OK'),
+      expect(find.byTooltip('OK'), findsOneWidget);
+      final ok = tester.widget<ActionButton>(
+        find
+            .ancestor(
+              of: find.byTooltip('OK'),
+              matching: find.byType(ActionButton),
+            )
+            .first,
       );
       expect(ok.onPressed, isNull); // No NavigationCapability was supplied.
       expect(dependencies.savedDevices.devices.value.single.id, tv.id);

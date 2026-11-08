@@ -18,7 +18,7 @@ abstract interface class DeviceProvider {
   String get id;
   bool supports(RemoteDevice device);
   Future<List<RemoteDevice>> discover(DiscoveryCancellation cancellation);
-  DeviceController createController(RemoteDevice device);
+  RemoteBase createController(RemoteDevice device);
 }
 
 /// An integration that can wake a configured device without an active session.

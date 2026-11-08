@@ -11,7 +11,7 @@ layouts are retained. No dependencies were added.
 | Manual address | Devices → Connect by IP |
 | Power off / configured wake | Remote power button; optional custom grid controls |
 | Rename, pairing, disconnect, forget, connection and capabilities | View details → Device settings |
-| Theme, diagnostics, import and help | Devices gear → App preferences |
+| Theme, accent, feedback, diagnostics and help | Settings page |
 | Per-TV controller layout | Customize remote; same editor from Device settings |
 
 Three-dot menus contain no power or disconnect actions. Duplicate header Add and

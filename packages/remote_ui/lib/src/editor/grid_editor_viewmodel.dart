@@ -1,15 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
-import '../catalog/widget_catalog.dart';
+import '../definitions/remote_item_registry.dart';
 import '../functions/default_remote_grid.dart';
 import '../layout/grid_arrangement.dart';
 import '../layout/grid_geometry.dart';
 import '../layout/models/enums/editor_mode.dart';
-import '../layout/models/enums/grid_widget_kind.dart';
 import '../layout/models/grid_item.dart';
 import '../layout/models/grid_layout.dart';
-import 'dashboard_store.dart';
+import 'device_grids_controller.dart';
 
 final class GridEditorViewModel extends ChangeNotifier {
   GridEditorViewModel(
@@ -20,7 +19,7 @@ final class GridEditorViewModel extends ChangeNotifier {
     this.maxRows = 128,
     this.reservedRows = 0,
   }) : draft = initial ?? grids.forDevice(device) ?? defaultRemoteGrid();
-  final DashboardStore grids;
+  final DeviceGridsController grids;
   final RemoteDevice device;
   final int columns, maxRows, reservedRows;
   GridLayout draft;
@@ -72,12 +71,12 @@ final class GridEditorViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  GridItem? add(GridWidgetKind kind) {
-    final definition = WidgetCatalog.definition(kind);
+  GridItem? add(String definitionId) {
+    final definition = RemoteItemRegistry.resolve(definitionId);
     final item = GridGeometry.place(
       GridItem(
         id: 'widget-${DateTime.now().microsecondsSinceEpoch}-${_sequence++}',
-        kind: kind,
+        definitionId: definitionId,
         x: 0,
         y: 0,
         w: definition.width > columns ? columns : definition.width,

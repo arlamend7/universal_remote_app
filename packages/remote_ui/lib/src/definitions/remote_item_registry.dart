@@ -1,28 +1,65 @@
-import '../elements/remote_element.dart';
+import 'package:remote_core/remote_core.dart';
+
 import '../layout/models/grid_item.dart';
-import '../layout/models/enums/grid_widget_kind.dart';
 import '../items/ac_items.dart';
 import '../items/standard_items.dart';
 import '../items/tv_item_registration.dart';
+import 'layouts/layouts.dart';
 import 'remote_item_definition.dart';
 
 /// A single registry for persisted references, catalog eligibility and rendering.
 abstract final class RemoteItemRegistry {
-  static final _entries = {
-    for (final item in <RemoteItemDefinition<Object>>[
-      ...standardItemDefinitions,
-      ...tvItemDefinitions,
-      ...AcItems.definitions,
-    ])
-      item.kind: item,
-  };
+  /// Every registered definition, in catalog order.
+  static final definitions = List<RemoteItemDefinition<Object>>.unmodifiable([
+    ...tvItemDefinitions,
+    ...standardItemDefinitions,
+    ...AcItems.definitions,
+  ]);
 
-  static RemoteItemDefinition<Object> resolve(GridWidgetKind kind) =>
-      _entries[kind] ??
-      (throw StateError('No remote item registered for ${kind.name}.'));
+  static final _entries = {for (final item in definitions) item.id: item};
+
+  static bool isRegistered(String id) => _entries.containsKey(id);
+
+  /// Definitions of the same category, used to offer alternative looks.
+  static List<RemoteItemDefinition<Object>> variations(String id) => definitions
+      .where((item) => item.category == resolve(id).category)
+      .toList();
+
+  /// Definitions usable with [capabilities] whose text matches every word of
+  /// [query].
+  static List<RemoteItemDefinition<Object>> search({
+    required Set<RemoteCapability> capabilities,
+    String query = '',
+    bool Function(RemoteItemDefinition<Object> definition)? where,
+  }) {
+    final words = _normalize(query).split(' ').where((word) => word.isNotEmpty);
+    return [
+      for (final definition in definitions)
+        if (definition.isCompatibleWith(capabilities) &&
+            (where?.call(definition) ?? true) &&
+            words.every(_normalize(definition.searchText).contains))
+          definition,
+    ];
+  }
+
+  static String _normalize(String text) => text
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
+      .trim();
+
+  /// The definition for [id]. A saved id this version does not know (for
+  /// example from a newer version) resolves to the unavailable placeholder
+  /// and keeps its own id, so saving the dashboard does not lose it.
+  static RemoteItemDefinition<Object> resolve(String id) =>
+      _entries[id] ?? _entries['unknown']!;
 }
 
-extension RegisteredGridElements on GridItem {
-  E element<E extends RemoteElement<Object>>(E reference) =>
-      RemoteItemRegistry.resolve(kind).element(reference);
+extension RegisteredGridItem on GridItem {
+  RemoteItemDefinition<Object> get definition =>
+      RemoteItemRegistry.resolve(definitionId);
+
+  bool get isGroup => definition.layout is GroupLayout;
+
+  /// A saved item whose definition this version cannot draw.
+  bool get isUnavailable => definition.layout is UnavailableLayout;
 }

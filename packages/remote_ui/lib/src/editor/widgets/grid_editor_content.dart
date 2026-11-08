@@ -5,7 +5,7 @@ import 'package:remote_ui/src/ui_model.dart';
 import '../viewmodels/grid_editor_actions.dart';
 import 'grid_editor_canvas.dart';
 import 'editor_toolbar.dart';
-import '../../rendering/widgets/grid_remote_canvas.dart';
+import '../../rendering/grid_remote_canvas.dart';
 import '../../widgets/grid/models/remote_preview_data.dart';
 
 class GridEditorContent extends StatelessWidget {

@@ -106,7 +106,7 @@ void main() {
     );
     final restored = reloaded.savedDevices.devices.value.single;
     expect(restored.metadata['macAddress'], _mac);
-    expect(reloaded.canWakeDevice(restored), isTrue);
+    expect(reloaded.providers.canWake(restored), isTrue);
     await reloaded.dispose();
   });
   test(

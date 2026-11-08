@@ -36,6 +36,6 @@ final class TestProvider implements DeviceProvider {
   }
 
   @override
-  DeviceController createController(RemoteDevice device) =>
+  RemoteBase createController(RemoteDevice device) =>
       last = TestController(device, fail: failConnect);
 }

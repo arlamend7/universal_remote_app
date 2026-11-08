@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
 
-final class TestController extends DeviceController {
+final class TestController extends RemoteBase {
   TestController(this.device, {this.fail = false});
   @override
   final RemoteDevice device;

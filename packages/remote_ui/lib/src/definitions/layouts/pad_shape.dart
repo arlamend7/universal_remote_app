@@ -1,0 +1,1 @@
+enum PadShape { circle, square }

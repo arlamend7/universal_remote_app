@@ -12,6 +12,4 @@ abstract class ACRemoteBase extends RemoteBase {
   Future<void> setSwing(bool enabled);
 }
 
-enum ClimateMode { auto, cool, heat, dry, fanOnly }
-
-typedef AcDeviceController = ACRemoteBase;
+enum ClimateMode { auto, cool, heat }

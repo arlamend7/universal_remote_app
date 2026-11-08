@@ -16,12 +16,6 @@ class SettingsViewport extends StatelessWidget {
       AppearanceSettings(model: model),
       ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.file_download_outlined),
-        title: const Text('Import older saved TVs'),
-        onTap: () => model.importOlderProfiles(context),
-      ),
-      ListTile(
-        contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.help_outline),
         title: const Text('Help'),
         onTap: () => _help(context),

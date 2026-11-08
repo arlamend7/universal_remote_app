@@ -121,5 +121,3 @@ final class VolumeState {
   /// Null when the device reports volume without exposing mute feedback.
   final bool? muted;
 }
-
-typedef TvDeviceController = TVRemoteBase;

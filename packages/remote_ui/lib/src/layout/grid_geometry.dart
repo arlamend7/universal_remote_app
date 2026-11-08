@@ -1,6 +1,5 @@
 import 'models/grid_item.dart';
-import 'models/enums/grid_widget_kind.dart';
-import '../catalog/widget_catalog.dart';
+import '../definitions/remote_item_registry.dart';
 
 abstract final class GridGeometry {
   static bool overlaps(GridItem a, GridItem b) =>
@@ -17,8 +16,7 @@ abstract final class GridGeometry {
         item.y + item.h > rows ||
         item.quarterTurns < 0 ||
         item.quarterTurns > 3 ||
-        !WidgetCatalog.definition(item.layoutKind)
-            .accepts(item.contentWidth, item.contentHeight)) {
+        !item.definition.accepts(item.contentWidth, item.contentHeight)) {
       return false;
     }
     return !items.any((other) => other.id != item.id && overlaps(item, other));
@@ -81,10 +79,10 @@ abstract final class GridGeometry {
     if (item.id.isEmpty || !fits(item, items, columns: columns, rows: rows)) {
       return false;
     }
-    if (item.kind == GridWidgetKind.unknown) {
+    if (item.isUnavailable) {
       return true;
     }
-    if (item.kind != GridWidgetKind.group) {
+    if (!item.isGroup) {
       return item.children.isEmpty;
     }
     if (item.quarterTurns != 0) {

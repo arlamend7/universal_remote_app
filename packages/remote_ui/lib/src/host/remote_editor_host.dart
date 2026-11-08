@@ -1,6 +1,6 @@
 import 'package:remote_core/remote_core.dart';
 
-import '../editor/dashboard_store.dart';
+import '../editor/device_grids_controller.dart';
 import 'remote_panel.dart';
 import 'preview_remote_panel.dart';
 
@@ -12,7 +12,7 @@ final class RemoteEditorHost {
     required this.canWakeDevice,
   });
 
-  final DashboardStore grids;
+  final DeviceGridsController grids;
   final RemotePanel live;
   final bool Function(RemoteDevice device) canWakeDevice;
 

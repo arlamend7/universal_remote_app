@@ -104,7 +104,7 @@ void main() {
             DeviceConnectionState.connected,
           );
           expect(await credentials.read(tv.id), 'test-only-paired-key');
-          await tester.tap(find.text('OK'));
+          await tester.tap(find.byTooltip('OK'));
           await tester.pumpAndSettle();
           expect(pointer.frames, contains('type:button\nname:ENTER\n\n'));
           if (scenario == 'no-feedback') {

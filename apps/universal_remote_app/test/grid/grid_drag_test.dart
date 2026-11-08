@@ -15,22 +15,8 @@ void main() {
         app.grids,
         tv,
         initial: GridLayout([
-          GridItem(
-            id: 'moving',
-            kind: GridWidgetKind.mute,
-            x: 0,
-            y: 0,
-            w: 1,
-            h: 1,
-          ),
-          GridItem(
-            id: 'fixed',
-            kind: GridWidgetKind.power,
-            x: 1,
-            y: 0,
-            w: 1,
-            h: 1,
-          ),
+          GridItem(id: 'moving', definitionId: 'mute', x: 0, y: 0, w: 1, h: 1),
+          GridItem(id: 'fixed', definitionId: 'power', x: 1, y: 0, w: 1, h: 1),
         ]),
       );
       await tester.pumpWidget(

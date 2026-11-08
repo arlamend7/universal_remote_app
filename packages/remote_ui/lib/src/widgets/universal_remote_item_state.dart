@@ -1,71 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../configuration/remote_item_style.dart';
 import 'universal_remote_item.dart';
 import 'mouse_item_drag.dart';
 import 'resize_handle.dart';
+import 'styled_item.dart';
 
 class UniversalRemoteItemState extends State<UniversalRemoteItem> {
   Offset delta = Offset.zero;
   bool resizing = false;
   Size origin = Size.zero;
   @override
-  Widget build(BuildContext context) {
-    if (widget.onResize == null) {
-      return _content;
-    }
-    return LayoutBuilder(builder: _layout);
-  }
+  Widget build(BuildContext context) => LayoutBuilder(builder: _layout);
 
-  Widget get _content {
-    final styled = _styledContent();
-    if (widget.quarterTurns == 0) {
-      return styled;
-    }
-    return RotatedBox(quarterTurns: widget.quarterTurns, child: styled);
-  }
-
-  Widget _styledContent() {
-    final style = widget.style;
-    if (style.isDefault) {
-      return widget.child;
-    }
-    final foreground = style.foreground;
-    final background = style.background;
-    Widget content = Padding(
-      padding: EdgeInsets.all(style.padding),
-      child: widget.child,
-    );
-    if (foreground != null) {
-      content = _foreground(content, Color(foreground));
-    }
-    final radius = BorderRadius.circular(style.cornerRadius);
-    return Opacity(
-      opacity: style.opacity,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: background == null ? null : Color(background),
-          borderRadius: radius,
-          border: style.showBorder ? _border(style) : null,
-        ),
-        child: content,
-      ),
-    );
-  }
-
-  Border _border(RemoteItemStyle style) => Border.all(
-    width: style.borderWidth,
-    color: style.borderColor == null
-        ? Theme.of(context).colorScheme.outline
-        : Color(style.borderColor!),
-  );
-
-  Widget _foreground(Widget child, Color color) => IconTheme.merge(
-    data: IconThemeData(color: color),
-    child: DefaultTextStyle.merge(
-      style: TextStyle(color: color),
-      child: child,
-    ),
+  Widget get _content => StyledItem(
+    style: widget.style,
+    quarterTurns: widget.quarterTurns,
+    child: widget.child,
   );
   Widget _layout(BuildContext context, BoxConstraints constraints) => Semantics(
     button: true,
@@ -179,6 +129,6 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
     final width = widget.width + (delta.dx / cellWidth).round();
     final height = widget.height + (delta.dy / cellHeight).round();
     setState(() => resizing = false);
-    widget.onResize?.call(width.clamp(1, 4), height.clamp(1, 16));
+    widget.onResize(width.clamp(1, 4), height.clamp(1, 16));
   }
 }

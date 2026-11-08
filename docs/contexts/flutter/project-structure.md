@@ -24,13 +24,11 @@ apps/universal_remote_app/lib/
     devices/                      profiles, repository contract, profile identity
     diagnostics/                  controlled diagnostic events
     discovery/                    cancellable discovery coordination
-    remote/                       commands, volume/current-content observation
-    remote_layout/                per-TV module models and profile-backed layouts
-    remote_grid/                  widget catalog, grid geometry and per-TV activation
     settings/                     persisted theme and diagnostic preferences
     storage/                      application storage contract
   data/
-    devices/                      profile mapping/repository and LG manual factory
+    dashboards/                   local dashboard repository
+    devices/                      profile mapping and repository
     network/                      multicast and wake adapters
     pairing/                      protected credential repository
     storage/                      native preferences and secure-storage adapters
@@ -68,14 +66,14 @@ connection, or immutable connection options.
 
 | Change | Owning context |
 | --- | --- |
-| Add a TV metadata field | remote_core/src/devices/models; profile mapper if persisted |
+| Add a TV metadata field | remote_core/src/device.dart; profile mapper if persisted |
 | Change pairing authorization | remote_lg_webos/src/devices/services and pairing constants |
 | Change SSAP request deadlines | remote_lg_webos/src/protocol/requests |
 | Change subscriptions/unsubscribe | remote_lg_webos/src/protocol/subscriptions |
 | Change LG volume serialization | remote_lg_webos/src/capabilities/volume |
 | Change pointer framing/lifetime | remote_lg_webos/src/pointer |
-| Change UI volume layout | presentation/views/remote/widgets/volume_card.dart |
-| Change manual form validation | data/devices/factories/lg_manual_device_factory.dart |
+| Change a control's look or command | remote_ui/src/items (definition) and rendering/primitives |
+| Change manual form validation | remote_lg_webos/src/connection/models and device_editor_viewmodel.dart |
 | Change form state/errors | presentation/views/devices/viewmodels/device_editor_viewmodel.dart |
 | Change navigation | routes/app_routes.dart |
 | Change dependency wiring | app/app_bootstrap.dart |
@@ -86,18 +84,20 @@ abstract layers simply to match a diagram.
 
 ## Minimal controller UI
 
-Remote and Devices share the indexed main shell. The remote opens the saved
+Remote, Devices and Settings share the indexed main shell. The remote opens the saved
 grid or a starter grid. Both run through the same renderer. The editor is opened
 by `routes/open_remote_editor.dart`.
 
 - `packages/remote_ui/lib/src/editor` owns the draft, gestures, and item settings.
 - `packages/remote_ui/lib/src/catalog` owns the searchable two-column library.
 - `packages/remote_ui/lib/src/rendering` owns live controls and their feedback.
+  `element_renderer.dart` resolves a definition's layout; `primitives/` draws
+  elements by type (action button, info, slider, collection, dial, touch surface).
 - `packages/remote_ui` owns the shared `UniversalRemoteItem`, geometry, and typed
   definitions. `TvItems` and `AcItems` bind commands to separate device contracts.
 - The app implements local persistence in `data/dashboards`. Shared dashboard
   state, validation, and migration live in `packages/remote_ui/lib/src/editor`.
-- `presentation/widgets/grid` owns shared grid sizing and placement primitives.
+- `packages/remote_ui/lib/src/widgets/grid` owns shared grid sizing and placement primitives.
 
 Editor and live items share the shell and content renderer. Catalog and View
 previews cannot issue commands. `GridArrangement` displaces neighbors on resize
@@ -120,8 +120,8 @@ inline offline action sections. See the [management review](device-management-re
 - `remote_ui/elements`: `RemoteAction`, `RemoteInput`, `RemoteCollection` and
   `RemoteInfo`. Info elements return a `RemoteReading` (title, subtitle, leading
   widget) from a `RemoteElementContext` that carries the full `RemotePanel`, the
-  stored `RemoteDevice` profile, the item kind and axis; icons use the same
-  context. There is no decoration element.
+  stored `RemoteDevice` profile, the item's saved settings and build context.
+  An action's icon, label, enabled state and command come from one `builder`.
 - `RemoteItemStyle` stores background, border (on/off, color, width) and corner
   radius; the appearance editor in the control settings sheet edits them.
 - Editor: back arrow and check in the app bar, device name as title, one toolbar
@@ -129,5 +129,6 @@ inline offline action sections. See the [management review](device-management-re
   nine-dot resize handle inside each tile.
 - `RemoteFeedback` (remote_ui/feedback) provides haptics and system click sounds;
   the app's "Sound and haptics" setting switches it on or off.
-- App shell: `AppTopBar` hosts brand, theme mode (system/light/dark) and accent
-  swatches; `AppThemes.build(brightness, accent)` uses the portfolio palette.
+- App shell: the Settings page holds theme mode (system/light/dark), accent
+  swatches and feedback; `AppThemes.build(brightness, accent)` uses the portfolio
+  palette.

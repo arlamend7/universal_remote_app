@@ -2,10 +2,8 @@ import 'package:test/test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_lg_webos/src/commands/services/lg_command_channel.dart';
-import 'package:remote_lg_webos/src/capabilities/media/lg_media_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/text/lg_text_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_selection_controller.dart';
-import 'package:remote_lg_webos/src/capabilities/pointer/lg_pointer_controller.dart';
 import 'package:remote_lg_webos/src/pointer/services/lg_pointer_connection.dart';
 
 import 'support/fake_transport.dart';
@@ -19,9 +17,11 @@ void main() {
       final channel = LgCommandChannel(onUnavailable: (_) {})..attach(client);
       transport.respond = (request) =>
           transport.reply(request, {'returnValue': true});
-      final media = LgMediaController(channel);
       for (final action in MediaAction.values) {
-        await media.send(action);
+        await channel.send(
+          RemoteCapability.media,
+          'media.controls/${action.name}',
+        );
         expect(
           transport.sent.last['uri'],
           'ssap://media.controls/${action.name}',
@@ -86,17 +86,16 @@ void main() {
       Uri.parse('ws://127.0.0.1:3000'),
       const LgConnectionOptions(allowInsecure: true),
     );
-    final control = LgPointerController(pointer);
-    await control.move(12, -5);
-    await control.scroll(0, 2);
-    await control.click();
-    await control.key(RemoteKey.digit7);
+    pointer.motion('move', 12, -5);
+    pointer.motion('scroll', 0, 2);
+    pointer.click();
+    pointer.specialKey(RemoteKey.digit7);
     expect(transport.frames[0], contains('type:move\ndx:12\ndy:-5'));
     expect(transport.frames[1], contains('type:scroll'));
     expect(transport.frames[2], 'type:click\n\n');
     expect(transport.frames[3], 'type:button\nname:7\n\n');
     expect(transport.frames.every((frame) => frame.endsWith('\n\n')), true);
-    await expectLater(control.move(double.nan, 0), throwsArgumentError);
+    expect(() => pointer.motion('move', double.nan, 0), throwsArgumentError);
     await pointer.close();
   });
 }

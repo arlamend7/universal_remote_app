@@ -52,13 +52,11 @@ final class AppRoutes {
   }
 
   RemoteDevice _savedConfiguration(RemoteDevice device) {
-    final saved = dependencies.savedDevices.devices.value
-        .where((candidate) => candidate.id == device.id)
-        .firstOrNull;
+    final saved = dependencies.savedDevices.byId(device.id);
     if (saved == null) {
       return device;
     }
-    return dependencies.connection.registry.mergeDiscovered(saved, device);
+    return dependencies.providers.mergeDiscovered(saved, device);
   }
 
   Widget _home(BuildContext context) =>

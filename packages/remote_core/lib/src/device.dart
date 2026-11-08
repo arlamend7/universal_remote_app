@@ -14,7 +14,6 @@ final class RemoteDevice {
     Map<String, String> metadata = const {},
     this.stableIdentity = true,
     this.pairingState = PairingState.unknown,
-    this.connectionState = DeviceConnectionState.disconnected,
   }) : capabilities = Set.unmodifiable(capabilities),
        endpoints = List.unmodifiable(endpoints),
        metadata = Map.unmodifiable(metadata) {
@@ -33,9 +32,6 @@ final class RemoteDevice {
   final bool stableIdentity;
   final Set<RemoteCapability> capabilities;
   final PairingState pairingState;
-  final DeviceConnectionState connectionState;
-  bool supports(RemoteCapability capability) =>
-      capabilities.contains(capability);
 }
 
 enum DeviceCategory {
@@ -57,7 +53,7 @@ enum DeviceConnectionState {
   reconnecting,
 }
 
-enum PairingState { unknown, unpaired, awaitingApproval, paired, rejected }
+enum PairingState { unknown, unpaired, paired }
 
 /// Network setup values returned by a provider for display in the app.
 final class DeviceNetworkConfiguration {

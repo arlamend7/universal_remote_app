@@ -81,10 +81,7 @@ class RemoteViewModel implements RemotePanel {
   GridLayout? get grid =>
       device == null ? null : dependencies.grids.forDevice(device!);
   String get displayName =>
-      dependencies.savedDevices.devices.value
-          .where((item) => item.id == device?.id)
-          .firstOrNull
-          ?.name ??
+      dependencies.savedDevices.byId(device?.id)?.name ??
       device?.name ??
       'Remote';
   CurrentContent? get content =>
@@ -109,18 +106,6 @@ class RemoteViewModel implements RemotePanel {
   @override
   DeviceInput? get currentInput =>
       connection.tvWith(RemoteCapability.currentInput)?.currentInput;
-  bool get canChangeChannel =>
-      ready &&
-      content?.isLiveTv == true &&
-      connection.supports(RemoteCapability.channels);
-  Future<void> channelUp() => connection.execute(() async {
-    await _tv(RemoteCapability.channels)?.channelUp();
-    unawaited(connection.refreshContent());
-  });
-  Future<void> channelDown() => connection.execute(() async {
-    await _tv(RemoteCapability.channels)?.channelDown();
-    unawaited(connection.refreshContent());
-  });
   Future<void> menu(BuildContext context, String choice) async {
     final current = device;
     if (current == null) {
@@ -169,33 +154,22 @@ class RemoteViewModel implements RemotePanel {
     final current = device;
     return offline &&
         current != null &&
-        connection.registry.canReviewCertificate(
+        dependencies.providers.canReviewCertificate(
           current,
           connection.errorCode.value,
         );
   }
 
-  bool get canNavigate => ready && _supports(RemoteCapability.navigation);
-  bool get canChangeVolume => ready && _supports(RemoteCapability.volume);
-  bool get canSetVolume => canChangeVolume && volume != null;
-  bool get canToggleMute => canChangeVolume && volume?.muted != null;
-  bool get canPowerOff => ready && _supports(RemoteCapability.power);
-  bool get canLaunchApps => ready && _supports(RemoteCapability.applications);
-  bool get canSelectInput => ready && _supports(RemoteCapability.inputs);
+  bool get canPowerOff => ready && supports(RemoteCapability.power);
   RemoteDevice? get _wakeTarget =>
-      dependencies.savedDevices.devices.value
-          .where((item) => item.id == device?.id)
-          .firstOrNull ??
-      device;
+      dependencies.savedDevices.byId(device?.id) ?? device;
   bool get canWake {
     final target = _wakeTarget;
-    return target != null && dependencies.canWakeDevice(target);
+    return target != null && dependencies.providers.canWake(target);
   }
 
-  bool _supports(RemoteCapability capability) =>
-      connection.supports(capability);
-  TVRemoteBase? _tv(RemoteCapability capability) =>
-      connection.tvWith(capability);
+  @override
+  bool supports(RemoteCapability capability) => connection.supports(capability);
   String get status => switch (state) {
     DeviceConnectionState.connected => 'Connected',
     DeviceConnectionState.connecting => 'Connecting',
@@ -234,29 +208,10 @@ class RemoteViewModel implements RemotePanel {
         : 'This integration has no configured remote wake. Turn on the TV with its physical remote, check its network, then connect again. A disconnected socket does not confirm that the TV is powered off.';
   }
 
-  Future<void> press(NavigationKey key) => connection.execute(() async {
-    await _tv(RemoteCapability.navigation)?.press(key);
-  });
-  Future<void> volumeUp() => connection.execute(() async {
-    await _tv(RemoteCapability.volume)?.volumeUp();
-  }, refreshVolume: true);
-  Future<void> volumeDown() => connection.execute(() async {
-    await _tv(RemoteCapability.volume)?.volumeDown();
-  }, refreshVolume: true);
-  Future<void> toggleMute() => connection.execute(() async {
-    final muted = volume?.muted;
-    if (muted == null) {
-      return;
-    }
-    await _tv(RemoteCapability.volume)?.setMuted(!muted);
-  }, refreshVolume: true);
   void previewVolume(double value) {
     connection.volume.value = VolumeState(value.round(), volume?.muted);
   }
 
-  Future<void> setVolume(double value) => connection.execute(() async {
-    await _tv(RemoteCapability.volume)?.setVolume(value.round());
-  }, refreshVolume: true);
   Future<void> disconnect() => connection.disconnect();
   Future<void> retry() async {
     final current = device;
@@ -296,7 +251,7 @@ class RemoteViewModel implements RemotePanel {
     if (!context.mounted || !identical(device, current) || !offline) {
       return;
     }
-    final previous = connection.registry
+    final previous = dependencies.providers
         .networkConfiguration(current)
         .certificate;
     final confirmed = await confirmTvCertificate(
@@ -308,7 +263,7 @@ class RemoteViewModel implements RemotePanel {
     if (!confirmed || !identical(device, current) || !offline) {
       return;
     }
-    final trusted = connection.registry.trustCertificate(
+    final trusted = dependencies.providers.trustCertificate(
       current,
       certificate.derBase64,
     );
@@ -324,7 +279,7 @@ class RemoteViewModel implements RemotePanel {
     Future<void> Function()? onConfirmed,
   }) async {
     final owner = connection.controller;
-    if (!_supports(RemoteCapability.power)) {
+    if (!supports(RemoteCapability.power)) {
       return;
     }
     final confirmed = await ConfirmationDialog.ask(

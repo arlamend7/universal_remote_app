@@ -13,11 +13,11 @@ class ControlSizePicker extends StatelessWidget {
   final int columns;
   final void Function(int width, int height) onChanged;
   int get _minimumWidth => item.quarterTurns.isOdd
-      ? WidgetCatalog.definition(item.layoutKind).minimumHeight
-      : WidgetCatalog.definition(item.layoutKind).minimumWidth;
+      ? item.definition.minimumHeight
+      : item.definition.minimumWidth;
   int get _minimumHeight => item.quarterTurns.isOdd
-      ? WidgetCatalog.definition(item.layoutKind).minimumWidth
-      : WidgetCatalog.definition(item.layoutKind).minimumHeight;
+      ? item.definition.minimumWidth
+      : item.definition.minimumHeight;
   int get _maximumHeight => item.quarterTurns.isOdd ? 4 : 16;
   @override
   Widget build(BuildContext context) => Column(

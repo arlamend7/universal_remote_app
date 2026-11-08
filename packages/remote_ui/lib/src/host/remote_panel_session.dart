@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
 abstract interface class RemotePanelSession {
-  DeviceController? get controller;
+  RemoteBase? get controller;
   ValueListenable<RemoteDevice?> get selected;
   ValueListenable<DeviceConnectionState> get state;
   ValueListenable<int> get revision;

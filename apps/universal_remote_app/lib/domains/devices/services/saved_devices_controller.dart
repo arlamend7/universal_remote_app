@@ -35,13 +35,14 @@ class SavedDevicesController {
     return result;
   }
 
-  RemoteDevice? _latest(String id) =>
+  /// The current saved record, or null when [id] is not saved.
+  RemoteDevice? byId(String? id) =>
       devices.value.where((item) => item.id == id).firstOrNull;
   Future<void> updateExisting(
     String id,
     RemoteDevice? Function(RemoteDevice) update,
   ) => _write(() async {
-    final current = _latest(id);
+    final current = byId(id);
     if (current == null) {
       return;
     }
@@ -71,7 +72,7 @@ class SavedDevicesController {
       throw const RemoteException('name', 'Enter a device name.');
     }
     await _write(
-      () => _save(copyDevice(_latest(device.id) ?? device, name: name.trim())),
+      () => _save(copyDevice(byId(device.id) ?? device, name: name.trim())),
     );
   }
 

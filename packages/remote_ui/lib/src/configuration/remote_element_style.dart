@@ -1,3 +1,5 @@
+import 'style_json.dart';
+
 /// Overrides for one stable element ID within an item.
 final class RemoteElementStyle {
   const RemoteElementStyle({this.iconSize, this.foreground});
@@ -10,14 +12,11 @@ final class RemoteElementStyle {
       return const RemoteElementStyle();
     }
     final size = value['iconSize'];
-    final color = value['foreground'];
     return RemoteElementStyle(
       iconSize: size is num && size.isFinite
-          ? size.toDouble().clamp(12, 36)
+          ? parseStyleNumber(size, 12, 36, 24)
           : null,
-      foreground: color is int && color >= 0 && color <= 0xffffffff
-          ? color
-          : null,
+      foreground: parseStyleColor(value['foreground']),
     );
   }
 

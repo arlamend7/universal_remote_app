@@ -14,7 +14,7 @@ final class DeviceSleepController {
   final RemotePanelSession connection;
   final deadline = ValueNotifier<DateTime?>(null);
   Timer? _timer;
-  DeviceController? _owner;
+  RemoteBase? _owner;
   void schedule(RemoteDevice device, Duration duration) {
     _cancel();
     if (connection.selected.value?.id != device.id ||

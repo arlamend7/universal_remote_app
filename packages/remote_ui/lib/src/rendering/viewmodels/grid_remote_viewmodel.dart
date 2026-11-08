@@ -6,9 +6,6 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/src/ui_model.dart';
 
 import '../../widgets/grid/models/remote_preview_data.dart';
-import '../../items/standard_items.dart';
-import '../../widgets/dialogs/confirmation_dialog.dart';
-import '../modals/text_entry_sheet.dart';
 import '../../widgets/dialogs/device_choice_sheet.dart';
 
 final class GridRemoteViewModel implements TvRemoteDevice {
@@ -16,20 +13,49 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   final RemotePreviewData? previewData;
   final RemotePanel remote;
   RemoteElementContext elementContext(
-    GridWidgetKind kind, {
-    Axis position = Axis.horizontal,
-  }) => RemoteElementContext(kind: kind, remote: remote, position: position);
+    GridItem item, {
+    BuildContext? buildContext,
+  }) => RemoteElementContext(
+    remote: remote,
+    settings: item.config,
+    buildContext: buildContext,
+  );
 
-  /// The icon a registered element chooses for this remote's current state.
-  IconData iconOf(
-    RemoteElement<Object> element,
-    GridWidgetKind kind, {
-    Axis position = Axis.horizontal,
-  }) => element.icon!(elementContext(kind, position: position));
+  /// Resolves [action] for [item] and runs it; does nothing when this panel
+  /// has no device for it.
+  Future<void>? press(
+    RemoteAction<Object> action,
+    GridItem item,
+    BuildContext context,
+  ) => resolve(action, elementContext(item, buildContext: context))?.execute();
+
+  /// Resolves [action] for the device type it was registered for, or null
+  /// when this panel has no such device (an air conditioner action while a TV
+  /// is connected).
+  ResolvedAction? resolve(
+    RemoteAction<Object> action,
+    RemoteElementContext context,
+  ) {
+    if (action is RemoteAction<TvRemoteDevice>) {
+      return action.builder(context, this);
+    }
+    if (action is RemoteAction<RemotePanel>) {
+      return action.builder(context, remote);
+    }
+    final device = remote.connection.controller;
+    if (action is RemoteAction<ACRemoteBase> && device is ACRemoteBase) {
+      final resolved = action.builder(context, device);
+      return (
+        icon: resolved.icon,
+        label: resolved.label,
+        enabled: resolved.enabled,
+        execute: () => execute(resolved.execute),
+      );
+    }
+    return null;
+  }
 
   bool get ready => remote.ready;
-  bool supports(RemoteCapability capability) =>
-      remote.connection.supports(capability);
 
   /// The connected TV driver, only when it reports [capability].
   TVRemoteBase? tv(RemoteCapability capability) =>
@@ -42,11 +68,22 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   @override
   CurrentContent? get currentActivity => remote.content;
   @override
-  Future<void> navigate(NavigationKey key) => remote.press(key);
+  Future<void> navigate(NavigationKey key) => execute(() async {
+    await tv(RemoteCapability.navigation)?.press(key);
+  });
   @override
-  Future<void> channelUp() => remote.channelUp();
+  Future<void> channelUp() => _changeChannel((tv) => tv.channelUp());
   @override
-  Future<void> channelDown() => remote.channelDown();
+  Future<void> channelDown() => _changeChannel((tv) => tv.channelDown());
+
+  Future<void> _changeChannel(Future<void> Function(TVRemoteBase tv) change) =>
+      execute(() async {
+        final channels = tv(RemoteCapability.channels);
+        if (channels != null) {
+          await change(channels);
+        }
+        unawaited(remote.connection.refreshContent());
+      });
   @override
   Future<void> sendText(String text, {bool submit = false}) =>
       execute(() async {
@@ -83,15 +120,22 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   }
 
   @override
-  int? get volumeLevel => remote.offline ? null : remote.volume?.volume;
+  Future<void> volumeUp() => _changeVolume((tv) => tv.volumeUp());
   @override
-  Future<void> volumeUp() => remote.volumeUp();
-  @override
-  Future<void> volumeDown() => remote.volumeDown();
+  Future<void> volumeDown() => _changeVolume((tv) => tv.volumeDown());
   @override
   void previewVolume(double value) => remote.previewVolume(value);
   @override
-  Future<void> setVolume(double value) => remote.setVolume(value);
+  Future<void> setVolume(double value) =>
+      _changeVolume((tv) => tv.setVolume(value.round()));
+
+  Future<void> _changeVolume(Future<void> Function(TVRemoteBase tv) change) =>
+      remote.connection.execute(() async {
+        final volume = tv(RemoteCapability.volume);
+        if (volume != null) {
+          await change(volume);
+        }
+      }, refreshVolume: true);
   @override
   Future<List<DeviceApplication>> installedApps() async {
     final apps = tv(RemoteCapability.applications);
@@ -119,9 +163,8 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   }
 
   @override
-  Future<void> launchApp(DeviceApplication app) => launch(app.id, app.name);
-
-  Future<void> launch(String id, String name) => execute(() async {
+  Future<void> launchApp(DeviceApplication app) => execute(() async {
+    final (id, name) = (app.id, app.name);
     final apps = tv(RemoteCapability.applications);
     if (apps == null) {
       throw const RemoteException('apps', 'App launching is unavailable.');
@@ -154,21 +197,19 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     );
     unawaited(remote.connection.refreshContent());
   });
-  List<(String, String)> targets(GridItem item) {
-    if (item.kind.name == 'recentApps' && previewData != null) {
-      return previewData!.applications;
-    }
+
+  /// Pinned entries of a collection item; previews fall back to the
+  /// collection's sample entries.
+  List<(String, String)> targets(
+    GridItem item,
+    RemoteCollection<TvRemoteDevice, Object> collection,
+  ) {
     final configured = widgetTargets(item.config['targets']);
-    if (configured.isNotEmpty || previewData == null) {
+    final preview = previewData;
+    if (configured.isNotEmpty || preview == null) {
       return configured;
     }
-    if (item.kind.name.startsWith('input')) {
-      return previewData!.inputs;
-    }
-    if (item.kind.name.startsWith('channel')) {
-      return previewData!.channels;
-    }
-    return previewData!.applications;
+    return collection.sample(preview);
   }
 
   List<(String, String)> get recentApps {
@@ -221,16 +262,14 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   });
   @override
   Future<void> mute(bool? value) {
-    if (value == null) {
-      return remote.toggleMute();
+    final muted = remote.volume?.muted;
+    final target = value ?? (muted == null ? null : !muted);
+    if (target == null) {
+      return Future.value();
     }
-    return remote.connection.execute(() async {
-      await tv(RemoteCapability.volume)?.setMuted(value);
-    }, refreshVolume: true);
+    return _changeVolume((tv) => tv.setMuted(target));
   }
 
-  Future<void> details(BuildContext context) =>
-      remote.showDeviceDetails(context);
   Future<void> choose<T>(
     BuildContext context,
     String title,
@@ -250,7 +289,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     final id = await DeviceChoiceSheet.choose(context, title, [
       for (final entry in choices)
         (collection.entryId(entry), collection.entryName(entry)),
-    ]);
+    ], grid: collection.leading != null);
     if (id == null || !identical(owner, remote.connection.controller)) {
       return;
     }
@@ -258,26 +297,6 @@ final class GridRemoteViewModel implements TvRemoteDevice {
       (entry) => collection.entryId(entry) == id,
     );
     await collection.onSelected(this, chosen);
-  }
-
-  Future<void> keyboard(
-    BuildContext context,
-    KeyboardConfiguration configuration,
-  ) async {
-    final owner = remote.connection.controller;
-    final text = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 600),
-      builder: (_) => const TextEntrySheet(),
-    );
-    if (text == null || !identical(remote.connection.controller, owner)) {
-      return;
-    }
-    await RemoteItemRegistry.resolve(GridWidgetKind.keyboard)
-        .element(TvItems.keyboard)
-        .commit(this, (text: text, submit: configuration.submitAfterTyping));
   }
 
   @override
@@ -294,47 +313,4 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   Future<void> syncWatchCompanion() => execute(() async {
     await tv(RemoteCapability.watch)?.syncWatchCompanion();
   });
-
-  Future<void> power(BuildContext context, GridItem item) async {
-    final action = item.element(powerOffAction);
-    if (item.config['confirm'] == 'false') {
-      await action.onPressed(remote, null);
-      return;
-    }
-    await remote.powerOff(
-      context,
-      onConfirmed: () => action.onPressed(remote, null),
-    );
-  }
-
-  Future<void> sleep(
-    BuildContext context,
-    GridItem item,
-    DateTime? deadline,
-  ) async {
-    final action = item.element(sleepTimerAction);
-    if (deadline != null) {
-      await action.onPressed(remote, null);
-      return;
-    }
-    final device = remote.device;
-    final owner = remote.connection.controller;
-    if (device == null) {
-      return;
-    }
-    final minutes =
-        int.tryParse(item.config['minutes'] ?? '')?.clamp(1, 180) ?? 30;
-    final confirmed = await ConfirmationDialog.ask(
-      context,
-      title: 'Turn off in $minutes minutes?',
-      confirmLabel: 'Start timer',
-      message: 'Keep this app running and connected to this device. Background suspension can delay the local timer.',
-    );
-    if (!confirmed ||
-        remote.device?.id != device.id ||
-        !identical(remote.connection.controller, owner)) {
-      return;
-    }
-    await action.onPressed(remote, Duration(minutes: minutes));
-  }
 }

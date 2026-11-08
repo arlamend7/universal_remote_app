@@ -48,7 +48,7 @@ class ConnectionController implements RemotePanelSession {
   Future<void> refreshContent() => _content.refresh();
   ValueNotifier<VolumeState?> get volume => _volume.value;
   ValueNotifier<bool> get commandBusy => _commands.busy;
-  DeviceController? get controller => _session?.controller;
+  RemoteBase? get controller => _session?.controller;
   DeviceSession? _session;
   Future<void> _cleanup = Future.value();
   Future<void>? _disposeFuture;
@@ -92,15 +92,14 @@ class ConnectionController implements RemotePanelSession {
       return;
     }
     try {
-      await registry.runConnection(
-        device,
-        waking: waking,
+      await DeviceConnectionWorkflow(retryDelay: wakeRetryDelay).run(
+        wake: waking ? () => registry.wake(device) : null,
         connect: () => _connectAttempt(device, generation, waking: waking),
         isCurrent: () => _isCurrent(generation),
-        waitingForStartup: () =>
-            state.value == DeviceConnectionState.reconnecting,
+        canRetry: (error) =>
+            state.value == DeviceConnectionState.reconnecting &&
+            registry.canRetryAfterWake(device, error),
         reset: _clear,
-        workflow: DeviceConnectionWorkflow(retryDelay: wakeRetryDelay),
       );
     } catch (exception) {
       await _connectionFailed(_session, exception, generation);
@@ -152,9 +151,7 @@ class ConnectionController implements RemotePanelSession {
     if (!_isCurrent(generation)) {
       return;
     }
-    final latest = saved.devices.value
-        .where((item) => item.id == device.id)
-        .firstOrNull;
+    final latest = saved.byId(device.id);
     await saved.save(
       copyDevice(
         device,
