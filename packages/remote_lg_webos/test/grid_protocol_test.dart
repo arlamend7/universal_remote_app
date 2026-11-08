@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_lg_webos/src/commands/services/lg_command_channel.dart';
+import 'package:remote_lg_webos/src/capabilities/accessories/lg_bluetooth_accessory_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/applications/lg_application_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/text/lg_text_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_selection_controller.dart';
@@ -10,6 +11,51 @@ import 'package:remote_lg_webos/src/pointer/services/lg_pointer_connection.dart'
 import 'support/fake_transport.dart';
 
 void main() {
+  test('Bluetooth shortcuts read the live connection and only act on paired addresses', () async {
+    final transport = FakeTransport();
+    final client = SsapClient(transport);
+    addTearDown(client.close);
+    final channel = LgCommandChannel(onUnavailable: (_) {})..attach(client);
+    final accessories = LgBluetoothAccessoryController(channel);
+    const address = 'AA:BB:CC:DD:EE:01';
+    var connected = false;
+    transport.respond = (request) {
+      final uri = request['uri'] as String;
+      if (uri.endsWith('/getPairedDevices')) {
+        transport.reply(request, {
+          'devices': [
+            {
+              'address': address,
+              'name': 'HomeSound',
+              'state': connected ? 'connected' : 'disconnected',
+            },
+          ],
+        });
+        return;
+      }
+      expect(request['payload'], {'address': address});
+      connected = uri.endsWith('/connect');
+      transport.reply(request, {'returnValue': true});
+    };
+
+    expect((await accessories.pairedDevices()).single.connected, isFalse);
+    await accessories.toggle(address.toLowerCase());
+    expect(
+      transport.sent.last['uri'],
+      'ssap://com.webos.service.btaudiosrc/connect',
+    );
+    await accessories.toggle(address);
+    expect(
+      transport.sent.last['uri'],
+      'ssap://com.webos.service.btaudiosrc/disconnect',
+    );
+    await expectLater(
+      accessories.toggle('AA:BB:CC:DD:EE:02'),
+      throwsA(isA<RemoteException>()),
+    );
+    expect(transport.sent.last['uri'], endsWith('/getPairedDevices'));
+  });
+
   test('sound settings require an advertised app and failures stay capability-scoped', () async {
     final transport = FakeTransport();
     final client = SsapClient(transport);

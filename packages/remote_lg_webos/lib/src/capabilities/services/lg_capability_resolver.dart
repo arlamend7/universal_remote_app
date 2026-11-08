@@ -5,6 +5,7 @@ import '../../connection/functions/lg_connection_error.dart';
 import '../../connection/models/lg_connection_options.dart';
 import '../../pointer/services/lg_pointer_connection.dart';
 import '../../protocol/services/ssap_client.dart';
+import '../accessories/lg_bluetooth_accessory_controller.dart';
 import '../applications/lg_application_controller.dart';
 import '../inputs/lg_input_controller.dart';
 import '../power/lg_power_controller.dart';
@@ -32,7 +33,13 @@ final class LgCapabilityResolver {
   final LgConnectionOptions options;
   final bool Function() isCurrent;
   Future<void> resolve() async {
-    await Future.wait([_volume(), _applications(), _inputs(), _navigation()]);
+    await Future.wait([
+      _volume(),
+      _applications(),
+      _inputs(),
+      _navigation(),
+      _bluetooth(),
+    ]);
     if (!isCurrent()) {
       return;
     }
@@ -127,6 +134,15 @@ final class LgCapabilityResolver {
       RemoteCapability.accessorySettings,
       controller,
       CapabilityAvailability.known,
+    );
+  }
+
+  Future<void> _bluetooth() {
+    final controller = LgBluetoothAccessoryController(commands);
+    return _probe(
+      RemoteCapability.bluetoothAccessories,
+      controller,
+      () => controller.pairedDevices(timeout: const Duration(seconds: 2)),
     );
   }
 

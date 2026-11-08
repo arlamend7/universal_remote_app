@@ -16,6 +16,7 @@ final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
     required this.sample,
     required this.onSelected,
     this.leading,
+    this.choiceName,
     this.trackedByDevice = false,
   });
 
@@ -24,6 +25,7 @@ final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
   final Future<List<TEntry>> Function(TDevice device) load;
   final String Function(TEntry entry) entryId;
   final String Function(TEntry entry) entryName;
+  final String Function(TEntry entry)? choiceName;
 
   /// Rebuilds an entry from a stored (id, name) option such as a pinned shortcut.
   final TEntry Function(String id, String name) fromOption;

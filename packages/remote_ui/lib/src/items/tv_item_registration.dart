@@ -335,6 +335,26 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     elements: [TvItems.volumePreset],
   ),
   RemoteItemDefinition(
+    'bluetoothDevices',
+    'Bluetooth devices',
+    RemoteItemCategory.accessories,
+    description:
+        'See paired Bluetooth audio devices and connect or disconnect one.',
+    layout: CollectionLayout(CollectionPresentation.chooser),
+    requires: const {RemoteCapability.bluetoothAccessories},
+    elements: [TvItems.accessories],
+  ),
+  RemoteItemDefinition(
+    'bluetoothDeviceShortcut',
+    'Bluetooth device shortcut',
+    RemoteItemCategory.accessories,
+    description:
+        'Pin a paired audio accessory. Tap it to connect or disconnect.',
+    layout: CollectionLayout(CollectionPresentation.shortcut),
+    requires: const {RemoteCapability.bluetoothAccessories},
+    elements: [TvItems.accessories],
+  ),
+  RemoteItemDefinition(
     'appShortcut',
     'App shortcut',
     RemoteItemCategory.pinnedApps,

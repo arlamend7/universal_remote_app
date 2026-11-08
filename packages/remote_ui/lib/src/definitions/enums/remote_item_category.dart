@@ -22,7 +22,8 @@ enum RemoteItemCategory {
   directionPad('directional pad arrows ok', alternatives: true),
   pinnedApps('apps', alternatives: true),
   pinnedInputs('inputs', alternatives: true),
-  activity('activity', alternatives: true);
+  activity('activity', alternatives: true),
+  accessories('bluetooth accessories');
 
   const RemoteItemCategory(this.label, {this.alternatives = false});
 

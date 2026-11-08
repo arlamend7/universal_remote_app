@@ -17,7 +17,7 @@ final class WidgetTargetChoices {
         connection.state.value != DeviceConnectionState.connected) {
       throw const RemoteException(
         'connection',
-        'Connect this TV to choose its reported apps, inputs or channels.',
+        'Connect this TV to choose its reported devices or shortcuts.',
       );
     }
     final owner = connection.controller;

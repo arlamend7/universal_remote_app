@@ -1,3 +1,4 @@
+import 'package:remote_core/src/bluetooth_accessory.dart';
 import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/remote_base.dart';
 
@@ -43,6 +44,11 @@ abstract class TVRemoteBase extends RemoteBase {
   Future<CurrentContent> currentContent();
   Stream<CurrentContent> watchCurrentContent();
 
+  Future<List<BluetoothAccessory>> bluetoothAccessories() =>
+      _unsupported('Bluetooth accessories');
+  Future<void> toggleBluetoothAccessory(String id) =>
+      _unsupported('Bluetooth accessory connection');
+
   /// Opens the TV's settings so the user can manage accessories on screen.
   Future<void> openAccessorySettings() => _unsupported('Accessory settings');
 
@@ -51,7 +57,7 @@ abstract class TVRemoteBase extends RemoteBase {
   Future<void> syncWatchCompanion() => _unsupported('Watch companion');
 }
 
-Future<void> _unsupported(String feature) => Future.error(
+Future<Never> _unsupported(String feature) => Future.error(
   RemoteException('unsupported', '$feature is not supported by this device.'),
 );
 

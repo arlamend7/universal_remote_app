@@ -19,13 +19,14 @@ final class LgCommandChannel {
     RemoteCapability capability,
     String path, {
     Map<String, Object?> payload = const {},
+    Duration? timeout,
   }) async {
     final client = _client;
     if (client == null) {
       throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
     try {
-      return await client.request(path, payload: payload);
+      return await client.request(path, payload: payload, timeout: timeout);
     } on RemoteException catch (error) {
       _handleFailure(capability, error);
       rethrow;

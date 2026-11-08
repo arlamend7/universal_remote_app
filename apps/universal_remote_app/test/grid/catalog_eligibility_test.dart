@@ -155,4 +155,25 @@ void main() {
       );
     }
   });
+
+  test(
+    'both Bluetooth collection layouts require direct accessory support',
+    () {
+      for (final id in ['bluetoothDevices', 'bluetoothDeviceShortcut']) {
+        final definition = RemoteItemRegistry.resolve(id);
+        expect(
+          definition.isCompatibleWith({RemoteCapability.accessorySettings}),
+          isFalse,
+        );
+        expect(
+          definition.isCompatibleWith({RemoteCapability.bluetoothAccessories}),
+          isTrue,
+        );
+        expect(
+          definition.elements.single,
+          isA<RemoteCollection<TvRemoteDevice, BluetoothAccessory>>(),
+        );
+      }
+    },
+  );
 }

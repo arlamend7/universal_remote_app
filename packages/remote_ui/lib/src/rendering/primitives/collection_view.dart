@@ -37,7 +37,7 @@ class CollectionView extends StatelessWidget {
     if (targets.isEmpty) {
       return const UnavailableNotice(
         title: 'Choose shortcuts',
-        reason: 'Select this widget in the grid editor and configure its apps, inputs or channels. Recently launched apps appear after successful launches from this grid.',
+        reason: 'Select this widget in the grid editor and configure its shortcuts. Recently launched apps appear after successful launches from this grid.',
       );
     }
     return switch (_layout) {

@@ -298,6 +298,21 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return _changeVolume((tv) => tv.setMuted(target));
   }
 
+  @override
+  Future<List<BluetoothAccessory>> bluetoothAccessories() async {
+    final driver = tv(RemoteCapability.bluetoothAccessories);
+    if (driver == null) {
+      return [];
+    }
+    return driver.bluetoothAccessories();
+  }
+
+  @override
+  Future<void> toggleBluetoothAccessory(String id) => execute(() async {
+    await tv(RemoteCapability.bluetoothAccessories)
+        ?.toggleBluetoothAccessory(id);
+  });
+
   Future<void> choose<T>(
     BuildContext context,
     String title,
@@ -316,7 +331,10 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     }
     final id = await DeviceChoiceSheet.choose(context, title, [
       for (final entry in choices)
-        (collection.entryId(entry), collection.entryName(entry)),
+        (
+          collection.entryId(entry),
+          (collection.choiceName ?? collection.entryName)(entry),
+        ),
     ], grid: collection.leading != null);
     if (id == null || !identical(owner, remote.connection.controller)) {
       return;

@@ -159,4 +159,5 @@ enum RemoteCapability {
   playbackMetadata,
   absoluteVolume,
   accessorySettings,
+  bluetoothAccessories,
 }

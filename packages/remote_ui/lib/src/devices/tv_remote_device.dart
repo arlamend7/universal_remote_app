@@ -17,6 +17,8 @@ abstract interface class TvRemoteDevice {
   Future<void> click();
   Future<void> move(double x, double y, {bool scroll = false});
   Future<void> sendText(String text, {bool submit = false});
+  Future<List<BluetoothAccessory>> bluetoothAccessories();
+  Future<void> toggleBluetoothAccessory(String id);
   Future<List<DeviceInput>> installedInputs();
   Future<void> input(String id);
   Future<List<DeviceChannel>> installedChannels();

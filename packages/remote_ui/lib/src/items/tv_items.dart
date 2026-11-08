@@ -583,6 +583,21 @@ abstract final class TvItems {
     preview: (remote, value) => remote.previewVolume(value),
     commit: (remote, value) => remote.setVolume(value),
   );
+  static final accessories = RemoteCollection<TvRemoteDevice, BluetoothAccessory>(
+    'bluetooth_accessories',
+    title: 'Bluetooth devices',
+    icon: (_) => Icons.bluetooth,
+    load: (remote) => remote.bluetoothAccessories(),
+    entryId: (accessory) => accessory.id,
+    entryName: (accessory) => accessory.name,
+    choiceName: (accessory) =>
+        '${accessory.name} · ${accessory.connected ? 'Disconnect' : 'Connect'}',
+    fromOption: BluetoothAccessory.new,
+    sample: (_) => [('sample-soundbar', 'Soundbar')],
+    onSelected: (remote, accessory) =>
+        remote.toggleBluetoothAccessory(accessory.id),
+  );
+
   static final applications =
       RemoteCollection<TvRemoteDevice, DeviceApplication>(
         'pinned_apps',

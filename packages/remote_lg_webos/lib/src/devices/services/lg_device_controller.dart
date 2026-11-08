@@ -1,3 +1,4 @@
+import 'package:remote_lg_webos/src/capabilities/accessories/lg_bluetooth_accessory_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/applications/lg_application_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_selection_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/content/lg_current_content_controller.dart';
@@ -149,6 +150,16 @@ final class LgDeviceController extends TVRemoteBase
   Future<void> selectInput(String id) => _inputs.selectInput(id);
   @override
   Future<List<DeviceApplication>> applications() => _apps.applications();
+  LgBluetoothAccessoryController get _bluetooth =>
+      _use(RemoteCapability.bluetoothAccessories);
+
+  @override
+  Future<List<BluetoothAccessory>> bluetoothAccessories() =>
+      _bluetooth.pairedDevices();
+
+  @override
+  Future<void> toggleBluetoothAccessory(String id) => _bluetooth.toggle(id);
+
   @override
   Future<void> openAccessorySettings() =>
       _use<LgApplicationController>(RemoteCapability.accessorySettings)

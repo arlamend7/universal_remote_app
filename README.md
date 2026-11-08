@@ -77,6 +77,12 @@ from the remote menu. The shortcut is shown when the connected TV supports it.
 Select the soundbar on the TV. Use the same TV menu to reconnect or disconnect
 it. The accessory list and pairing confirmation appear on the TV screen.
 
+If an LG TV exposes its paired audio devices to the network remote, the
+editor also offers **Bluetooth devices** and **Bluetooth device shortcut**.
+Use the first to choose a paired device, or pin one accessory with the second.
+Tapping a device toggles its current connection. Initial pairing still uses
+the TV menu.
+
 ## Customize your remote
 
 Open the TV’s **⋯ → Customize remote** for its own editing page. Switch between
