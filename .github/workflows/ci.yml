@@ -24,7 +24,7 @@ jobs:
       - run: dart run tool/check_structure.dart
       - run: dart analyze
       - run: dart run tool/audit_dependencies.dart
-      - run: dart test test packages/remote_core/test packages/remote_network/test packages/remote_lg_webos/test packages/remote_android_tv/test
+      - run: dart test test packages/remote_core/test packages/remote_network/test packages/remote_lg_webos/test packages/remote_android_tv/test packages/remote_roku/test
       - run: flutter test --no-pub
         working-directory: apps/universal_remote_app
       - run: flutter build apk --debug --no-pub

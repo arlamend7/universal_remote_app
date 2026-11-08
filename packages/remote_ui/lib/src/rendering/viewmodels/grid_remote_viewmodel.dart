@@ -273,8 +273,13 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   bool get mediaPlaying => playbackChanges?.value ?? false;
 
   @override
-  Future<void> togglePlayback() =>
-      media(mediaPlaying ? MediaAction.pause : MediaAction.play);
+  Future<void> togglePlayback() {
+    final device = tv(RemoteCapability.playbackToggle);
+    if (device != null) {
+      return execute(device.togglePlayback);
+    }
+    return media(mediaPlaying ? MediaAction.pause : MediaAction.play);
+  }
 
   @override
   Future<void> media(MediaAction action) => execute(() async {

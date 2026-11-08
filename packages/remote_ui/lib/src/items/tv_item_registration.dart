@@ -553,6 +553,13 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     elements: [TvItems.pause],
   ),
   RemoteItemDefinition(
+    'playbackToggle',
+    'Play / Pause key',
+    RemoteItemCategory.media,
+    requires: const {RemoteCapability.playbackToggle},
+    elements: [TvItems.playbackToggle],
+  ),
+  RemoteItemDefinition(
     'playPause',
     'Play and pause toggle',
     RemoteItemCategory.media,

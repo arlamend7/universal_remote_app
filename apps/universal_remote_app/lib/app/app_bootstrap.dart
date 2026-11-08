@@ -2,11 +2,13 @@ import 'package:remote_ui/remote_ui.dart';
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_android_tv/remote_android_tv.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_network/remote_network.dart';
+import 'package:remote_roku/remote_roku.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
 import '../data/storage/adapters/native_preferences_storage.dart';
@@ -53,6 +55,11 @@ abstract final class AppBootstrap {
         (ProviderRegistry()
           ..register(provider)
           ..register(AndroidTvProvider(credentials: credentials)));
+    if (registry == null &&
+        !kReleaseMode &&
+        const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
+      providers.register(const RokuProvider());
+    }
     final logger = DiagnosticLogger();
     final saved = SavedDevicesController(
       SavedDeviceRepository(

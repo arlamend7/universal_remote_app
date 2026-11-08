@@ -80,6 +80,7 @@ final class DeviceWakeAddress {
 RemoteDevice copyDevice(
   RemoteDevice device, {
   String? name,
+  DeviceCategory? category,
   Set<RemoteCapability>? capabilities,
   List<Uri>? endpoints,
   Map<String, String>? metadata,
@@ -89,7 +90,7 @@ RemoteDevice copyDevice(
   providerId: device.providerId,
   manufacturer: device.manufacturer,
   model: device.model,
-  category: device.category,
+  category: category ?? device.category,
   stableIdentity: device.stableIdentity,
   endpoints: endpoints ?? device.endpoints,
   metadata: metadata ?? device.metadata,
@@ -160,4 +161,5 @@ enum RemoteCapability {
   absoluteVolume,
   accessorySettings,
   bluetoothAccessories,
+  playbackToggle,
 }

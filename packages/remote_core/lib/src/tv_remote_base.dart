@@ -20,6 +20,7 @@ abstract class TVRemoteBase extends RemoteBase {
   Future<void> selectChannel(String id);
 
   Future<void> sendMedia(MediaAction action);
+  Future<void> togglePlayback() => _unsupported('Play/Pause');
 
   Future<void> movePointer(double dx, double dy);
   Future<void> scroll(double dx, double dy);

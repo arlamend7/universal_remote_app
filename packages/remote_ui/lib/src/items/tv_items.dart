@@ -107,6 +107,16 @@ abstract final class TvItems {
   );
 
   /// One button that alternates Play and Pause, showing the next action.
+  static final playbackToggle = RemoteAction<TvRemoteDevice>(
+    'playback_toggle',
+    builder: (_, remote) => (
+      icon: Icons.play_circle_outline,
+      label: 'Play / Pause',
+      enabled: true,
+      execute: remote.togglePlayback,
+    ),
+  );
+
   static final playPause = RemoteAction<TvRemoteDevice>(
     'play_pause',
     builder: (context, remote) {

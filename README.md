@@ -83,6 +83,12 @@ Use the first to choose a paired device, or pin one accessory with the second.
 Tapping a device toggles its current connection. Initial pairing still uses
 the TV menu.
 
+## Test Roku locally
+
+Roku ECP is available in opt-in development builds for authorized local testing.
+See [Roku feasibility and setup](docs/roku-feasibility.md) for the build flag,
+device settings and supported controls.
+
 ## Customize your remote
 
 Open the TV’s **⋯ → Customize remote** for its own editing page. Switch between
