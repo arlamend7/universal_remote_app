@@ -11,6 +11,8 @@ import 'wire_message.dart';
 final class AndroidRemoteSession {
   AndroidRemoteSession(this.host, this.identity, {this.port = 6466});
 
+  static const settingsKey = 176;
+
   final String host;
   final int port;
   final PairedIdentity identity;

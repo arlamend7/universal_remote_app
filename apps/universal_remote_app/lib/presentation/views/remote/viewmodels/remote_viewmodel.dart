@@ -106,6 +106,9 @@ class RemoteViewModel implements RemotePanel {
   @override
   DeviceInput? get currentInput =>
       connection.tvWith(RemoteCapability.currentInput)?.currentInput;
+  bool get canOpenAccessorySettings =>
+      ready && supports(RemoteCapability.accessorySettings);
+
   Future<void> menu(BuildContext context, String choice) async {
     final current = device;
     if (current == null) {
@@ -114,6 +117,8 @@ class RemoteViewModel implements RemotePanel {
     switch (choice) {
       case 'layout':
         await openRemoteEditor(context, dependencies, current);
+      case 'accessories':
+        await connection.openAccessorySettings();
       case 'details':
         await details_dialog.showDeviceDetails(context, dependencies, current);
     }

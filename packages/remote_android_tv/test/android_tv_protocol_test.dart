@@ -74,6 +74,7 @@ void main() {
       await remote.connect(() {});
       expect(remote.features, 35);
       await remote.key(23);
+      await remote.key(AndroidRemoteSession.settingsKey);
       await commands;
     },
   );
@@ -108,15 +109,22 @@ Future<void> serveRemote(SecureServerSocket server) async {
     channel.send({
       8: WireMessage.encode({1: 42}),
     });
-    final messages = [await channel.next(), await channel.next()];
-    final pong = messages.firstWhere(
+    final messages = [
+      await channel.next(),
+      await channel.next(),
+      await channel.next(),
+    ];
+    final pong = messages.singleWhere(
       (message) => message?.containsKey(9) == true,
     );
-    final key = messages.firstWhere(
-      (message) => message?.containsKey(10) == true,
-    );
+    final keys = messages
+        .where((message) => message?.containsKey(10) == true)
+        .map((message) => WireMessage.decode(message![10] as List<int>));
     expect(WireMessage.decode(pong![9] as List<int>), {1: 42});
-    expect(WireMessage.decode(key![10] as List<int>), {1: 23, 2: 3});
+    expect(keys, [
+      {1: 23, 2: 3},
+      {1: 176, 2: 3},
+    ]);
   } finally {
     channel.close();
   }

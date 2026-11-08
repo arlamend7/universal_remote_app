@@ -5,6 +5,7 @@ import '../elements/remote_action.dart';
 import '../elements/remote_info.dart';
 import '../elements/remote_reading.dart';
 import '../host/remote_panel.dart';
+import '../host/remote_panel_session.dart';
 import '../widgets/dialogs/confirmation_dialog.dart';
 import '../definitions/enums/remote_item_category.dart';
 import '../definitions/layouts/layouts.dart';
@@ -132,7 +133,25 @@ final deviceAddressInfo = RemoteInfo<RemotePanel>(
   ),
 );
 
+final accessorySettingsAction = RemoteAction<RemotePanel>(
+  'accessory_settings',
+  builder: (_, remote) => (
+    icon: Icons.bluetooth,
+    label: 'Bluetooth & accessories',
+    enabled: true,
+    execute: remote.connection.openAccessorySettings,
+  ),
+);
+
 final standardItemDefinitions = <RemoteItemDefinition<Object>>[
+  RemoteItemDefinition(
+    'accessorySettings',
+    'Bluetooth & accessories',
+    RemoteItemCategory.utilities,
+    description: 'Open TV settings. Use Remotes & Accessories on the TV to manage Bluetooth devices.',
+    requires: const {RemoteCapability.accessorySettings},
+    elements: [accessorySettingsAction],
+  ),
   RemoteItemDefinition(
     'power',
     'Power off',

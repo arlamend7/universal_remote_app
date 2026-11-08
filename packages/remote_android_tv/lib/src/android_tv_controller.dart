@@ -31,6 +31,7 @@ final class AndroidTvController extends TVRemoteBase
         (_session!.features & 2) != 0)
       for (final capability in [
         RemoteCapability.navigation,
+        RemoteCapability.accessorySettings,
         RemoteCapability.media,
         RemoteCapability.volume,
       ])
@@ -157,6 +158,9 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Future<void> powerOff() =>
       supports(RemoteCapability.power) ? _key(223) : _unsupported();
+  @override
+  Future<void> openAccessorySettings() =>
+      _key(AndroidRemoteSession.settingsKey);
   @override
   Future<void> volumeUp() => _key(24);
   @override

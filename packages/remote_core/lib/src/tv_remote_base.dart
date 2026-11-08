@@ -43,6 +43,9 @@ abstract class TVRemoteBase extends RemoteBase {
   Future<CurrentContent> currentContent();
   Stream<CurrentContent> watchCurrentContent();
 
+  /// Opens the TV's settings so the user can manage accessories on screen.
+  Future<void> openAccessorySettings() => _unsupported('Accessory settings');
+
   Future<void> startVoiceControl() => _unsupported('Voice control');
   Future<void> toggleGameMode() => _unsupported('Game mode');
   Future<void> syncWatchCompanion() => _unsupported('Watch companion');

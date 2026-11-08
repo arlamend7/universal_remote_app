@@ -158,4 +158,5 @@ enum RemoteCapability {
   seek,
   playbackMetadata,
   absoluteVolume,
+  accessorySettings,
 }

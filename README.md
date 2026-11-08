@@ -65,6 +65,14 @@ volume. Power off is offered when the remote service advertises power and keys.
 The Android TV provider has been tested with a local TLS server. Physical TCL
 compatibility remains to be verified.
 
+### Connect a Bluetooth soundbar
+
+Put the soundbar in Bluetooth pairing mode. From the app's remote menu,
+choose **Bluetooth & accessories** to send the TV's Settings key. On the TV,
+open **Remotes & Accessories → Pair remote or accessory**, choose the soundbar,
+and confirm pairing. To reconnect or disconnect it, select it from the same
+TV menu. The TV shows the device list and pairing status on its own screen.
+
 ## Customize your remote
 
 Open the TV’s **⋯ → Customize remote** for its own editing page. Switch between

@@ -21,3 +21,9 @@ abstract interface class RemotePanelSession {
   void reportError(String message);
   void refreshControls();
 }
+
+extension AccessorySettings on RemotePanelSession {
+  Future<void> openAccessorySettings() => execute(() async {
+    await tvWith(RemoteCapability.accessorySettings)?.openAccessorySettings();
+  });
+}
