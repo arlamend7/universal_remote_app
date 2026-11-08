@@ -1,0 +1,25 @@
+name: universal_remote_app
+description: LG-first Universal Remote application.
+publish_to: none
+version: 0.1.0+1
+resolution: workspace
+environment:
+  sdk: ^3.13.4
+  flutter: '>=3.47.5'
+dependencies:
+  flutter:
+    sdk: flutter
+  remote_core: ^0.1.0
+  remote_network: ^0.1.0
+  remote_lg_webos: ^0.1.0
+  remote_ui: ^0.1.0
+  flutter_secure_storage: ^11.2.0
+  route_definer:
+    git:
+      url: https://github.com/arlamend7/flutter_route_definer.git
+      ref: 7546848c78ab81a208655ad7083f608942309b63
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true

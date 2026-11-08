@@ -1,0 +1,16 @@
+.DS_Store
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+*.iml
+android/local.properties
+**/Flutter/ephemeral/
+**/Flutter/Generated.xcconfig
+**/Flutter/flutter_export_environment.sh
+**/xcuserdata/
+**/.gradle/
+**/Pods/
+**/.symlinks/
+**/DerivedData/
+
+artifacts/

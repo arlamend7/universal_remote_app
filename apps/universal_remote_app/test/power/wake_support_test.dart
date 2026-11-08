@@ -1,0 +1,37 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:remote_core/remote_core.dart';
+import 'package:universal_remote_app/app/app_bootstrap.dart';
+
+import '../support/memory_storage.dart';
+import '../support/fake_provider.dart';
+import '../support/test_device.dart';
+
+void main() {
+  test('wake needs integration support and a valid configured MAC, not metadata alone', () async {
+    final fake = await AppBootstrap.initialize(
+      storage: MemoryStorage(),
+      registry: ProviderRegistry()..register(FakeProvider()),
+    );
+    expect(
+      fake.canWakeDevice(
+        copyDevice(tv, metadata: {'macAddress': 'AA:BB:CC:DD:EE:FF'}),
+      ),
+      isFalse,
+    );
+    await fake.dispose();
+    final lg = await AppBootstrap.initialize(storage: MemoryStorage());
+    final device = RemoteDevice(id: 'lg', name: 'LG', providerId: 'lg.webos');
+    expect(lg.canWakeDevice(device), isFalse);
+    expect(
+      lg.canWakeDevice(copyDevice(device, metadata: {'macAddress': 'invalid'})),
+      isFalse,
+    );
+    expect(
+      lg.canWakeDevice(
+        copyDevice(device, metadata: {'macAddress': 'AA:BB:CC:DD:EE:FF'}),
+      ),
+      isTrue,
+    );
+    await lg.dispose();
+  });
+}

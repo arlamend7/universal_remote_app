@@ -1,0 +1,15 @@
+name: universal_remote_workspace
+publish_to: none
+environment:
+  sdk: ^3.13.4
+workspace:
+  - packages/remote_core
+  - packages/remote_network
+  - packages/remote_lg_webos
+  - packages/remote_ui
+  - apps/universal_remote_app
+dev_dependencies:
+  test: ^1.31.1
+  remote_core: ^0.1.0
+  remote_lg_webos: ^0.1.0
+  remote_network: ^0.1.0

@@ -1,0 +1,12 @@
+name: remote_ui
+description: Typed remote items, dashboard layout and shared editor widgets.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: ^3.13.4
+  flutter: '>=3.47.5'
+dependencies:
+  flutter:
+    sdk: flutter
+  remote_core: ^0.1.0

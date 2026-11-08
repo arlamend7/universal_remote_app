@@ -1,0 +1,1 @@
+enum EditorMode { view, edit }

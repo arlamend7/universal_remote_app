@@ -1,0 +1,1 @@
+enum TransportState { open, closed }

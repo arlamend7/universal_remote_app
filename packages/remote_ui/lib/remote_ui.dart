@@ -1,0 +1,31 @@
+/// Shared dashboard definitions, editor and runtime widgets.
+library;
+
+export 'src/ui_model.dart';
+export 'src/catalog/catalog_preview_card.dart';
+export 'src/editor/grid_editor_page.dart';
+export 'src/editor/grid_editor_page_state.dart';
+export 'src/editor/widgets/grid_edit_tile.dart';
+export 'src/editor/widgets/grid_editor_canvas.dart';
+export 'src/editor/widgets/grid_item_preview.dart';
+export 'src/rendering/viewmodels/grid_remote_viewmodel.dart';
+export 'src/rendering/widgets/grid_button.dart';
+export 'src/rendering/widgets/grid_navigation_widget.dart';
+export 'src/rendering/widgets/grid_remote_canvas.dart';
+export 'src/rendering/widgets/grid_remote_item.dart';
+export 'src/rendering/widgets/grid_remote_widget.dart';
+export 'src/widgets/apps/tv_app_icon.dart';
+export 'src/widgets/dialogs/confirmation_dialog.dart';
+export 'src/widgets/dialogs/device_choice_sheet.dart';
+export 'src/widgets/grid/fitted_grid_surface.dart';
+export 'src/widgets/grid/grid_surface.dart';
+export 'src/widgets/grid/models/grid_viewport_metrics.dart';
+export 'src/widgets/grid/models/remote_preview_data.dart';
+export 'src/widgets/sheets/app_sheet.dart';
+export 'src/widgets/sheets/show_app_sheet.dart';
+export 'src/editor/device_grids_controller.dart';
+export 'src/editor/dashboard_repository.dart';
+export 'src/host/device_sleep_controller.dart';
+export 'src/host/current_content_observer.dart';
+export 'src/host/volume_observer.dart';
+export 'src/host/remote_command_controller.dart';
