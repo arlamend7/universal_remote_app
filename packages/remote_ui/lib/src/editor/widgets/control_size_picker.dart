@@ -12,12 +12,12 @@ class ControlSizePicker extends StatelessWidget {
   final GridItem item;
   final int columns;
   final void Function(int width, int height) onChanged;
-  int get _minimumWidth => item.quarterTurns.isOdd
-      ? item.definition.minimumHeight
-      : item.definition.minimumWidth;
-  int get _minimumHeight => item.quarterTurns.isOdd
-      ? item.definition.minimumWidth
-      : item.definition.minimumHeight;
+
+  /// Whether the definition accepts this placed size (rotation swaps the
+  /// content's width and height).
+  bool _accepts(int width, int height) => item.quarterTurns.isOdd
+      ? item.definition.accepts(height, width)
+      : item.definition.accepts(width, height);
   int get _maximumHeight => item.quarterTurns.isOdd ? 4 : 16;
   @override
   Widget build(BuildContext context) => Column(
@@ -27,8 +27,8 @@ class ControlSizePicker extends StatelessWidget {
       Wrap(
         spacing: 8,
         children: [
-          for (var width = _minimumWidth; width <= columns; width++)
-            _choice(width),
+          for (var width = 1; width <= columns; width++)
+            if (width == item.w || _accepts(width, item.h)) _choice(width),
         ],
       ),
       const SizedBox(height: 8),
@@ -37,15 +37,15 @@ class ControlSizePicker extends StatelessWidget {
           const Expanded(child: Text('Height')),
           IconButton(
             tooltip: 'Make shorter',
-            onPressed: item.h > _minimumHeight
+            onPressed: _accepts(item.w, item.h - 1)
                 ? () => onChanged(item.w, item.h - 1)
                 : null,
             icon: const Icon(Icons.remove_circle_outline),
           ),
-          Text(item.h == _minimumHeight ? 'Compact' : 'Taller'),
+          Text(_accepts(item.w, item.h - 1) ? 'Taller' : 'Compact'),
           IconButton(
             tooltip: 'Make taller',
-            onPressed: item.h < _maximumHeight
+            onPressed: item.h < _maximumHeight && _accepts(item.w, item.h + 1)
                 ? () => onChanged(item.w, item.h + 1)
                 : null,
             icon: const Icon(Icons.add_circle_outline),

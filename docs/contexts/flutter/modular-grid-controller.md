@@ -74,11 +74,18 @@ disconnect/device changes; it is not a native TV timer or background guarantee.
   capabilities and elements. The catalog reads those entries from the registry.
   Every definition has one `layout` (`definitions/layouts`). `LinearLayout`
   derives its size from element slots and default position; other layouts own
-  their size and only the settings they need. A definition's `id` is the
+  their size and only the settings they need. A `LinearLayout(adaptive: true)`
+  (the volume and channel rockers) takes its direction from the item's shape:
+  resize it wide for a horizontal row (less on the left) or tall for a column.
+  Its minimum is that the long side holds every element. A definition's `id` is the
   persisted identity of a placed item; an unknown saved id resolves to the
   unavailable placeholder and is saved back unchanged. A definition declares
   its own `settings` (toggle, number, slider) and the editor builds its form
-  from them, so the editor never checks item ids.
+  from them, so the editor never checks item ids. A `RemoteItemCategory`
+  marked `alternatives` (volume, mute, channel arrows, directional pad, pinned
+  apps or inputs, activity) holds different looks of one control; the editor's
+  Style picker lists only that category, each with the same sample preview as
+  the library. Other categories just group unrelated controls.
   Elements are plain data: each `RemoteAction` declares its own icon, label
   and command, and similar controls simply repeat that small declaration.
 - `presentation/widgets/grid`: shared geometry for editing and runtime.

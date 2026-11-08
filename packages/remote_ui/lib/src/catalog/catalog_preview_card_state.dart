@@ -14,10 +14,11 @@ class CatalogPreviewCardState extends State<CatalogPreviewCard> {
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
-    label: 'Add ${_definition.name}',
+    label: '${widget.actionLabel} ${_definition.name}',
     child: Card(
       clipBehavior: Clip.antiAlias,
       margin: EdgeInsets.zero,
+      shape: _outline(Theme.of(context).colorScheme),
       child: InkWell(
         onTap: widget.onAdd,
         onHover: (value) => setState(() => _hovered = value),
@@ -25,6 +26,13 @@ class CatalogPreviewCardState extends State<CatalogPreviewCard> {
       ),
     ),
   );
+
+  ShapeBorder? _outline(ColorScheme colors) => widget.selected
+      ? RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colors.primary, width: 2),
+        )
+      : null;
 
   Widget _content(BuildContext context) => Padding(
     padding: const EdgeInsets.all(10),

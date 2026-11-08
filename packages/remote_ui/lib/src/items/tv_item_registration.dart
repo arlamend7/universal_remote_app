@@ -13,7 +13,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'directionPad',
     'Directional pad',
-    RemoteItemCategory.navigation,
+    RemoteItemCategory.directionPad,
     layout: DirectionPadLayout(PadShape.circle, size: RemoteItemSize(2, 3)),
     requires: const {RemoteCapability.navigation},
     elements: [
@@ -29,7 +29,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'crossPad',
     'Cross pad',
-    RemoteItemCategory.navigation,
+    RemoteItemCategory.directionPad,
     layout: DirectionPadLayout(PadShape.square, size: RemoteItemSize(3, 3)),
     requires: const {RemoteCapability.navigation},
     elements: [
@@ -118,7 +118,9 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
         enabled: true,
       ),
     ],
-    layout: TouchSurfaceLayout(size: RemoteItemSize(4, 3)),
+    layout: TouchSurfaceLayout(
+      size: RemoteItemSize(4, 3, minimumWidth: 2, minimumHeight: 2),
+    ),
     description:
         'Drag to move the pointer, tap to click, or scroll with two fingers.',
     requires: const {RemoteCapability.pointer},
@@ -127,7 +129,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'keypad',
     'Numeric keypad',
-    RemoteItemCategory.channels,
+    RemoteItemCategory.keys,
     layout: ElementGridLayout(columns: 3, size: RemoteItemSize(3, 4)),
     requires: const {RemoteCapability.pointer},
     elements: TvItems.keypad,
@@ -198,14 +200,14 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'volumeSlider',
     'Volume slider',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.volume,
     requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
     elements: [TvItems.volume, TvItems.volumeSlider],
   ),
   RemoteItemDefinition(
     'volumeVerticalSlider',
     'Vertical slider',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.volume,
     axis: ItemAxis.vertical,
     requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
     elements: [TvItems.volume, TvItems.volumeSlider],
@@ -213,7 +215,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'volumeDial',
     'Volume dial',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.volume,
     layout: DialLayout(size: RemoteItemSize(2, 2)),
     requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
     elements: [
@@ -239,55 +241,49 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   ),
   RemoteItemDefinition(
     'volumeRocker',
-    'Vertical volume rocker',
-    RemoteItemCategory.audio,
+    'Volume rocker',
+    RemoteItemCategory.volume,
     axis: ItemAxis.vertical,
-    description:
-        'Raise or lower the TV volume with two vertically stacked buttons.',
+    layout: LinearLayout(adaptive: true),
+    description: 'Raise or lower the TV volume with two buttons. Resize it wide or tall to change its direction.',
     requires: const {RemoteCapability.volume},
     elements: [TvItems.volumeUp, TvItems.volumeDown],
   ),
   RemoteItemDefinition(
-    'volumeHorizontal',
-    'Horizontal volume rocker',
-    RemoteItemCategory.audio,
-    requires: const {RemoteCapability.volume},
-    elements: [TvItems.volumeDown, TvItems.volumeUp],
-  ),
-  RemoteItemDefinition(
     'volumeDisplayRocker',
     'Volume rocker with level',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.volume,
     axis: ItemAxis.vertical,
+    layout: LinearLayout(adaptive: true),
     requires: const {RemoteCapability.volume},
     elements: [TvItems.volumeUp, TvItems.volume, TvItems.volumeDown],
   ),
   RemoteItemDefinition(
     'volumeExpanded',
     'Expanded audio',
-    RemoteItemCategory.audio,
-    layout: LinearLayout(size: RemoteItemSize(4, 2)),
+    RemoteItemCategory.volume,
+    layout: LinearLayout(size: RemoteItemSize(4, 2, minimumWidth: 3)),
     requires: const {RemoteCapability.volume},
     elements: [TvItems.volumeSlider, TvItems.volume, TvItems.muteToggle],
   ),
   RemoteItemDefinition(
     'mute',
     'Mute toggle',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.mute,
     requires: const {RemoteCapability.volume},
     elements: [TvItems.muteToggle],
   ),
   RemoteItemDefinition(
     'muteOn',
     'Mute',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.mute,
     requires: const {RemoteCapability.volume},
     elements: [TvItems.muteOn],
   ),
   RemoteItemDefinition(
     'muteOff',
     'Unmute',
-    RemoteItemCategory.audio,
+    RemoteItemCategory.mute,
     requires: const {RemoteCapability.volume},
     elements: [TvItems.muteOff],
   ),
@@ -311,7 +307,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'appShortcut',
     'App shortcut',
-    RemoteItemCategory.apps,
+    RemoteItemCategory.pinnedApps,
     layout: CollectionLayout(CollectionPresentation.shortcut),
     requires: const {RemoteCapability.applications},
     elements: [TvItems.applications],
@@ -319,7 +315,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'appIcon',
     'App icon',
-    RemoteItemCategory.apps,
+    RemoteItemCategory.pinnedApps,
     layout: CollectionLayout(CollectionPresentation.icon),
     requires: const {RemoteCapability.applications},
     elements: [TvItems.applications],
@@ -335,7 +331,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'appStrip',
     'Pinned apps strip',
-    RemoteItemCategory.apps,
+    RemoteItemCategory.pinnedApps,
     layout: CollectionLayout(
       CollectionPresentation.strip,
       size: RemoteItemSize(4, 1, minimumWidth: 2),
@@ -347,7 +343,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'appGrid',
     'Pinned apps grid',
-    RemoteItemCategory.apps,
+    RemoteItemCategory.pinnedApps,
     layout: CollectionLayout(
       CollectionPresentation.grid,
       size: RemoteItemSize(4, 2, minimumWidth: 2),
@@ -358,7 +354,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'appCarousel',
     'Pinned apps carousel',
-    RemoteItemCategory.apps,
+    RemoteItemCategory.pinnedApps,
     layout: CollectionLayout(
       CollectionPresentation.strip,
       size: RemoteItemSize(4, 1, minimumWidth: 2),
@@ -372,7 +368,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     RemoteItemCategory.apps,
     layout: CollectionLayout(
       CollectionPresentation.recents,
-      size: RemoteItemSize(4, 1),
+      size: RemoteItemSize(4, 1, minimumWidth: 2),
     ),
     requires: const {RemoteCapability.applications},
     elements: [TvItems.applications],
@@ -380,7 +376,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'inputShortcut',
     'Input shortcut',
-    RemoteItemCategory.inputs,
+    RemoteItemCategory.pinnedInputs,
     layout: CollectionLayout(CollectionPresentation.shortcut),
     requires: const {RemoteCapability.inputs},
     elements: [TvItems.inputs],
@@ -396,10 +392,10 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'inputStrip',
     'Pinned inputs strip',
-    RemoteItemCategory.inputs,
+    RemoteItemCategory.pinnedInputs,
     layout: CollectionLayout(
       CollectionPresentation.strip,
-      size: RemoteItemSize(4, 1),
+      size: RemoteItemSize(4, 1, minimumWidth: 2),
     ),
     requires: const {RemoteCapability.inputs},
     elements: [TvItems.inputs],
@@ -407,7 +403,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'inputGrid',
     'Pinned inputs grid',
-    RemoteItemCategory.inputs,
+    RemoteItemCategory.pinnedInputs,
     layout: CollectionLayout(
       CollectionPresentation.grid,
       size: RemoteItemSize(2, 2),
@@ -425,7 +421,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'channelShortcut',
     'Favourite channel',
-    RemoteItemCategory.channels,
+    RemoteItemCategory.favouriteChannels,
     layout: CollectionLayout(CollectionPresentation.shortcut),
     requires: const {RemoteCapability.channelSelection},
     elements: [TvItems.channels],
@@ -433,7 +429,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'channelGroup',
     'Favourite channels',
-    RemoteItemCategory.channels,
+    RemoteItemCategory.favouriteChannels,
     layout: CollectionLayout(
       CollectionPresentation.grid,
       size: RemoteItemSize(4, 2, minimumWidth: 2),
@@ -444,8 +440,9 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'channelRocker',
     'Channel rocker',
-    RemoteItemCategory.channels,
+    RemoteItemCategory.channelArrows,
     axis: ItemAxis.vertical,
+    layout: LinearLayout(adaptive: true),
     requires: const {
       RemoteCapability.channels,
       RemoteCapability.currentContent,
@@ -455,8 +452,9 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'channelDisplayRocker',
     'Channel rocker with number',
-    RemoteItemCategory.channels,
+    RemoteItemCategory.channelArrows,
     axis: ItemAxis.vertical,
+    layout: LinearLayout(adaptive: true),
     requires: const {
       RemoteCapability.channels,
       RemoteCapability.currentContent,
@@ -475,8 +473,8 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'currentActivity',
     'App and channel',
-    RemoteItemCategory.information,
-    layout: LinearLayout(size: RemoteItemSize(4, 1)),
+    RemoteItemCategory.activity,
+    layout: LinearLayout(size: RemoteItemSize(4, 1, minimumWidth: 2)),
     description:
         'Show the foreground application or live TV channel name and number.',
     requires: const {RemoteCapability.currentContent},
@@ -485,7 +483,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
   RemoteItemDefinition(
     'currentApp',
     'Current app',
-    RemoteItemCategory.information,
+    RemoteItemCategory.activity,
     layout: LinearLayout(size: RemoteItemSize(2, 1)),
     requires: const {RemoteCapability.currentContent},
     elements: [TvItems.app],
@@ -565,6 +563,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'keyboard',
     'Keyboard',
     RemoteItemCategory.utilities,
+    layout: LinearLayout(size: RemoteItemSize(4, 1, minimumWidth: 1)),
     settings: [
       RemoteSetting.toggle('submitAfterTyping', 'Submit after sending text'),
     ],

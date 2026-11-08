@@ -7,7 +7,7 @@ GridLayout defaultRemoteGrid() => GridLayout([
   _item('directionPad', 0, 1, 4, 3),
   _item('navigationStrip', 0, 4, 2, 1),
   _item('channelRocker', 2, 4, 2, 2),
-  _item('volumeHorizontal', 0, 5, 2, 1),
+  _item('volumeRocker', 0, 5, 2, 1),
   _item('apps', 0, 6, 2, 1),
   _item('inputs', 2, 6, 2, 1),
   _item('volumeSlider', 0, 7, 4, 1),

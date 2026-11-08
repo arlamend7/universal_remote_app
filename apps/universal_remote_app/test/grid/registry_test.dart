@@ -40,4 +40,31 @@ void main() {
     final unknown = RemoteItemRegistry.resolve('unknown');
     expect(unknown.isCompatibleWith(RemoteCapability.values.toSet()), isFalse);
   });
+
+  test('styles are only offered between real alternatives of one control', () {
+    List<String> styles(String id) =>
+        RemoteItemRegistry.variations(id).map((item) => item.id).toList();
+    expect(styles('up'), ['up']);
+    expect(styles('touchpad'), ['touchpad']);
+    expect(styles('deviceAddress'), ['deviceAddress']);
+    expect(styles('keypad'), ['keypad']);
+    expect(styles('directionPad'), ['directionPad', 'crossPad']);
+    expect(styles('currentActivity'), ['currentActivity', 'currentApp']);
+    expect(styles('channelRocker'), ['channelRocker', 'channelDisplayRocker']);
+    expect(styles('volumeDial'), contains('volumeRocker'));
+    expect(styles('volumeDial'), isNot(contains('volumeUp')));
+    expect(styles('appGrid'), isNot(contains('inputGrid')));
+  });
+
+  test('text and gesture controls can be made smaller than their default', () {
+    final activity = RemoteItemRegistry.resolve('currentActivity');
+    expect((activity.width, activity.height), (4, 1));
+    expect(activity.accepts(2, 1), isTrue);
+    expect(RemoteItemRegistry.resolve('inputStrip').accepts(2, 1), isTrue);
+    expect(RemoteItemRegistry.resolve('recentApps').accepts(2, 1), isTrue);
+    expect(RemoteItemRegistry.resolve('touchpad').accepts(2, 2), isTrue);
+    expect(RemoteItemRegistry.resolve('volumeExpanded').accepts(3, 2), isTrue);
+    expect(RemoteItemRegistry.resolve('keyboard').accepts(1, 1), isTrue);
+    expect(RemoteItemRegistry.resolve('sleep').accepts(1, 1), isTrue);
+  });
 }

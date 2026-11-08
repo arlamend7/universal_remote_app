@@ -20,10 +20,17 @@ abstract final class RemoteItemRegistry {
 
   static bool isRegistered(String id) => _entries.containsKey(id);
 
-  /// Definitions of the same category, used to offer alternative looks.
-  static List<RemoteItemDefinition<Object>> variations(String id) => definitions
-      .where((item) => item.category == resolve(id).category)
-      .toList();
+  /// The alternative looks of the control [id] belongs to, including itself.
+  /// Only categories of alternatives offer any; other controls stand alone.
+  static List<RemoteItemDefinition<Object>> variations(String id) {
+    final definition = resolve(id);
+    if (!definition.category.alternatives) {
+      return [definition];
+    }
+    return definitions
+        .where((item) => item.category == definition.category)
+        .toList();
+  }
 
   /// Definitions usable with [capabilities] whose text matches every word of
   /// [query].

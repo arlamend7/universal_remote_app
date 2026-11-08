@@ -15,7 +15,7 @@ void main() {
     final grid = GridLayout([
       GridItem(
         id: 'volume',
-        definitionId: 'volumeHorizontal',
+        definitionId: 'volumeRocker',
         x: 0,
         y: 0,
         w: 2,
@@ -31,7 +31,7 @@ void main() {
 
     final reloaded = await AppBootstrap.initialize(storage: storage);
     final item = reloaded.grids.forDevice(tv)!.items.single;
-    expect(item.definitionId, 'volumeHorizontal');
+    expect(item.definitionId, 'volumeRocker');
     expect(item.style.opacity, .65);
     expect(item.elementStyles['volume_up']!.iconSize, 32);
     await reloaded.dispose();

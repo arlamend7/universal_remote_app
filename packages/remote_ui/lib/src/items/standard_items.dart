@@ -147,6 +147,7 @@ final standardItemDefinitions = <RemoteItemDefinition<Object>>[
     'sleep',
     'Sleep timer',
     RemoteItemCategory.utilities,
+    layout: LinearLayout(size: RemoteItemSize(2, 1, minimumWidth: 1)),
     settings: [
       RemoteSetting.number(
         'minutes',
@@ -182,7 +183,7 @@ final standardItemDefinitions = <RemoteItemDefinition<Object>>[
   RemoteItemDefinition<RemotePanel>(
     'deviceSwitcher',
     'Switch TV',
-    RemoteItemCategory.information,
+    RemoteItemCategory.utilities,
     elements: [deviceSwitchAction],
   ),
   RemoteItemDefinition<RemotePanel>(

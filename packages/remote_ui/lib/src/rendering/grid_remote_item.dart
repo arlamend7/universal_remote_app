@@ -28,16 +28,18 @@ class GridRemoteItem extends StatelessWidget {
   }
 
   Listenable get _changes => switch (item.definition.category) {
-    RemoteItemCategory.audio => model.remote.volumeChanges,
-    RemoteItemCategory.channels => model.remote.contentChanges,
-    RemoteItemCategory.information => Listenable.merge([
+    RemoteItemCategory.audio ||
+    RemoteItemCategory.volume ||
+    RemoteItemCategory.mute => model.remote.volumeChanges,
+    RemoteItemCategory.channels ||
+    RemoteItemCategory.channelArrows => model.remote.contentChanges,
+    RemoteItemCategory.information ||
+    RemoteItemCategory.activity => Listenable.merge([
       model.remote.contentChanges,
       model.remote.sessionChanges,
     ]),
-    RemoteItemCategory.apps => Listenable.merge([
-      model.remote.controlsChanges,
-      model.remote.profiles,
-    ]),
+    RemoteItemCategory.apps || RemoteItemCategory.pinnedApps =>
+      Listenable.merge([model.remote.controlsChanges, model.remote.profiles]),
     RemoteItemCategory.utilities => Listenable.merge([
       model.remote.controlsChanges,
       model.remote.sleepDeadline,

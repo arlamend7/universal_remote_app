@@ -41,8 +41,23 @@ final class RemoteItemDefinition<TDevice> {
 
   int get width => layout.size?.width ?? _linearWidth;
   int get height => layout.size?.height ?? _linearHeight;
-  int get minimumWidth => layout.size?.minimumWidth ?? _linearWidth;
-  int get minimumHeight => layout.size?.minimumHeight ?? _linearHeight;
+  int get minimumWidth =>
+      layout.size?.minimumWidth ?? (_adaptive ? 1 : _linearWidth);
+  int get minimumHeight =>
+      layout.size?.minimumHeight ?? (_adaptive ? 1 : _linearHeight);
+
+  bool get _adaptive => switch (layout) {
+    LinearLayout(:final adaptive) => adaptive,
+    _ => false,
+  };
+
+  /// The direction the elements run for an item of this shape.
+  ItemAxis axisFor(int width, int height) {
+    if (!_adaptive || width == height) {
+      return axis;
+    }
+    return width > height ? ItemAxis.horizontal : ItemAxis.vertical;
+  }
 
   bool get _vertical => axis == ItemAxis.vertical;
   int get _slots => elements.isEmpty
@@ -52,9 +67,17 @@ final class RemoteItemDefinition<TDevice> {
   int get _linearHeight => _vertical ? _slots : 1;
 
   final String? description;
-  String get searchText => '$name ${category.name} ${description ?? ''}';
-  bool accepts(int w, int h) =>
-      w >= minimumWidth && w <= 4 && h >= minimumHeight && h <= 16;
+  String get searchText => '$name ${category.label} ${description ?? ''}';
+  bool accepts(int w, int h) {
+    final inRange =
+        w >= minimumWidth && w <= 4 && h >= minimumHeight && h <= 16;
+    if (!_adaptive) {
+      return inRange;
+    }
+    // The side the elements run along must hold all of them.
+    final run = axisFor(w, h) == ItemAxis.horizontal ? w : h;
+    return inRange && run >= _slots;
+  }
 
   final Set<RemoteCapability> requires;
 

@@ -178,9 +178,9 @@ void main() {
       expect(find.text('Edit group'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('add-control')).last);
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField), 'Vertical volume rocker');
+      await tester.enterText(find.byType(TextField), 'Volume rocker');
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(Card, 'Vertical volume rocker'));
+      await tester.tap(find.widgetWithText(Card, 'Volume rocker'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Apply group'));
       await tester.pumpAndSettle();
@@ -225,16 +225,16 @@ void main() {
         tester.getTopLeft(cards.first).dy,
         tester.getTopLeft(cards.at(1)).dy,
       );
-      await tester.enterText(find.byType(TextField), 'VERTICALLY, stacked');
+      await tester.enterText(find.byType(TextField), 'RESIZE, wide');
       await tester.pumpAndSettle();
       expect(cards, findsOneWidget);
-      await tester.tap(find.widgetWithText(Card, 'Vertical volume rocker'));
+      await tester.tap(find.widgetWithText(Card, 'Volume rocker'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('add-control')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'volume rocker');
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(Card, 'Vertical volume rocker'));
+      await tester.tap(find.widgetWithText(Card, 'Volume rocker'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Back to remote'));
       await tester.pumpAndSettle();

@@ -36,7 +36,7 @@ void main() {
       RemoteItemRegistry.resolve(group.id),
       isA<RemoteItemDefinition<RemotePanel>>(),
     );
-    expect(rocker.category, RemoteItemCategory.audio);
+    expect(rocker.category, RemoteItemCategory.volume);
     expect(rocker.requires, {RemoteCapability.volume});
     expect(rocker.elements.map((element) => element.id), [
       'volume_up',

@@ -82,6 +82,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Edit control'), findsOneWidget);
       expect(find.widgetWithText(TextField, 'X'), findsNothing);
+      await tester.tap(find.text('Style'));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a style'), findsOneWidget);
+      expect(find.byType(CatalogPreviewCard), findsAtLeastNWidgets(2));
+      expect(find.text('Volume rocker'), findsWidgets);
+      expect(find.text('Up'), findsNothing);
+      await tester.tap(find.byTooltip('Close styles'));
+      await tester.pumpAndSettle();
       expect(provider.last!.volumeControl.level, 20);
       await tester.tap(find.text('Half'));
       await tester.pumpAndSettle();
@@ -108,7 +116,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(GridEditorCanvas), findsOneWidget);
       expect(model.draft.encode(), beforeToggle);
-      final handle = find.byTooltip('Resize Vertical volume rocker');
+      final handle = find.byTooltip('Resize Volume rocker');
       final gesture = await tester.startGesture(tester.getCenter(handle));
       await gesture.moveBy(const Offset(20, 0));
       await tester.pump();

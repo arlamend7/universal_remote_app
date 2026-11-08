@@ -18,8 +18,18 @@ class ElementStrip extends StatelessWidget {
   final GridItem item;
   final GridRemoteViewModel model;
 
-  Axis get _axis =>
-      definition.axis == ItemAxis.vertical ? Axis.vertical : Axis.horizontal;
+  Axis get _axis => definition.axisFor(item.w, item.h) == ItemAxis.vertical
+      ? Axis.vertical
+      : Axis.horizontal;
+
+  /// Adaptive layouts declare elements top to bottom and reverse them when
+  /// they run horizontally.
+  List<RemoteElement<Object>> get _elements =>
+      definition.layout is LinearLayout &&
+          (definition.layout as LinearLayout).adaptive &&
+          _axis == Axis.horizontal
+      ? definition.elements.reversed.toList()
+      : definition.elements;
 
   @override
   Widget build(BuildContext context) {
@@ -55,13 +65,13 @@ class ElementStrip extends StatelessWidget {
         crossAxisCount: layout.columns,
         physics: const NeverScrollableScrollPhysics(),
         childAspectRatio: ElementGridLayout.aspectRatio,
-        children: [for (final element in definition.elements) _view(element)],
+        children: [for (final element in _elements) _view(element)],
       );
     }
     return Flex(
       direction: _axis,
       children: [
-        for (final element in definition.elements)
+        for (final element in _elements)
           Expanded(flex: element.slots, child: _view(element)),
       ],
     );

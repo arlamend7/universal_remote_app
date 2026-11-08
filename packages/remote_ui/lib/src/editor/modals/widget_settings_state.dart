@@ -99,6 +99,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
         columns: widget.model.columns,
         onChanged: _style,
         capabilities: widget.dependencies.capabilitiesFor(widget.model.device),
+        dependencies: widget.dependencies,
+        device: widget.model.device,
       ),
       const SizedBox(height: 16),
       ControlSizePicker(
@@ -258,7 +260,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
         onPressed: loading ? null : _choose,
         icon: const Icon(Icons.add),
         label: Text(
-          loading ? 'Loading…' : 'Choose ${_definition.category.name}',
+          loading ? 'Loading…' : 'Choose ${_definition.category.label}',
         ),
       ),
     ],
