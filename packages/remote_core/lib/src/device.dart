@@ -157,4 +157,5 @@ enum RemoteCapability {
   trackNavigation,
   seek,
   playbackMetadata,
+  absoluteVolume,
 }

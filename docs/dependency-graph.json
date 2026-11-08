@@ -11,6 +11,7 @@
         "remote_core",
         "remote_network",
         "remote_lg_webos",
+        "remote_android_tv",
         "remote_ui",
         "flutter_secure_storage",
         "route_definer",
@@ -21,6 +22,7 @@
         "remote_core",
         "remote_network",
         "remote_lg_webos",
+        "remote_android_tv",
         "remote_ui",
         "flutter_secure_storage",
         "route_definer"
@@ -33,6 +35,7 @@
         "remote_core": "^0.1.0",
         "remote_network": "^0.1.0",
         "remote_lg_webos": "^0.1.0",
+        "remote_android_tv": "^0.1.0",
         "remote_ui": "^0.1.0",
         "flutter_secure_storage": "^11.2.0",
         "route_definer": "any",
@@ -1952,6 +1955,7 @@
         "test",
         "remote_core",
         "remote_lg_webos",
+        "remote_android_tv",
         "remote_network"
       ],
       "directDependencies": [],
@@ -1959,13 +1963,74 @@
         "test",
         "remote_core",
         "remote_lg_webos",
+        "remote_android_tv",
         "remote_network"
       ],
       "dependencyConstraints": {
         "test": "^1.31.1",
         "remote_core": "^0.1.0",
         "remote_lg_webos": "^0.1.0",
+        "remote_android_tv": "^0.1.0",
         "remote_network": "^0.1.0"
+      }
+    },
+    {
+      "name": "remote_android_tv",
+      "version": "0.1.0",
+      "kind": "root",
+      "source": "root",
+      "dependencies": [
+        "remote_core",
+        "multicast_dns",
+        "pointycastle",
+        "test"
+      ],
+      "directDependencies": [
+        "remote_core",
+        "multicast_dns",
+        "pointycastle"
+      ],
+      "devDependencies": [
+        "test"
+      ],
+      "dependencyConstraints": {
+        "remote_core": "^0.1.0",
+        "multicast_dns": "0.3.3+1",
+        "pointycastle": "4.0.0",
+        "test": "^1.31.1"
+      }
+    },
+    {
+      "name": "pointycastle",
+      "version": "4.0.0",
+      "kind": "transitive",
+      "source": "hosted",
+      "dependencies": [
+        "collection",
+        "convert"
+      ],
+      "directDependencies": [
+        "collection",
+        "convert"
+      ],
+      "dependencyConstraints": {
+        "collection": "^1.15.0",
+        "convert": "^3.0.0"
+      }
+    },
+    {
+      "name": "multicast_dns",
+      "version": "0.3.3+1",
+      "kind": "transitive",
+      "source": "hosted",
+      "dependencies": [
+        "meta"
+      ],
+      "directDependencies": [
+        "meta"
+      ],
+      "dependencyConstraints": {
+        "meta": "^1.3.0"
       }
     }
   ],

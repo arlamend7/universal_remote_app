@@ -37,3 +37,10 @@ This is a documentation example, not an empty production integration. Samsung,
 Roku, Matter, and IR providers should use their own documented discovery/pairing
 and transport implementations. Contract tests in remote_core demonstrate multiple
 providers, failure isolation, and controller disposal.
+
+
+The Android TV provider uses Flutter's pure Dart `multicast_dns` 0.3.3+1 for
+local discovery and Bouncy Castle's `pointycastle` 4.0.0 for RSA key generation,
+signing, ASN.1, and SHA-256. Both are pinned in the workspace lockfile. The
+provider accepts a self-signed peer only during the code-authenticated pairing
+exchange. Subsequent sessions check the exact certificate fingerprint.

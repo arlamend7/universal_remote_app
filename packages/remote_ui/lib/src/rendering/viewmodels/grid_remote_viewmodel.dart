@@ -229,9 +229,37 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     await tv(RemoteCapability.channelSelection)?.selectChannel(id);
     unawaited(remote.connection.refreshContent());
   });
+  static final _playback = Expando<ValueNotifier<bool>>();
+
+  ValueNotifier<bool>? get playbackChanges {
+    final session = remote.connection.controller;
+    if (session == null || previewData != null) {
+      return null;
+    }
+    return _playback[session] ??= ValueNotifier(false);
+  }
+
+  @override
+  bool get mediaPlaying => playbackChanges?.value ?? false;
+
+  @override
+  Future<void> togglePlayback() =>
+      media(mediaPlaying ? MediaAction.pause : MediaAction.play);
+
   @override
   Future<void> media(MediaAction action) => execute(() async {
-    await tv(RemoteCapability.media)?.sendMedia(action);
+    final controller = tv(RemoteCapability.media);
+    if (controller == null) {
+      return;
+    }
+    final playback = playbackChanges;
+    await controller.sendMedia(action);
+    if (action == MediaAction.play) {
+      playback?.value = true;
+    }
+    if (action == MediaAction.pause || action == MediaAction.stop) {
+      playback?.value = false;
+    }
   });
   @override
   Future<void> key(RemoteKey key) => execute(() async {

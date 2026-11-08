@@ -49,6 +49,9 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
       ? [
           for (final capability in const [
             RemoteCapability.volume,
+            RemoteCapability.absoluteVolume,
+            RemoteCapability.volumeFeedback,
+            RemoteCapability.mute,
             RemoteCapability.navigation,
             RemoteCapability.currentContent,
             RemoteCapability.applications,

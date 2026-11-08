@@ -74,6 +74,7 @@ final class LgCapabilityResolver {
     try {
       await controller.readVolume();
       _verified(RemoteCapability.volume, controller);
+      _volumeCommands();
       if (isCurrent()) {
         registry.record(
           RemoteCapability.volumeFeedback,
@@ -89,6 +90,7 @@ final class LgCapabilityResolver {
     if (!isCurrent()) {
       return;
     }
+    _volumeCommands();
     registry.enable(
       RemoteCapability.volume,
       controller,
@@ -97,6 +99,18 @@ final class LgCapabilityResolver {
           'Volume feedback is unavailable; adjustment commands are '
           'driver-supported but not yet verified. ${lgConnectionError(error).message}',
     );
+  }
+
+  void _volumeCommands() {
+    if (!isCurrent()) {
+      return;
+    }
+    // These commands use the same authorized SSAP audio service.
+    registry.record(
+      RemoteCapability.absoluteVolume,
+      CapabilityAvailability.known,
+    );
+    registry.record(RemoteCapability.mute, CapabilityAvailability.known);
   }
 
   Future<void> _applications() async {

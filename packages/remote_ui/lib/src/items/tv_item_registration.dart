@@ -210,7 +210,11 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'volumeSlider',
     'Volume slider',
     RemoteItemCategory.volume,
-    requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
+    requires: const {
+      RemoteCapability.volume,
+      RemoteCapability.absoluteVolume,
+      RemoteCapability.volumeFeedback,
+    },
     elements: [TvItems.volume, TvItems.volumeSlider],
   ),
   RemoteItemDefinition(
@@ -218,7 +222,11 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'Vertical slider',
     RemoteItemCategory.volume,
     axis: ItemAxis.vertical,
-    requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
+    requires: const {
+      RemoteCapability.volume,
+      RemoteCapability.absoluteVolume,
+      RemoteCapability.volumeFeedback,
+    },
     elements: [TvItems.volume, TvItems.volumeSlider],
   ),
   RemoteItemDefinition(
@@ -226,7 +234,11 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'Volume dial',
     RemoteItemCategory.volume,
     layout: DialLayout(size: RemoteItemSize(2, 2)),
-    requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
+    requires: const {
+      RemoteCapability.volume,
+      RemoteCapability.absoluteVolume,
+      RemoteCapability.volumeFeedback,
+    },
     elements: [
       TvItems.volume,
       TvItems.volumeSlider,
@@ -264,7 +276,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     RemoteItemCategory.volume,
     axis: ItemAxis.vertical,
     layout: LinearLayout(adaptive: true),
-    requires: const {RemoteCapability.volume},
+    requires: const {RemoteCapability.volume, RemoteCapability.volumeFeedback},
     elements: [TvItems.volumeUp, TvItems.volume, TvItems.volumeDown],
   ),
   RemoteItemDefinition(
@@ -272,28 +284,37 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'Expanded audio',
     RemoteItemCategory.volume,
     layout: LinearLayout(size: RemoteItemSize(4, 2, minimumWidth: 3)),
-    requires: const {RemoteCapability.volume},
+    requires: const {
+      RemoteCapability.volume,
+      RemoteCapability.absoluteVolume,
+      RemoteCapability.volumeFeedback,
+      RemoteCapability.mute,
+    },
     elements: [TvItems.volumeSlider, TvItems.volume, TvItems.muteToggle],
   ),
   RemoteItemDefinition(
     'mute',
     'Mute toggle',
     RemoteItemCategory.volume,
-    requires: const {RemoteCapability.volume},
+    requires: const {
+      RemoteCapability.volume,
+      RemoteCapability.mute,
+      RemoteCapability.volumeFeedback,
+    },
     elements: [TvItems.muteToggle],
   ),
   RemoteItemDefinition(
     'muteOn',
     'Mute',
     RemoteItemCategory.volume,
-    requires: const {RemoteCapability.volume},
+    requires: const {RemoteCapability.volume, RemoteCapability.mute},
     elements: [TvItems.muteOn],
   ),
   RemoteItemDefinition(
     'muteOff',
     'Unmute',
     RemoteItemCategory.volume,
-    requires: const {RemoteCapability.volume},
+    requires: const {RemoteCapability.volume, RemoteCapability.mute},
     elements: [TvItems.muteOff],
   ),
   RemoteItemDefinition(
@@ -310,7 +331,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
       ),
     ],
     layout: LinearLayout(size: RemoteItemSize(1, 1)),
-    requires: const {RemoteCapability.volume},
+    requires: const {RemoteCapability.volume, RemoteCapability.absoluteVolume},
     elements: [TvItems.volumePreset],
   ),
   RemoteItemDefinition(

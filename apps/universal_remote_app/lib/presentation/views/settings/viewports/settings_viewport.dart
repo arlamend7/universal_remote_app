@@ -21,7 +21,7 @@ class SettingsViewport extends StatelessWidget {
         onTap: () => _help(context),
       ),
       const SizedBox(height: 24),
-      const Text('Universal Remote · LG webOS', textAlign: TextAlign.center),
+      const Text('Universal Remote', textAlign: TextAlign.center),
     ],
   );
   Future<void> _help(BuildContext context) => showDialog<void>(

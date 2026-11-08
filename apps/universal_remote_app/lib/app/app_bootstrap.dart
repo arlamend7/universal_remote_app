@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_android_tv/remote_android_tv.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_network/remote_network.dart';
 
@@ -47,7 +48,11 @@ abstract final class AppBootstrap {
     final CredentialStore credentials =
         sessionCredentials ?? protectedCredentials;
     final provider = LgWebOsProvider(credentials: credentials);
-    final providers = registry ?? (ProviderRegistry()..register(provider));
+    final providers =
+        registry ??
+        (ProviderRegistry()
+          ..register(provider)
+          ..register(AndroidTvProvider(credentials: credentials)));
     final logger = DiagnosticLogger();
     final saved = SavedDevicesController(
       SavedDeviceRepository(

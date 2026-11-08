@@ -37,6 +37,15 @@ void main() {
     await reloaded.dispose();
   });
 
+  test('loads an older saved dashboard with kind identifiers', () {
+    final layout = GridLayout.decode(
+      '{"version":2,"items":[{"id":"old","kind":"volumeUp","x":0,"y":0,"w":1,"h":1}]}',
+    );
+    expect(layout.items.single.definitionId, 'volumeUp');
+    expect(GridGeometry.valid(layout.items), isTrue);
+    expect(layout.encode(), contains('"definitionId":"volumeUp"'));
+  });
+
   test(
     'an unknown definition keeps its identifier and place on the dashboard',
     () {

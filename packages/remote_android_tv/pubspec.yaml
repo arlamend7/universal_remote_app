@@ -1,0 +1,13 @@
+name: remote_android_tv
+description: Android TV Remote Service v2 provider.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: ^3.13.4
+dependencies:
+  remote_core: ^0.1.0
+  multicast_dns: 0.3.3+1
+  pointycastle: 4.0.0
+dev_dependencies:
+  test: ^1.31.1

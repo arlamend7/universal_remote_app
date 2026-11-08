@@ -1,8 +1,7 @@
 # Universal Remote
 
-An LG-first, local-first universal remote built with Flutter and reusable Dart
-packages. Phase 1 supports compatible LG webOS televisions. Other manufacturers
-and device categories are architectural extension points, not shipped integrations.
+A local-first universal remote built with Flutter and reusable Dart packages.
+It supports compatible LG webOS and Android TV / Google TV televisions.
 
 ## Implemented
 
@@ -52,6 +51,19 @@ your signing team and an appropriate provisioning profile in Xcode.
 This is a Pub workspace: commit the root pubspec.lock; do not resolve packages
 as unrelated projects. No cloud backend, database, user accounts, analytics,
 release publication, or internet-facing control server is required.
+
+## Connect a TCL Google TV
+
+Turn on the TV and keep it on the same network as the app. Choose it under
+**Find Nearby Devices**, or use **Connect by IP** and select **Google TV / Android TV**.
+Enter the six characters shown on the TV when prompted. The app stores the
+client identity in protected storage and checks the paired TV certificate on
+reconnect.
+
+Android TV support covers direction, OK, Back, Home, media keys, and relative
+volume. Power off is offered when the remote service advertises power and keys.
+The Android TV provider has been tested with a local TLS server. Physical TCL
+compatibility remains to be verified.
 
 ## Customize your remote
 

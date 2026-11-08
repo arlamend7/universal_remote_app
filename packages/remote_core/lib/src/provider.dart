@@ -36,8 +36,16 @@ abstract interface class IncrementalDiscoveryProvider {
 
 abstract interface class ManualDeviceProvider {
   ManualDeviceFactory get manualDeviceFactory;
+  String get manualSetupLabel;
+  bool get showsAdvancedSetup;
   DeviceNetworkConfiguration networkConfiguration(RemoteDevice device);
 }
+
+typedef ManualDeviceSetup = ({
+  String label,
+  bool showsAdvancedSetup,
+  ManualDeviceFactory factory,
+});
 
 typedef ManualDeviceFactory = RemoteDevice Function({
   required String address,

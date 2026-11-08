@@ -5,9 +5,11 @@ final class DeviceEditorViewModel {
   DeviceEditorViewModel({
     required this.factory,
     this.device,
+    this.setups = const {},
     DeviceNetworkConfiguration configuration =
         const DeviceNetworkConfiguration(),
   }) {
+    provider.value = device?.providerId ?? setups.keys.firstOrNull;
     name.text = device?.name ?? 'Living room TV';
     address.text = configuration.address;
     certificate.text = configuration.certificate;
@@ -17,6 +19,8 @@ final class DeviceEditorViewModel {
     legacyPointer.value = configuration.allowInsecurePointer;
   }
   final ManualDeviceFactory factory;
+  final Map<String, ManualDeviceSetup> setups;
+  final provider = ValueNotifier<String?>(null);
   final RemoteDevice? device;
   final name = TextEditingController();
   final address = TextEditingController();
@@ -26,7 +30,10 @@ final class DeviceEditorViewModel {
   final legacy = ValueNotifier(false);
   final legacyPointer = ValueNotifier(false);
   final error = ValueNotifier<String?>(null);
-  Listenable get changes => Listenable.merge([legacy, legacyPointer, error]);
+  Listenable get changes =>
+      Listenable.merge([legacy, legacyPointer, error, provider]);
+  bool get showsAdvancedSetup =>
+      setups[provider.value]?.showsAdvancedSetup ?? true;
   bool get editing => device != null;
   void setLegacy(bool enabled) {
     legacy.value = enabled;
@@ -38,7 +45,10 @@ final class DeviceEditorViewModel {
 
   RemoteDevice? submit() {
     try {
-      return factory(
+      final create = editing
+          ? factory
+          : setups[provider.value]?.factory ?? factory;
+      return create(
         address: address.text,
         name: name.text,
         legacy: legacy.value,
@@ -73,5 +83,6 @@ final class DeviceEditorViewModel {
     legacy.dispose();
     legacyPointer.dispose();
     error.dispose();
+    provider.dispose();
   }
 }

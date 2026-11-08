@@ -36,6 +36,18 @@ final class ProviderRegistry {
       _extension<ManualDeviceProvider>(device)?.networkConfiguration(device) ??
       const DeviceNetworkConfiguration();
 
+  Map<String, ManualDeviceSetup> get manualSetups => {
+    for (final provider in _providers.values)
+      if (provider is ManualDeviceProvider)
+        provider.id: _manualSetup(provider as ManualDeviceProvider),
+  };
+
+  ManualDeviceSetup _manualSetup(ManualDeviceProvider provider) => (
+    label: provider.manualSetupLabel,
+    showsAdvancedSetup: provider.showsAdvancedSetup,
+    factory: provider.manualDeviceFactory,
+  );
+
   RemoteDevice createManualDevice({
     required String address,
     required String name,

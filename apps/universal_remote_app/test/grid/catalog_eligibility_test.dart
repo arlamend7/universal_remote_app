@@ -37,7 +37,10 @@ void main() {
       isA<RemoteItemDefinition<RemotePanel>>(),
     );
     expect(rocker.category, RemoteItemCategory.volume);
-    expect(rocker.requires, {RemoteCapability.volume});
+    expect(rocker.requires, {
+      RemoteCapability.volume,
+      RemoteCapability.volumeFeedback,
+    });
     expect(rocker.elements.map((element) => element.id), [
       'volume_up',
       'current_volume',
@@ -130,5 +133,26 @@ void main() {
     expect((input.width, input.height), (2, 1));
     expect(input.isCompatibleWith({RemoteCapability.inputs}), isFalse);
     expect(input.isCompatibleWith({RemoteCapability.currentInput}), isTrue);
+  });
+  test('relative volume does not offer absolute volume or mute controls', () {
+    const relative = {RemoteCapability.volume};
+    expect(
+      RemoteItemRegistry.resolve('volumeUp').isCompatibleWith(relative),
+      isTrue,
+    );
+    for (final id in [
+      'volumePreset',
+      'volumeSlider',
+      'volumeDial',
+      'mute',
+      'muteOn',
+      'muteOff',
+    ]) {
+      expect(
+        RemoteItemRegistry.resolve(id).isCompatibleWith(relative),
+        isFalse,
+        reason: id,
+      );
+    }
   });
 }

@@ -26,6 +26,12 @@ final class LgWebOsProvider
   final LgConnectionOptions options;
   final TransportConnector? _connector;
   @override
+  String get manualSetupLabel => 'LG webOS';
+
+  @override
+  bool get showsAdvancedSetup => true;
+
+  @override
   ManualDeviceFactory get manualDeviceFactory =>
       LgManualDeviceFactory(this).create;
 

@@ -17,6 +17,7 @@ class DeviceEditorState extends State<DeviceEditor> {
           ? const DeviceNetworkConfiguration()
           : registry.networkConfiguration(device),
       factory: registry.createManualDevice,
+      setups: registry.manualSetups,
       device: widget.device,
     );
   }

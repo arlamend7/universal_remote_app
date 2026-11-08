@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_androidtvremote2._tcp</string>
+    </array>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>Connect to your LG TV on your local network.</string>
+    <string>Discover and control TVs on your local network.</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsLocalNetworking</key>

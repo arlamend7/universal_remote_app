@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 
+import 'pairing_code_card.dart';
+
 import '../../remote/viewmodels/remote_viewmodel.dart';
 
 class PairingProgressCard extends StatelessWidget {
@@ -12,7 +14,18 @@ class PairingProgressCard extends StatelessWidget {
     _ => 'Connecting securely…',
   };
   @override
-  Widget build(BuildContext context) => SafeArea(child: _scroll(context));
+  Widget build(BuildContext context) {
+    final controller = model.connection.controller;
+    if (model.state == DeviceConnectionState.pairing &&
+        controller is PairingCodeReceiver) {
+      return PairingCodeCard(
+        receiver: controller as PairingCodeReceiver,
+        onCancel: model.disconnect,
+      );
+    }
+    return SafeArea(child: _scroll(context));
+  }
+
   Widget _scroll(BuildContext context) => SingleChildScrollView(
     padding: const EdgeInsets.all(28),
     child: _body(context),

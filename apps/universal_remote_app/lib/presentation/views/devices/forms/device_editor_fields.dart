@@ -10,22 +10,34 @@ class DeviceEditorFields extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
+      if (!model.editing && model.setups.length > 1) _platform(),
       _name(),
       const SizedBox(height: 16),
       _address(),
       const SizedBox(height: 8),
-      ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        title: const Text('Advanced settings'),
-        children: [
-          _legacy(),
-          if (!model.legacy.value) _legacyPointer(),
-          AdvancedConnectionFields(model: model),
-        ],
-      ),
+      if (model.showsAdvancedSetup)
+        ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          title: const Text('Advanced settings'),
+          children: [
+            _legacy(),
+            if (!model.legacy.value) _legacyPointer(),
+            AdvancedConnectionFields(model: model),
+          ],
+        ),
       if (model.error.value != null) _error(context),
     ],
   );
+  Widget _platform() => DropdownButtonFormField<String>(
+    initialValue: model.provider.value,
+    decoration: const InputDecoration(labelText: 'TV platform'),
+    items: [
+      for (final entry in model.setups.entries)
+        DropdownMenuItem(value: entry.key, child: Text(entry.value.label)),
+    ],
+    onChanged: (value) => model.provider.value = value,
+  );
+
   Widget _name() => TextField(
     controller: model.name,
     decoration: const InputDecoration(labelText: 'Name'),

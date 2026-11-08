@@ -11,6 +11,8 @@ abstract interface class TvRemoteDevice {
   Future<void> channelUp();
   Future<void> channelDown();
   Future<void> media(MediaAction action);
+  bool get mediaPlaying;
+  Future<void> togglePlayback();
   Future<void> key(RemoteKey key);
   Future<void> click();
   Future<void> move(double x, double y, {bool scroll = false});

@@ -79,7 +79,7 @@ final class GridItem {
     final children = value['children'] as List<dynamic>? ?? [];
     return GridItem(
       id: value['id'] as String,
-      definitionId: value['definitionId'] as String,
+      definitionId: (value['definitionId'] ?? value['kind']) as String,
       style: RemoteItemStyle.fromJson(value['style']),
       elementStyles: _elementStyles(value['elements']),
       x: value['x'] as int,

@@ -85,7 +85,6 @@ void main() {
   test('play and pause toggle alternates the command it sends', () async {
     final device = _MediaDevice();
     final panel = MutedRemotePanel(muted: false);
-    TvItems.mediaPlaying.value = false;
     final context = RemoteElementContext(remote: panel);
     ResolvedAction resolve() => TvItems.playPause.builder(context, device);
     expect(resolve().label, 'Play');
@@ -99,6 +98,11 @@ void main() {
 
 final class _MediaDevice implements TvRemoteDevice {
   final sent = <MediaAction>[];
+  @override
+  bool get mediaPlaying => sent.lastOrNull == MediaAction.play;
+  @override
+  Future<void> togglePlayback() =>
+      media(mediaPlaying ? MediaAction.pause : MediaAction.play);
   @override
   Future<void> media(MediaAction action) async => sent.add(action);
   @override

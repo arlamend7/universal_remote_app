@@ -247,6 +247,6 @@ void main() {
 
 final _catalogTv = copyDevice(
   tv,
-  capabilities: {RemoteCapability.volume},
+  capabilities: {RemoteCapability.volume, RemoteCapability.volumeFeedback},
   metadata: {'lastConnectedAt': '2026-01-01T00:00:00Z'},
 );
