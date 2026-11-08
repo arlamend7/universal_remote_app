@@ -40,6 +40,10 @@ class GridRemoteItem extends StatelessWidget {
     ]),
     RemoteItemCategory.apps || RemoteItemCategory.pinnedApps =>
       Listenable.merge([model.remote.controlsChanges, model.remote.profiles]),
+    RemoteItemCategory.media => Listenable.merge([
+      model.remote.controlsChanges,
+      TvItems.mediaPlaying,
+    ]),
     RemoteItemCategory.utilities => Listenable.merge([
       model.remote.controlsChanges,
       model.remote.sleepDeadline,

@@ -8,8 +8,8 @@ import '../viewmodels/grid_remote_viewmodel.dart';
 import 'element_view.dart';
 import 'unavailable_notice.dart';
 
-/// Lays a definition's elements around a ring: the first five go top, right,
-/// bottom, left and centre; any further elements (Home, Back) form a shortcut
+/// Lays a definition's elements around a ring: the first four go top, right,
+/// bottom and left, a fifth goes in the centre; any further elements (Home, Back) form a shortcut
 /// row when the item enables shortcuts.
 class NavigationSurface extends StatelessWidget {
   const NavigationSurface({super.key, required this.item, required this.model});
@@ -70,7 +70,7 @@ class NavigationSurface extends StatelessWidget {
         _place(Alignment.centerRight, _elements[1]),
         _place(Alignment.bottomCenter, _elements[2]),
         _place(Alignment.centerLeft, _elements[3]),
-        _place(Alignment.center, _elements[4]),
+        if (_elements.length > 4) _place(Alignment.center, _elements[4]),
       ],
     ),
   );

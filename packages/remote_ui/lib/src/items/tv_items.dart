@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/material.dart' show Icon, Icons;
 import 'package:remote_core/remote_core.dart';
 
@@ -105,6 +106,30 @@ abstract final class TvItems {
       execute: () => remote.media(MediaAction.pause),
     ),
   );
+
+  /// Whether the last Play / Pause press started playback. The TV does not
+  /// report this, so the toggle tracks its own presses and can drift if the
+  /// TV is also controlled elsewhere.
+  static final mediaPlaying = ValueNotifier<bool>(false);
+
+  /// One button that alternates Play and Pause, showing the next action.
+  static final playPause = RemoteAction<TvRemoteDevice>(
+    'play_pause',
+    builder: (context, remote) {
+      final playing = mediaPlaying.value;
+      return (
+        icon: playing ? Icons.pause : Icons.play_arrow,
+        label: playing ? 'Pause' : 'Play',
+        enabled: true,
+        execute: () async {
+          final start = !mediaPlaying.value;
+          await remote.media(start ? MediaAction.play : MediaAction.pause);
+          mediaPlaying.value = start;
+        },
+      );
+    },
+  );
+
   static final stop = RemoteAction<TvRemoteDevice>(
     'stop',
     builder: (context, remote) => (

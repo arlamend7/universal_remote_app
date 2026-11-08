@@ -82,8 +82,8 @@ disconnect/device changes; it is not a native TV timer or background guarantee.
   unavailable placeholder and is saved back unchanged. A definition declares
   its own `settings` (toggle, number, slider) and the editor builds its form
   from them, so the editor never checks item ids. A `RemoteItemCategory`
-  marked `alternatives` (volume, mute, channel arrows, directional pad, pinned
-  apps or inputs, activity) holds different looks of one control; the editor's
+  marked `alternatives` (volume, mute, channel arrows, directional pad with arrow-only,
+  single keys, media, pinned apps or inputs, activity) holds different looks of one control; the editor's
   Style picker lists only that category, each with the same sample preview as
   the library. Other categories just group unrelated controls.
   Elements are plain data: each `RemoteAction` declares its own icon, label

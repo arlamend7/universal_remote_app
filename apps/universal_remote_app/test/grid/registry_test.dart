@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
+import '../support/muted_remote_panel.dart';
+
 void main() {
   test('every persisted definitionId resolves to one definition that owns its renderer', () {
     final ids = <String>{};
@@ -44,11 +46,18 @@ void main() {
   test('styles are only offered between real alternatives of one control', () {
     List<String> styles(String id) =>
         RemoteItemRegistry.variations(id).map((item) => item.id).toList();
-    expect(styles('up'), ['up']);
     expect(styles('touchpad'), ['touchpad']);
     expect(styles('deviceAddress'), ['deviceAddress']);
     expect(styles('keypad'), ['keypad']);
-    expect(styles('directionPad'), ['directionPad', 'crossPad']);
+    expect(styles('directionPad'), ['directionPad', 'crossPad', 'arrowPad']);
+    expect(
+      styles('transport'),
+      containsAll(['transport', 'play', 'playPause', 'stop']),
+    );
+    expect(styles('transport'), isNot(contains('up')));
+    expect(styles('up'), containsAll(['up', 'home', 'back', 'apps', 'menu']));
+    expect(styles('up'), isNot(contains('play')));
+    expect(styles('up'), isNot(contains('directionPad')));
     expect(styles('currentActivity'), ['currentActivity', 'currentApp']);
     expect(styles('channelRocker'), ['channelRocker', 'channelDisplayRocker']);
     expect(styles('volumeDial'), contains('volumeRocker'));
@@ -67,4 +76,28 @@ void main() {
     expect(RemoteItemRegistry.resolve('keyboard').accepts(1, 1), isTrue);
     expect(RemoteItemRegistry.resolve('sleep').accepts(1, 1), isTrue);
   });
+
+  test('play and pause toggle alternates the command it sends', () async {
+    final device = _MediaDevice();
+    final panel = MutedRemotePanel(muted: false);
+    TvItems.mediaPlaying.value = false;
+    final context = RemoteElementContext(remote: panel);
+    ResolvedAction resolve() => TvItems.playPause.builder(context, device);
+    expect(resolve().label, 'Play');
+    await resolve().execute();
+    expect(resolve().label, 'Pause');
+    await resolve().execute();
+    expect(resolve().label, 'Play');
+    expect(device.sent, [MediaAction.play, MediaAction.pause]);
+  });
+}
+
+final class _MediaDevice implements TvRemoteDevice {
+  final sent = <MediaAction>[];
+  @override
+  Future<void> media(MediaAction action) async => sent.add(action);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnsupportedError(
+    '${invocation.memberName} is not part of this fake',
+  );
 }
