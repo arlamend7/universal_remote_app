@@ -148,7 +148,7 @@ final standardItemDefinitions = <RemoteItemDefinition<Object>>[
     'accessorySettings',
     'Bluetooth & accessories',
     RemoteItemCategory.utilities,
-    description: 'Open TV settings. Use Remotes & Accessories on the TV to manage Bluetooth devices.',
+    description: 'Open TV settings to pair or manage Bluetooth devices on the TV screen.',
     requires: const {RemoteCapability.accessorySettings},
     elements: [accessorySettingsAction],
   ),

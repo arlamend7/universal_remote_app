@@ -120,6 +120,14 @@ final class LgCapabilityResolver {
       controller,
       controller.applications,
     );
+    if (!isCurrent() || !controller.hasSettings) {
+      return;
+    }
+    registry.enable(
+      RemoteCapability.accessorySettings,
+      controller,
+      CapabilityAvailability.known,
+    );
   }
 
   Future<void> _inputs() async {

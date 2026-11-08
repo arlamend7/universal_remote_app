@@ -150,6 +150,10 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Future<List<DeviceApplication>> applications() => _apps.applications();
   @override
+  Future<void> openAccessorySettings() =>
+      _use<LgApplicationController>(RemoteCapability.accessorySettings)
+          .openAccessorySettings();
+  @override
   Future<void> launchApplication(String id) => _apps.launch(id);
   @override
   Future<String?> currentApplication() => _apps.currentApplication();

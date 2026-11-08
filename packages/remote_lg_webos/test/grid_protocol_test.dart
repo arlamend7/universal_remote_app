@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_lg_webos/src/commands/services/lg_command_channel.dart';
+import 'package:remote_lg_webos/src/capabilities/applications/lg_application_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/text/lg_text_controller.dart';
 import 'package:remote_lg_webos/src/capabilities/channels/lg_channel_selection_controller.dart';
 import 'package:remote_lg_webos/src/pointer/services/lg_pointer_connection.dart';
@@ -9,6 +10,42 @@ import 'package:remote_lg_webos/src/pointer/services/lg_pointer_connection.dart'
 import 'support/fake_transport.dart';
 
 void main() {
+  test('sound settings require an advertised app and failures stay capability-scoped', () async {
+    final transport = FakeTransport();
+    final client = SsapClient(transport);
+    addTearDown(client.close);
+    final unavailable = <RemoteCapability>[];
+    final channel = LgCommandChannel(onUnavailable: unavailable.add)
+      ..attach(client);
+    final apps = LgApplicationController(channel);
+    await expectLater(
+      apps.openAccessorySettings(),
+      throwsA(isA<RemoteException>()),
+    );
+    transport.respond = (request) => transport.reply(request, {
+      'apps': [
+        {'id': 'com.palm.app.settings', 'title': 'Settings', 'visible': false},
+      ],
+    });
+    expect(await apps.applications(), isEmpty);
+    expect(apps.hasSettings, isTrue);
+    transport.respond = (request) =>
+        transport.reply(request, {'returnValue': true});
+    await apps.openAccessorySettings();
+    expect(transport.sent.last['uri'], 'ssap://system.launcher/launch');
+    expect(transport.sent.last['payload'], {
+      'id': 'com.palm.app.settings',
+      'params': {'target': 'sound'},
+    });
+    transport.respond = (request) =>
+        transport.reject(request, '403 permission denied');
+    await expectLater(
+      apps.openAccessorySettings(),
+      throwsA(isA<RemoteException>()),
+    );
+    expect(unavailable, [RemoteCapability.accessorySettings]);
+  });
+
   test(
     'media and text commands use typed, correlated protocol requests',
     () async {

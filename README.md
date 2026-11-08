@@ -67,11 +67,15 @@ compatibility remains to be verified.
 
 ### Connect a Bluetooth soundbar
 
-Put the soundbar in Bluetooth pairing mode. From the app's remote menu,
-choose **Bluetooth & accessories** to send the TV's Settings key. On the TV,
-open **Remotes & Accessories → Pair remote or accessory**, choose the soundbar,
-and confirm pairing. To reconnect or disconnect it, select it from the same
-TV menu. The TV shows the device list and pairing status on its own screen.
+Put the soundbar in Bluetooth pairing mode and choose **Bluetooth & accessories**
+from the remote menu. The shortcut is shown when the connected TV supports it.
+
+- On Google TV, open **Remotes & Accessories → Pair remote or accessory**.
+- On LG webOS, open **Sound Out → Use Wireless Speaker → Bluetooth Devices**.
+  The names vary by webOS version.
+
+Select the soundbar on the TV. Use the same TV menu to reconnect or disconnect
+it. The accessory list and pairing confirmation appear on the TV screen.
 
 ## Customize your remote
 

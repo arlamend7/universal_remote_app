@@ -6,6 +6,8 @@ import 'package:remote_lg_webos/src/commands/services/lg_command_channel.dart';
 final class LgApplicationController {
   LgApplicationController(this.channel);
   final LgCommandChannel channel;
+  static const _settingsAppId = 'com.palm.app.settings';
+  bool hasSettings = false;
   Set<String>? _reported;
   Set<String>? get reportedApplicationIds => _reported;
   Future<List<DeviceApplication>> applications() async {
@@ -20,6 +22,9 @@ final class LgApplicationController {
         'The TV returned an invalid application list.',
       );
     }
+    hasSettings = items.whereType<Map<String, dynamic>>().any(
+      (item) => item['id'] == _settingsAppId,
+    );
     final apps = <String, DeviceApplication>{};
     for (final item in items.whereType<Map<String, dynamic>>()) {
       final id = item['id'];
@@ -45,6 +50,23 @@ final class LgApplicationController {
       RemoteCapability.applications,
       'system.launcher/launch',
       payload: {'id': id},
+    );
+  }
+
+  Future<void> openAccessorySettings() async {
+    if (!hasSettings) {
+      throw const RemoteException(
+        'unsupported',
+        'The TV does not report a settings app.',
+      );
+    }
+    await channel.send(
+      RemoteCapability.accessorySettings,
+      'system.launcher/launch',
+      payload: {
+        'id': _settingsAppId,
+        'params': {'target': 'sound'},
+      },
     );
   }
 
