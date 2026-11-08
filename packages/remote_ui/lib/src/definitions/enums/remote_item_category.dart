@@ -9,7 +9,7 @@ enum RemoteItemCategory {
   audio('audio'),
   navigation('navigation'),
   keypad('numeric keypad'),
-  keys('keys navigation', alternatives: true),
+  keys('keys', alternatives: true),
   media('media', alternatives: true),
   information('information'),
   utilities('utilities'),
@@ -19,7 +19,7 @@ enum RemoteItemCategory {
   mute('mute', alternatives: true),
   channelArrows('channel arrows', alternatives: true),
   favouriteChannels('channels', alternatives: true),
-  directionPad('directional pad', alternatives: true),
+  directionPad('directional pad arrows ok', alternatives: true),
   pinnedApps('apps', alternatives: true),
   pinnedInputs('inputs', alternatives: true),
   activity('activity', alternatives: true);

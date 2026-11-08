@@ -49,19 +49,24 @@ void main() {
     expect(styles('touchpad'), ['touchpad']);
     expect(styles('deviceAddress'), ['deviceAddress']);
     expect(styles('keypad'), ['keypad']);
-    expect(styles('directionPad'), ['directionPad', 'crossPad', 'arrowPad']);
     expect(
       styles('transport'),
       containsAll(['transport', 'play', 'playPause', 'stop']),
     );
     expect(styles('transport'), isNot(contains('up')));
-    expect(styles('up'), containsAll(['up', 'home', 'back', 'apps', 'menu']));
-    expect(styles('up'), isNot(contains('play')));
-    expect(styles('up'), isNot(contains('directionPad')));
+    expect(
+      styles('up'),
+      containsAll(['directionPad', 'crossPad', 'arrowPad', 'up', 'left', 'ok']),
+    );
+    expect(styles('up'), isNot(contains('home')));
+    expect(styles('home'), containsAll(['home', 'back', 'apps', 'menu']));
+    expect(styles('home'), isNot(contains('up')));
+    expect(styles('home'), isNot(contains('ok')));
+    expect(styles('volumeUp'), containsAll(['volumeUp', 'volumeRocker']));
+    expect(styles('recentApps'), containsAll(['recentApps', 'appStrip']));
     expect(styles('currentActivity'), ['currentActivity', 'currentApp']);
     expect(styles('channelRocker'), ['channelRocker', 'channelDisplayRocker']);
     expect(styles('volumeDial'), contains('volumeRocker'));
-    expect(styles('volumeDial'), isNot(contains('volumeUp')));
     expect(styles('appGrid'), isNot(contains('inputGrid')));
   });
 
