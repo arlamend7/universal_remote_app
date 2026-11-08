@@ -7,12 +7,13 @@ import 'package:test/test.dart';
 
 void main() {
   test(
-    'a real UDP responder receives M-SEARCH and replies to its source port',
+    'SSDP retries, filters a broad search and replies to the source port',
     () async {
       final server = await RawDatagramSocket.bind(
         InternetAddress.loopbackIPv4,
         0,
       );
+      final stages = <String>[];
       final request = Completer<String>();
       final found = Completer<String>();
       final listener = server.listen((event) {
@@ -26,9 +27,19 @@ void main() {
         if (!request.isCompleted) {
           request.complete(utf8.decode(datagram.data));
         }
+        if (!utf8.decode(datagram.data).contains('ST: ssdp:all')) {
+          return;
+        }
         server.send(
           utf8.encode(
-            'HTTP/1.1 200 OK\r\nUSN: uuid:fake-tv::service\r\nST: service\r\n\r\n',
+            'HTTP/1.1 200 OK\r\nUSN: uuid:unrelated\r\nST: upnp:rootdevice\r\n\r\n',
+          ),
+          datagram.address,
+          datagram.port,
+        );
+        server.send(
+          utf8.encode(
+            'HTTP/1.1 200 OK\r\nUSN: uuid:fake-tv::service\r\nST: upnp:rootdevice\r\n\r\n',
           ),
           datagram.address,
           datagram.port,
@@ -37,10 +48,12 @@ void main() {
       try {
         final session = SsdpSearchSession(
           serviceType: 'service',
-          duration: const Duration(milliseconds: 100),
+          duration: const Duration(milliseconds: 300),
           localAddress: InternetAddress.loopbackIPv4,
           destination: InternetAddress.loopbackIPv4,
           destinationPort: server.port,
+          broadFallback: true,
+          onStage: stages.add,
           onAdvertisement: (item) => found.complete(item.identity),
         );
         var completed = false;
@@ -56,6 +69,11 @@ void main() {
           contains('M-SEARCH * HTTP/1.1\r\n'),
         );
         expect(responses.single.identity, 'uuid:fake-tv');
+        expect(
+          stages.where((stage) => stage == 'ssdp.datagramSent'),
+          hasLength(3),
+        );
+        expect(stages, contains('ssdp.responseRejected.service'));
       } finally {
         await listener.cancel();
         server.close();

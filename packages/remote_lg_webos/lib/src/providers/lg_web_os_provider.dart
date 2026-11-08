@@ -138,6 +138,8 @@ final class LgWebOsProvider
     final responses = await discovery.search(
       lgServiceType,
       cancelled: cancellation.whenCancelled,
+      onStage: cancellation.record,
+      broadFallback: true,
       onAdvertisement: onDevice == null
           ? null
           : (item) => onDevice(_device(item)),

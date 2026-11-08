@@ -6,6 +6,7 @@ import 'package:universal_remote_app/app/universal_remote_app.dart';
 import 'package:universal_remote_app/presentation/views/discovery/modals/device_discovery_sheet.dart';
 
 import '../support/memory_storage.dart';
+import '../support/fake_provider.dart';
 import '../support/capture_design.dart';
 import '../support/pending_discovery_provider.dart';
 import '../support/test_device.dart';
@@ -55,6 +56,63 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+  testWidgets('failed discovery has diagnostics and no empty-results message', (
+    tester,
+  ) async {
+    final provider = PendingDiscoveryProvider();
+    final app = await AppBootstrap.initialize(
+      storage: MemoryStorage(),
+      registry: ProviderRegistry()..register(provider),
+      acquireNetwork: () async {},
+      releaseNetwork: () async {},
+    );
+    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+    await tester.tap(find.text('Find Nearby Devices'));
+    await tester.pump();
+    provider.response.completeError(StateError('private TV data'));
+    await tester.pumpAndSettle();
+
+    final sheet = find.byType(DeviceDiscoverySheet);
+    expect(find.textContaining('No new devices found'), findsNothing);
+    expect(find.textContaining('Network discovery failed'), findsOneWidget);
+    expect(
+      find.descendant(of: sheet, matching: find.text('Connect by IP')),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Search details'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('providerException'), findsOneWidget);
+    expect(find.textContaining('private TV data'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a failed provider leaves a discovered TV available', (
+    tester,
+  ) async {
+    final failing = PendingDiscoveryProvider(id: 'broken');
+    final app = await AppBootstrap.initialize(
+      storage: MemoryStorage(),
+      registry: ProviderRegistry()
+        ..register(FakeProvider())
+        ..register(failing),
+      acquireNetwork: () async {},
+      releaseNetwork: () async {},
+    );
+    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+    await tester.tap(find.text('Find Nearby Devices'));
+    await tester.pump();
+    failing.response.completeError(StateError('Unavailable'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(tv.name), findsOneWidget);
+    expect(find.text('Add'), findsOneWidget);
+    expect(find.textContaining('Network discovery failed'), findsNothing);
+    expect(find.textContaining('No new devices found'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('closing discovery cancels and ignores late results', (
     tester,
   ) async {

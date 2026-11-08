@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 /// A visible status region while discovery is actually running; no fake delay.
 class DiscoveryProgress extends StatelessWidget {
-  const DiscoveryProgress({super.key});
+  const DiscoveryProgress({super.key, required this.providers});
+
+  final List<String> providers;
   @override
   Widget build(BuildContext context) =>
       Semantics(liveRegion: true, child: _content(context));
@@ -14,7 +16,7 @@ class DiscoveryProgress extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Text(
-        'Searching for LG TVs…',
+        'Searching for nearby devices…',
         style: Theme.of(context).textTheme.titleMedium,
       ),
       const SizedBox(height: 12),
@@ -23,7 +25,9 @@ class DiscoveryProgress extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(4)),
       ),
       const SizedBox(height: 8),
-      const Text('Checking your local network. Keep your TV turned on.'),
+      Text(
+        providers.isEmpty ? 'Keep your TV turned on.' : providers.join(' · '),
+      ),
     ],
   );
 }

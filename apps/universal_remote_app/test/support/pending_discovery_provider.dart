@@ -5,6 +5,11 @@ import 'package:remote_core/remote_core.dart';
 import 'fake_provider.dart';
 
 class PendingDiscoveryProvider extends FakeProvider {
+  PendingDiscoveryProvider({this.id = 'test'});
+
+  @override
+  final String id;
+
   final response = Completer<List<RemoteDevice>>();
   int calls = 0;
   DiscoveryCancellation? token;

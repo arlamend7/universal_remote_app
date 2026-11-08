@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../models/ssdp_advertisement.dart';
 import '../models/ssdp_route_result.dart';
+import '../models/ssdp_socket_failure.dart';
 import 'ssdp_search_session.dart';
 
 /// Searches each active IPv4 address instead of relying on the default route.
@@ -24,20 +25,27 @@ final class SsdpDiscovery {
     String serviceType, {
     Future<void>? cancelled,
     void Function(SsdpAdvertisement)? onAdvertisement,
+    bool broadFallback = false,
+    void Function(String)? onStage,
   }) async {
     if (serviceType.contains(RegExp(r'[\r\n]')) || duration <= Duration.zero) {
       throw ArgumentError('Invalid SSDP search.');
     }
     final routes = await (addresses?.call() ?? _localAddresses());
     if (routes.isEmpty) {
-      throw const SocketException(
-        'No active IPv4 network interface. Connect to Wi-Fi or Ethernet.',
-      );
+      throw const SsdpSocketFailure('noInterface', 'No active IPv4 interface');
     }
+    routes.forEach((_) => onStage?.call('ssdp.interfaceDetected'));
     final results = await Future.wait(
       routes.map(
-        (address) =>
-            _searchAddress(serviceType, address, cancelled, onAdvertisement),
+        (address) => _searchAddress(
+          serviceType,
+          address,
+          cancelled,
+          onAdvertisement,
+          broadFallback,
+          onStage,
+        ),
       ),
     );
     return _collect(results);
@@ -56,6 +64,8 @@ final class SsdpDiscovery {
     InternetAddress address,
     Future<void>? cancelled,
     void Function(SsdpAdvertisement)? onAdvertisement,
+    bool broadFallback,
+    void Function(String)? onStage,
   ) async {
     try {
       final advertisements =
@@ -65,9 +75,13 @@ final class SsdpDiscovery {
                 duration: duration,
                 localAddress: address,
                 onAdvertisement: onAdvertisement,
+                broadFallback: broadFallback,
+                onStage: onStage,
               ).run(cancelled: cancelled));
       return SsdpRouteResult(advertisements: advertisements);
     } catch (error) {
+      final stage = error is SsdpSocketFailure ? error.stage : 'unknown';
+      onStage?.call('ssdp.routeFailed.$stage');
       return SsdpRouteResult(error: error);
     }
   }

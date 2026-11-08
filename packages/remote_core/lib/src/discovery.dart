@@ -5,6 +5,22 @@ import 'package:remote_core/src/device.dart';
 /// Cooperative cancellation; providers must release discovery resources.
 final class DiscoveryCancellation {
   final _cancelled = Completer<void>();
+  final _observations = <String, int>{};
+
+  Map<String, int> get observations => Map.unmodifiable(_observations);
+
+  /// Records a protocol-owned stage without logging network or device data.
+  void record(String stage, [int count = 1]) {
+    if (isCancelled) {
+      return;
+    }
+    _observations.update(
+      stage,
+      (value) => value + count,
+      ifAbsent: () => count,
+    );
+  }
+
   bool get isCancelled => _cancelled.isCompleted;
   Future<void> get whenCancelled => _cancelled.future;
   void cancel() {

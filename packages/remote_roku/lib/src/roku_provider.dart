@@ -29,6 +29,7 @@ final class RokuProvider implements DeviceProvider, ManualDeviceProvider {
     final replies = await discovery.search(
       service,
       cancelled: cancellation.whenCancelled,
+      onStage: cancellation.record,
     );
     if (cancellation.isCancelled) {
       return [];

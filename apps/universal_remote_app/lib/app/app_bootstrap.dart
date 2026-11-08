@@ -91,6 +91,7 @@ abstract final class AppBootstrap {
         providers,
         acquireNetwork: acquireNetwork ?? network.acquire,
         releaseNetwork: releaseNetwork ?? network.release,
+        logger: logger,
       ),
       savedDevices: saved,
       settings: settings,

@@ -1,20 +1,37 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
+import '../../../../domains/discovery/functions/discovery_diagnostic_fields.dart';
 
 final class DiscoveryViewModel extends ChangeNotifier {
   DiscoveryViewModel(this.dependencies) {
     dependencies.discovery.devices.addListener(notifyListeners);
     dependencies.discovery.busy.addListener(notifyListeners);
     dependencies.discovery.error.addListener(notifyListeners);
+    dependencies.discovery.statuses.addListener(notifyListeners);
     dependencies.savedDevices.devices.addListener(notifyListeners);
   }
   final AppDependencies dependencies;
   bool adding = false;
   String? saveError;
+  bool get cancelled => dependencies.discovery.cancelled;
   bool get searching => dependencies.discovery.busy.value;
   String? get error => saveError ?? dependencies.discovery.error.value;
+  Iterable<ProviderDiscoveryStatus> get statuses =>
+      dependencies.discovery.statuses.value.values;
+  String providerLabel(String id) =>
+      dependencies.providers.manualSetups[id]?.label ?? id;
+  List<String> get searchingProviders => statuses
+      .where((status) => status.status == DiscoveryStatus.searching)
+      .map((status) => providerLabel(status.providerId))
+      .toList();
+  String get diagnosticReport => const JsonEncoder.withIndent('  ').convert({
+    'searchId': dependencies.discovery.searchId,
+    'providers': statuses.map(discoveryDiagnosticFields).toList(),
+  });
   List<RemoteDevice> get found =>
       DeviceIdentity.unique(dependencies.discovery.devices.value);
   late final profiles = DiscoveryProfiles(
@@ -28,6 +45,7 @@ final class DiscoveryViewModel extends ChangeNotifier {
   List<RemoteDevice> get known =>
       found.where((item) => registered(item) != null).toList();
   Future<void> search() async {
+    saveError = null;
     await dependencies.discovery.search();
     if (_disposed) {
       return;
@@ -106,6 +124,7 @@ final class DiscoveryViewModel extends ChangeNotifier {
     dependencies.discovery.devices.removeListener(notifyListeners);
     dependencies.discovery.busy.removeListener(notifyListeners);
     dependencies.discovery.error.removeListener(notifyListeners);
+    dependencies.discovery.statuses.removeListener(notifyListeners);
     dependencies.savedDevices.devices.removeListener(notifyListeners);
     super.dispose();
   }

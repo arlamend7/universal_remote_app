@@ -6,6 +6,8 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
 import '../../devices/widgets/discovery_progress.dart';
+import '../../devices/modals/edit_device.dart';
+import '../widgets/discovery_details.dart';
 import '../viewmodels/discovery_viewmodel.dart';
 import 'device_discovery_sheet.dart';
 
@@ -39,13 +41,18 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (model.searching) const DiscoveryProgress(),
+      if (model.searching)
+        DiscoveryProgress(providers: model.searchingProviders),
       if (model.error != null)
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(model.error!, semanticsLabel: model.error),
         ),
-      if (!model.searching && model.fresh.isEmpty)
+      if (!model.searching && model.cancelled) const Text('Search cancelled.'),
+      if (!model.searching &&
+          !model.cancelled &&
+          model.error == null &&
+          model.found.isEmpty)
         const Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
           child: Text(
@@ -54,6 +61,9 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
         ),
       ...model.fresh.map(_newDevice),
       if (model.known.isNotEmpty) _registered(),
+      if (model.statuses.isNotEmpty) DiscoveryDetails(model: model),
+      if (!model.searching && model.found.isEmpty)
+        TextButton(onPressed: _connectByIp, child: const Text('Connect by IP')),
       const SizedBox(height: 16),
       TextButton.icon(
         onPressed: model.adding
@@ -91,6 +101,13 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
       child: const Text('Update address'),
     ),
   );
+  Future<void> _connectByIp() async {
+    final device = await editDevice(context, widget.dependencies);
+    if (mounted && device != null) {
+      Navigator.pop(context, device);
+    }
+  }
+
   Future<void> _add(RemoteDevice device) async {
     final selected = await model.add(device);
     if (selected != null && mounted) {

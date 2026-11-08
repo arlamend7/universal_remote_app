@@ -20,7 +20,9 @@ final class AndroidTvDiscovery {
     }
     final client = MDnsClient();
     try {
+      cancellation.record('mdns.starting');
       await client.start();
+      cancellation.record('mdns.started');
       if (cancellation.isCancelled) {
         return [];
       }
@@ -49,22 +51,34 @@ final class AndroidTvDiscovery {
     if (cancellation.isCancelled) {
       return [];
     }
+    cancellation.record('mdns.pointerRecords', records.length);
     final instances = records.map((record) => record.domainName).toSet();
-    final devices = await Future.wait(
-      instances.map((instance) => _resolve(client, providerId, instance)),
+    final devices = <RemoteDevice>[];
+    await Future.wait(
+      instances.map((instance) async {
+        final device = await _resolve(
+          client,
+          providerId,
+          instance,
+          cancellation,
+        );
+        if (device == null ||
+            cancellation.isCancelled ||
+            devices.any((existing) => DeviceIdentity.same(existing, device))) {
+          return;
+        }
+        devices.add(device);
+        onDevice(device);
+      }),
     );
-    if (cancellation.isCancelled) {
-      return [];
-    }
-    final unique = DeviceIdentity.unique(devices.whereType<RemoteDevice>());
-    unique.forEach(onDevice);
-    return unique;
+    return cancellation.isCancelled ? [] : devices;
   }
 
   Future<RemoteDevice?> _resolve(
     MDnsClient client,
     String providerId,
     String instance,
+    DiscoveryCancellation cancellation,
   ) async {
     final servers = await client
         .lookup<SrvResourceRecord>(
@@ -73,6 +87,7 @@ final class AndroidTvDiscovery {
         )
         .take(1)
         .toList();
+    cancellation.record('mdns.serviceRecords', servers.length);
     final server = servers.firstOrNull;
     if (server == null || server.port != 6466) {
       return null;
@@ -84,6 +99,7 @@ final class AndroidTvDiscovery {
         )
         .take(1)
         .toList();
+    cancellation.record('mdns.addressRecords', addresses.length);
     final address = addresses.firstOrNull;
     if (address == null) {
       return null;

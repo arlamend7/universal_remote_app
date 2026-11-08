@@ -94,8 +94,16 @@ void main() {
       final tv = device('one');
       final registry = ProviderRegistry()
         ..register(TestProvider('one', [tv, tv]))
-        ..register(TestProvider('broken', [], fail: true));
-      final result = await registry.discover();
+        ..register(TestProvider('broken', [], fail: true))
+        ..register(TestProvider('empty', []));
+      final reports = <String, ProviderDiscoveryStatus>{};
+      final result = await registry.discover(
+        onStatus: (report) => reports[report.providerId] = report,
+      );
+      expect(reports['one']!.status, DiscoveryStatus.success);
+      expect(reports['one']!.deviceCount, 1);
+      expect(reports['broken']!.status, DiscoveryStatus.failed);
+      expect(reports['empty']!.status, DiscoveryStatus.empty);
       expect(result.devices, hasLength(1));
       expect(result.failures.single.providerId, 'broken');
     },

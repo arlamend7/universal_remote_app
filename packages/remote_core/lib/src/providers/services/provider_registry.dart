@@ -6,6 +6,9 @@ import 'package:remote_core/src/discovery.dart';
 import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/provider.dart';
 
+import '../models/discovery_status.dart';
+import '../models/provider_discovery_status.dart';
+
 final class ProviderRegistry {
   final Map<String, DeviceProvider> _providers = {};
   void register(DeviceProvider provider) {
@@ -171,60 +174,94 @@ final class ProviderRegistry {
     Duration timeout = const Duration(seconds: 6),
     DiscoveryCancellation? cancellation,
     void Function(List<RemoteDevice>)? onDevices,
+    void Function(ProviderDiscoveryStatus)? onStatus,
   }) async {
     if (timeout <= Duration.zero) {
       throw ArgumentError('Discovery timeout must be positive.');
     }
-    final devices = <String, RemoteDevice>{};
-    final failures = <DiscoveryFailure>[];
-    await Future.wait(
+    if (cancellation?.isCancelled ?? false) {
+      return DiscoveryResult([], []);
+    }
+    final devices = <RemoteDevice>[];
+    final outcomes = await Future.wait(
       _providers.values.map(
         (provider) => _discoverProvider(
           provider,
           timeout,
           cancellation,
-          devices,
-          failures,
-          onDevices,
+          (device) => _publishDevice(device, devices, onDevices),
+          onStatus,
         ),
       ),
     );
-    return DiscoveryResult(devices.values, failures);
+    return DiscoveryResult(
+      devices,
+      outcomes.map((outcome) => outcome.failure).whereType<DiscoveryFailure>(),
+    );
   }
 
-  Future<void> _discoverProvider(
+  Future<ProviderDiscoveryStatus> _discoverProvider(
     DeviceProvider provider,
     Duration timeout,
     DiscoveryCancellation? parent,
-    Map<String, RemoteDevice> devices,
-    List<DiscoveryFailure> failures,
-    void Function(List<RemoteDevice>)? onDevices,
+    void Function(RemoteDevice) onDevice,
+    void Function(ProviderDiscoveryStatus)? onStatus,
   ) async {
+    final timer = Stopwatch()..start();
     final token = DiscoveryCancellation();
-    void publish(List<RemoteDevice> found) {
+    final devices = <RemoteDevice>[];
+    void publish(RemoteDevice device) {
       if (token.isCancelled || (parent?.isCancelled ?? false)) {
         return;
       }
-      final before = devices.length;
-      _mergeDevices(provider.id, found, devices);
-      if (devices.length != before) {
-        onDevices?.call(List.unmodifiable(devices.values));
+      if (_addUnique(device, devices)) {
+        onDevice(device);
       }
     }
 
+    onStatus?.call(
+      ProviderDiscoveryStatus(
+        providerId: provider.id,
+        status: DiscoveryStatus.searching,
+      ),
+    );
+    DiscoveryFailure? failure;
     try {
       final found = await _responses(
         provider,
         token,
         parent,
-        (device) => publish([device]),
+        publish,
       ).timeout(timeout);
-      publish(found);
+      found.forEach(publish);
     } catch (error) {
-      failures.add(DiscoveryFailure(provider.id, error));
+      failure = DiscoveryFailure(provider.id, error);
     } finally {
       token.cancel();
     }
+    final cancelled = parent?.isCancelled ?? false;
+    final outcome = ProviderDiscoveryStatus(
+      providerId: provider.id,
+      status: _status(cancelled, devices.isNotEmpty, failure != null),
+      duration: timer.elapsed,
+      deviceCount: devices.length,
+      failure: cancelled ? null : failure,
+      observations: token.observations,
+    );
+    onStatus?.call(outcome);
+    return outcome;
+  }
+
+  DiscoveryStatus _status(bool cancelled, bool hasDevices, bool failed) {
+    if (cancelled) {
+      return DiscoveryStatus.cancelled;
+    }
+    if (failed) {
+      return hasDevices
+          ? DiscoveryStatus.partialSuccess
+          : DiscoveryStatus.failed;
+    }
+    return hasDevices ? DiscoveryStatus.success : DiscoveryStatus.empty;
   }
 
   Future<List<RemoteDevice>> _responses(
@@ -242,13 +279,21 @@ final class ProviderRegistry {
     if (parent != null) parent.whenCancelled.then((_) => <RemoteDevice>[]),
   ]);
 
-  void _mergeDevices(
-    String provider,
-    List<RemoteDevice> found,
-    Map<String, RemoteDevice> devices,
+  void _publishDevice(
+    RemoteDevice device,
+    List<RemoteDevice> devices,
+    void Function(List<RemoteDevice>)? onDevices,
   ) {
-    for (final device in found) {
-      devices.putIfAbsent('$provider:${device.id}', () => device);
+    if (_addUnique(device, devices)) {
+      onDevices?.call(List.unmodifiable(devices));
     }
+  }
+
+  bool _addUnique(RemoteDevice device, List<RemoteDevice> devices) {
+    if (devices.any((existing) => DeviceIdentity.same(existing, device))) {
+      return false;
+    }
+    devices.add(device);
+    return true;
   }
 }

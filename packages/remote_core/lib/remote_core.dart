@@ -15,3 +15,5 @@ export 'src/devices/services/device_wake_learner.dart';
 
 export 'src/pairing/contracts/pairing_code_receiver.dart';
 export 'src/bluetooth_accessory.dart';
+export 'src/providers/models/discovery_status.dart';
+export 'src/providers/models/provider_discovery_status.dart';

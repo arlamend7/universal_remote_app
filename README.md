@@ -146,8 +146,20 @@ starts. Connection status shows errors and offers retry/settings actions. See th
 
 iOS SSDP requires Apple's multicast entitlement/provisioning approval on physical
 devices. It is requested in the runner but cannot be granted through source code.
-Manual IP connection remains independent. Never claim background connectivity
-or wake works on every phone, network, or television.
+Before uploading to TestFlight, inspect the signature of the exported app:
+
+```sh
+codesign -d --entitlements :- "/path/to/Payload/Runner.app"
+```
+
+The signed entitlements should include `com.apple.developer.networking.multicast`
+set to true. On a physical iPhone, allow **Local Network**, then test discovery
+and **Connect by IP** separately. If discovery fails, open **Search details →
+Copy diagnostics** to capture provider results, socket codes, and protocol
+counters without collecting TV addresses or pairing credentials.
+
+Never claim background connectivity or wake works on every phone, network,
+or television.
 
 Ordinary startup preferences no longer access Keychain. If you used an older
 build, **Preferences → Import older saved TVs** can recover its saved profiles/settings

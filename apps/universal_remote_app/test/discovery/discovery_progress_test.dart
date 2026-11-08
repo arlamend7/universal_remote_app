@@ -24,7 +24,7 @@ void main() {
       await tester.tap(find.text('Find Nearby Devices'));
       await tester.pump();
       await tester.pump();
-      expect(find.text('Searching for LG TVs…'), findsOneWidget);
+      expect(find.text('Searching for nearby devices…'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
       expect(find.text('Cancel search'), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));
@@ -34,7 +34,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Searching for LG TVs…'), findsNothing);
+      expect(find.text('Searching for nearby devices…'), findsNothing);
       expect(find.text('Living room'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();

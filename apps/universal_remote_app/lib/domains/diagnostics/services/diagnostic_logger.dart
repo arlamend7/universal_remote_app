@@ -10,13 +10,19 @@ final class DiagnosticLogger {
   final void Function(String) _sink;
   bool enabled = false;
   AppLogLevel minimumLevel = AppLogLevel.info;
-  void record(AppLogLevel level, String event, {String? errorCode}) {
+  void record(
+    AppLogLevel level,
+    String event, {
+    String? errorCode,
+    Map<String, Object> fields = const {},
+  }) {
     if (!enabled || level.index < minimumLevel.index) {
       return;
     }
     // Event/code vocabulary is application-owned. No free-form exception text.
     _sink(
       jsonEncode({
+        ...fields,
         'level': level.name,
         'event': event,
         if (errorCode != null) 'code': errorCode,

@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import '../../diagnostics/models/enums/app_log_level.dart';
+import '../../diagnostics/services/diagnostic_logger.dart';
+import '../functions/discovery_diagnostic_fields.dart';
 import '../functions/discovery_failure_message.dart';
 
 import 'package:flutter/material.dart';
@@ -10,14 +13,21 @@ class DiscoveryController {
     this.registry, {
     required this.acquireNetwork,
     required this.releaseNetwork,
+    this.logger,
   });
   final ProviderRegistry registry;
   final Future<void> Function() acquireNetwork;
   final Future<void> Function() releaseNetwork;
+  final DiagnosticLogger? logger;
+  final statuses = ValueNotifier<Map<String, ProviderDiscoveryStatus>>(
+    const {},
+  );
+  int searchId = 0;
   final devices = ValueNotifier<List<RemoteDevice>>([]);
   final busy = ValueNotifier(false);
   final error = ValueNotifier<String?>(null);
   DiscoveryCancellation? _cancellation;
+  bool get cancelled => _cancellation?.isCancelled ?? false;
   bool _disposed = false;
   Future<void>? _searchFuture;
   Future<void> search() {
@@ -38,7 +48,11 @@ class DiscoveryController {
     }
     final cancellation = DiscoveryCancellation();
     _cancellation = cancellation;
+    searchId++;
+    final elapsed = Stopwatch()..start();
+    statuses.value = const {};
     busy.value = true;
+    _record('discovery.started');
     error.value = null;
     devices.value = [];
     try {
@@ -49,11 +63,15 @@ class DiscoveryController {
       final result = await registry.discover(
         cancellation: cancellation,
         onDevices: (found) => _publish(found, cancellation),
+        onStatus: (status) => _updateStatus(status, cancellation),
       );
       if (_disposed || cancellation.isCancelled) {
         return;
       }
-      if (result.failures.isNotEmpty) {
+      devices.value = result.devices;
+      final reports = statuses.value.values;
+      if (reports.isNotEmpty &&
+          reports.every((report) => report.status == DiscoveryStatus.failed)) {
         error.value = discoveryFailureMessage(result.failures.first.error);
       }
     } catch (failure) {
@@ -62,10 +80,35 @@ class DiscoveryController {
       }
     } finally {
       await _releaseNetwork();
+      _record(
+        cancellation.isCancelled
+            ? 'discovery.cancelled'
+            : 'discovery.completed',
+        {'durationMs': elapsed.elapsedMilliseconds},
+      );
       if (!_disposed) {
         busy.value = false;
       }
     }
+  }
+
+  void _updateStatus(
+    ProviderDiscoveryStatus status,
+    DiscoveryCancellation cancellation,
+  ) {
+    _record('discovery.provider', discoveryDiagnosticFields(status));
+    if (_disposed || cancellation.isCancelled) {
+      return;
+    }
+    statuses.value = {...statuses.value, status.providerId: status};
+  }
+
+  void _record(String event, [Map<String, Object> fields = const {}]) {
+    logger?.record(
+      AppLogLevel.info,
+      event,
+      fields: {'searchId': searchId, ...fields},
+    );
   }
 
   void _publish(List<RemoteDevice> found, DiscoveryCancellation cancellation) {
@@ -84,18 +127,30 @@ class DiscoveryController {
   }
 
   void _reportReleaseFailure() {
-    if (_disposed) {
+    if (_disposed || cancelled || error.value != null) {
       return;
     }
     error.value = 'Could not release discovery resources.';
   }
 
-  void cancel() => _cancellation?.cancel();
+  void cancel() {
+    if (!busy.value) {
+      return;
+    }
+    _cancellation?.cancel();
+    if (_disposed) {
+      return;
+    }
+    devices.value = [];
+    statuses.value = const {};
+  }
+
   void dispose() {
     _disposed = true;
     cancel();
     devices.dispose();
     busy.dispose();
     error.dispose();
+    statuses.dispose();
   }
 }
