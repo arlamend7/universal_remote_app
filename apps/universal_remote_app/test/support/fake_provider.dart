@@ -11,12 +11,14 @@ class FakeProvider implements DeviceProvider {
   FakeProvider({
     this.fail = false,
     this.pairing = false,
+    this.enableContentFeedback = true,
     this.enabledControls = false,
     this.wakeAddress,
   });
   final bool fail;
   final bool pairing;
   final bool enabledControls;
+  final bool enableContentFeedback;
   final String? wakeAddress;
   FakeController? last;
   @override
@@ -33,6 +35,7 @@ class FakeProvider implements DeviceProvider {
     failure: fail,
     waitPairing: pairing,
     enabledControls: enabledControls,
+    enableContentFeedback: enableContentFeedback,
     wakeAddress: wakeAddress,
   );
 }

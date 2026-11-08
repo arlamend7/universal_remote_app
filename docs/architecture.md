@@ -54,11 +54,14 @@ providers finish. LG also emits results when SSDP advertisements arrive.
 Timeouts signal cooperative cancellation; a noncooperative future cannot be
 forcibly stopped by Dart, so providers must honor the token.
 
-LG is the only production provider. Manual profiles use cryptographically random
+LG webOS and Android TV are registered providers. Manual profiles use cryptographically random
 local profile IDs; SSDP devices use advertised UUIDs. IP addresses are mutable
 endpoints. Separate manual and advertised profiles are not automatically merged
 without reliable identity evidence. Rediscovering a saved UUID preserves its
 local name, certificate configuration, and explicitly chosen transport.
+Android TV discovery uses a certificate fingerprint as a rediscovery hint.
+Only an authenticated connection records a verified fingerprint, and reconnect
+still checks the certificate pin saved during pairing.
 
 ```mermaid
 stateDiagram-v2

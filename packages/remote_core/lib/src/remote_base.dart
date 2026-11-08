@@ -16,6 +16,9 @@ abstract class RemoteBase implements RemoteDriver {
             item.availability == CapabilityAvailability.known),
   );
 
+  /// Stable identity established by an authenticated connection, when available.
+  String? get verifiedPeerIdentity => null;
+
   bool get canWake;
   Future<void> powerOff();
   Future<void> wake();

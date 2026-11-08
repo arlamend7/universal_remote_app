@@ -19,6 +19,10 @@ final class AndroidTvController extends TVRemoteBase
   AndroidRemoteSession? _session;
   int _attempt = 0;
   bool _disposed = false;
+  String? _verifiedPeerIdentity;
+
+  @override
+  String? get verifiedPeerIdentity => _verifiedPeerIdentity;
 
   @override
   DeviceConnectionState state = DeviceConnectionState.disconnected;
@@ -77,6 +81,7 @@ final class AndroidTvController extends TVRemoteBase
     final session = _session = AndroidRemoteSession(host, identity);
     await session.connect(() => unawaited(disconnect()));
     _ensureCurrent(attempt);
+    _verifiedPeerIdentity = identity.fingerprint;
     _setState(DeviceConnectionState.connected);
   }
 

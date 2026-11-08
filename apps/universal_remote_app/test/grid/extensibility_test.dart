@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,8 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
+import '../support/no_controller_panel_session.dart';
+
 /// Only what these definitions read; every other member is unsupported.
 final class _Panel implements RemotePanel {
+  @override
+  RemotePanelSession get connection => const NoControllerPanelSession();
+
   @override
   bool get ready => true;
   @override
@@ -72,6 +78,77 @@ void main() {
     await tester.tap(find.byTooltip('Do it'));
     await tester.pump();
     expect(pressed, ['pressed']);
+  });
+
+  testWidgets('two readings update independently', (tester) async {
+    final first = StreamController<RemoteReading>();
+    final second = StreamController<RemoteReading>();
+    addTearDown(first.close);
+    addTearDown(second.close);
+    final definition = RemoteItemDefinition<RemotePanel>(
+      'spacer',
+      'Readings',
+      RemoteItemCategory.information,
+      elements: [
+        RemoteInfo<RemotePanel>(
+          'first',
+          read: (_) => const RemoteReading('First'),
+          watch: (_) => first.stream,
+        ),
+        RemoteInfo<RemotePanel>(
+          'second',
+          read: (_) => const RemoteReading('Second'),
+          watch: (_) => second.stream,
+        ),
+      ],
+    );
+    await _pump(
+      tester,
+      ElementStrip(
+        definition: definition,
+        item: _item('spacer'),
+        model: GridRemoteViewModel(_Panel()),
+      ),
+    );
+    first.add(const RemoteReading('First update'));
+    second.add(const RemoteReading('Second update'));
+    await tester.pump();
+    expect(find.text('First update'), findsOneWidget);
+    expect(find.text('Second update'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('numeric controls bind a non-TV target and use its range', (
+    tester,
+  ) async {
+    final commands = <double>[];
+    final input = RemoteInput<RemotePanel, double>(
+      'numeric',
+      current: (_) => 19,
+      minimum: 16,
+      maximum: 24,
+      step: 0.5,
+      commit: (_, value) async => commands.add(value),
+    );
+    final definition = RemoteItemDefinition<RemotePanel>(
+      'spacer',
+      'Numeric',
+      RemoteItemCategory.climate,
+      elements: [input],
+    );
+    await _pump(
+      tester,
+      ElementStrip(
+        definition: definition,
+        item: _item('spacer'),
+        model: GridRemoteViewModel(_Panel()),
+      ),
+    );
+    final slider = tester.widget<Slider>(find.byType(Slider));
+    expect((slider.min, slider.max, slider.divisions), (16, 24, 16));
+    slider.onChangeEnd!(21.5);
+    await tester.pump();
+    expect(commands, [21.5]);
   });
 
   testWidgets('a new collection reuses the collection renderer', (

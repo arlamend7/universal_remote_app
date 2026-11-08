@@ -48,7 +48,6 @@ class TextEntryButton extends StatelessWidget {
       return;
     }
     final submit = definition.setting('submitAfterTyping').isOn(item.config);
-    await (input as RemoteInput<TvRemoteDevice, ({String text, bool submit})>)
-        .commit(model, (text: text, submit: submit));
+    await model.commitInput(input, (text: text, submit: submit));
   }
 }

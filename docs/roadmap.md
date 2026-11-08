@@ -16,8 +16,7 @@ independent current-input adapter only after verifying an operation for it.
 | Integration | Likely transport | Dependencies/limits to investigate |
 | --- | --- | --- |
 | Samsung Tizen | Authorized WebSocket/HTTP | Model-dependent pairing and keys |
-| Android/Google TV | Vendor remote/pairing protocol | TLS/certificates and changing platform APIs |
-| Roku | Local ECP HTTP | Firmware and external-control settings |
+| Roku | Authorized control route to be confirmed | See [Roku feasibility](roku-feasibility.md) |
 | Apple TV | Documented or supported authorized adapter | Pairing, protocol access and licensing |
 | Smart ACs | Manufacturer LAN/cloud APIs | Model-specific protocols, accounts where needed |
 | Traditional ACs and IR devices | Native IR or hub | Correct stateful IR encoding and compatible hardware |

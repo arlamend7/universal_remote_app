@@ -8,25 +8,47 @@ import 'action_button.dart';
 class ActionButtonState extends State<ActionButton> {
   Timer? _timer;
   bool _pressed = false;
-  void _start(LongPressStartDetails details) {
+  bool _busy = false;
+
+  void _start() {
     if (!widget.repeat || widget.onPressed == null) {
       return;
     }
-    _press();
+    unawaited(_press());
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 220), (_) {
-      RemoteFeedback.tick();
-      widget.onPressed?.call();
+      unawaited(_press(repeating: true));
     });
   }
 
-  void _press() {
-    RemoteFeedback.tap();
-    widget.onPressed?.call();
+  Future<void> _press({bool repeating = false}) async {
+    final action = widget.onPressed;
+    if (_busy || action == null || !mounted) {
+      return;
+    }
+    _busy = true;
+    try {
+      repeating ? RemoteFeedback.tick() : RemoteFeedback.tap();
+      await action();
+    } catch (_) {
+      _stop();
+      RemoteFeedback.failure();
+    } finally {
+      _busy = false;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ActionButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.repeat || (widget.onPressed == null && !_busy)) {
+      _stop();
+      _pressed = false;
+    }
   }
 
   void _setPressed(bool value) {
-    if (_pressed == value || widget.onPressed == null || !mounted) {
+    if (_pressed == value || !mounted) {
       return;
     }
     setState(() => _pressed = value);
@@ -73,9 +95,7 @@ class ActionButtonState extends State<ActionButton> {
   Widget _button(BuildContext context) => InkWell(
     borderRadius: BorderRadius.circular(12),
     onTap: widget.onPressed == null ? null : _press,
-    onLongPress: widget.repeat && widget.onPressed != null
-        ? () => _start(const LongPressStartDetails())
-        : null,
+    onLongPress: widget.repeat && widget.onPressed != null ? _start : null,
     child: ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
       child: Padding(

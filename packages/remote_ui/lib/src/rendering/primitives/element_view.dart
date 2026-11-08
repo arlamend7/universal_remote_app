@@ -70,6 +70,9 @@ class ElementView extends StatelessWidget {
         resolved.enabled &&
         (action.usableOffline || definition.isAvailableOn(model.remote));
     return ActionButton(
+      key: action.holdable
+          ? ObjectKey(model.remote.connection.controller)
+          : null,
       appearance: resolved.icon == null
           ? {...item.config, 'showIcon': 'false'}
           : item.config,

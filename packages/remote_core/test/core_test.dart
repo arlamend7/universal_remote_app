@@ -7,6 +7,39 @@ import 'support/test_provider.dart';
 
 void main() {
   test(
+    'a paired Android TV keeps its profile across an address change',
+    () async {
+      RemoteDevice device(String id, String ip, Map<String, String> metadata) =>
+          RemoteDevice(
+            id: id,
+            name: 'TV',
+            providerId: 'android.tv',
+            stableIdentity: false,
+            endpoints: [Uri(scheme: 'tls', host: ip, port: 6466)],
+            metadata: metadata,
+          );
+      var saved = device('saved', '192.168.1.10', {
+        'verifiedPeerIdentity': 'pin',
+      });
+      final found = device('discovered', '192.168.1.11', {
+        'advertisedPeerIdentity': 'pin',
+      });
+      final other = device('other', '192.168.1.10', {
+        'advertisedPeerIdentity': 'other',
+      });
+      expect(DeviceIdentity.same(saved, other), isFalse);
+      final profiles = DiscoveryProfiles(
+        profiles: () => [saved],
+        update: (_, change) async => saved = change(saved) ?? saved,
+      );
+      await profiles.updateAddress(found);
+      expect(saved.id, 'saved');
+      expect(saved.endpoints.single.host, '192.168.1.11');
+      expect(saved.metadata['verifiedPeerIdentity'], 'pin');
+    },
+  );
+
+  test(
     'wake workflow wakes once and retries only failures the provider allows',
     () async {
       final events = <String>[];

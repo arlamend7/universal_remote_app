@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
@@ -22,7 +24,7 @@ class ActionButton extends StatefulWidget {
   final Widget? iconWidget;
   final RemoteElementStyle? elementStyle;
   final String? unavailableReason;
-  final VoidCallback? onPressed;
+  final FutureOr<void> Function()? onPressed;
   final bool showLabel, repeat;
   final Map<String, String> appearance;
   @override

@@ -152,6 +152,7 @@ class ConnectionController implements RemotePanelSession {
       return;
     }
     final latest = saved.byId(device.id);
+    final identity = session.controller.verifiedPeerIdentity;
     await saved.save(
       copyDevice(
         device,
@@ -159,6 +160,7 @@ class ConnectionController implements RemotePanelSession {
         metadata: {
           ...device.metadata,
           ...?latest?.metadata,
+          if (identity != null) 'verifiedPeerIdentity': identity,
           'lastConnectedAt': DateTime.now().toUtc().toIso8601String(),
         },
       ),

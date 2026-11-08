@@ -16,6 +16,7 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
     this.failure = false,
     this.startupFailure,
     this.waitPairing = false,
+    this.enableContentFeedback = true,
     this.enabledControls = false,
     this.wakeAddress,
   });
@@ -25,6 +26,7 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
   final RemoteException? startupFailure;
   final bool waitPairing;
   final bool enabledControls;
+  final bool enableContentFeedback;
   final String? wakeAddress;
   @override
   Future<DeviceWakeAddress?> readWakeAddress() async => wakeAddress == null
@@ -47,17 +49,17 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
   @override
   List<CapabilityEvidence> get evidence => enabledControls
       ? [
-          for (final capability in const [
+          for (final capability in [
             RemoteCapability.volume,
             RemoteCapability.absoluteVolume,
             RemoteCapability.volumeFeedback,
             RemoteCapability.mute,
             RemoteCapability.navigation,
-            RemoteCapability.currentContent,
             RemoteCapability.applications,
             RemoteCapability.inputs,
             RemoteCapability.channels,
             RemoteCapability.power,
+            if (enableContentFeedback) RemoteCapability.currentContent,
           ])
             CapabilityEvidence(
               capability,

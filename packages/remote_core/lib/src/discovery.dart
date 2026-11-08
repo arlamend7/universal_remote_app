@@ -37,6 +37,10 @@ abstract final class DeviceIdentity {
     if (device.stableIdentity) {
       values.add('id:${device.providerId}:${device.id.toLowerCase()}');
     }
+    final peer = _peerIdentity(device);
+    if (peer != null) {
+      values.add('peer:${device.providerId}:$peer');
+    }
     final alias = device.metadata['discoveryProfileId'];
     if (alias != null) {
       values.add('id:${device.providerId}:${alias.toLowerCase()}');
@@ -58,9 +62,21 @@ abstract final class DeviceIdentity {
     return values;
   }
 
+  static String? _peerIdentity(RemoteDevice device) =>
+      device.metadata['verifiedPeerIdentity'] ??
+      device.metadata['advertisedPeerIdentity'];
+
   static bool same(RemoteDevice left, RemoteDevice right) {
     if (left.providerId == right.providerId && left.id == right.id) {
       return true;
+    }
+    final leftPeer = _peerIdentity(left);
+    final rightPeer = _peerIdentity(right);
+    if (left.providerId == right.providerId &&
+        leftPeer != null &&
+        rightPeer != null &&
+        leftPeer != rightPeer) {
+      return false;
     }
     final a = keys(left), b = keys(right);
     if (a.intersection(b).isNotEmpty) {

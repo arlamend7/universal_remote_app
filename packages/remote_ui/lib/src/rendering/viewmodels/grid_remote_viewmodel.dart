@@ -55,6 +55,36 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return null;
   }
 
+  void previewInput<T>(RemoteInput<Object, T> input, T value) {
+    final callback =
+        input.previewFor(this) ??
+        input.previewFor(remote) ??
+        input.previewFor(_inputDevice);
+    callback?.call(value);
+  }
+
+  bool canBindInput<T>(RemoteInput<Object, T> input) =>
+      input.commitFor(this) != null ||
+      input.commitFor(remote) != null ||
+      input.commitFor(_inputDevice) != null;
+
+  Future<void> commitInput<T>(RemoteInput<Object, T> input, T value) async {
+    final panel = input.commitFor(this) ?? input.commitFor(remote);
+    if (panel != null) {
+      await panel(value);
+      return;
+    }
+    final provider = input.commitFor(_inputDevice);
+    if (provider != null) {
+      await execute(() => provider(value));
+    }
+  }
+
+  RemoteBase? get _inputDevice {
+    final device = remote.connection.controller;
+    return device?.device.id == remote.device?.id ? device : null;
+  }
+
   bool get ready => remote.ready;
 
   /// The connected TV driver, only when it reports [capability].

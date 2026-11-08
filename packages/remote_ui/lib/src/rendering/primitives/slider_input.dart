@@ -21,21 +21,36 @@ class SliderInput extends StatelessWidget {
   final GridRemoteViewModel model;
   final Axis axis;
 
-  RemoteInput<TvRemoteDevice, double> get _tv =>
-      input as RemoteInput<TvRemoteDevice, double>;
-
   @override
   Widget build(BuildContext context) {
-    final current = input.current!(model.elementContext(item));
-    final enabled = definition.isAvailableOn(model.remote) && current != null;
+    final elementContext = model.elementContext(item);
+    final reading = input.current!(elementContext);
+    final current = reading != null && reading.isFinite ? reading : null;
+    final bounds = input.bounds(elementContext);
+    final span = bounds.maximum - bounds.minimum;
+    if (!span.isFinite || span <= 0) {
+      return const SizedBox.shrink();
+    }
+    final enabled =
+        definition.isAvailableOn(model.remote) &&
+        current != null &&
+        model.canBindInput(input);
+    final step = bounds.step;
+    final divisions = step != null && step.isFinite && step > 0
+        ? (span / step).clamp(1, 10000).round()
+        : null;
     return RotatedBox(
       quarterTurns: axis == Axis.vertical ? 3 : 0,
       child: Slider(
-        value: (current ?? 0).clamp(0, input.maximum),
-        max: input.maximum,
+        value: (current ?? bounds.minimum).clamp(
+          bounds.minimum,
+          bounds.maximum,
+        ),
+        min: bounds.minimum,
+        divisions: divisions,
+        max: bounds.maximum,
         label: current?.round().toString(),
-        semanticFormatterCallback: (value) => '${value.round()} percent',
-        onChanged: enabled ? (value) => _tv.preview?.call(model, value) : null,
+        onChanged: enabled ? (value) => model.previewInput(input, value) : null,
         onChangeEnd: enabled ? _commit : null,
       ),
     );
@@ -43,6 +58,6 @@ class SliderInput extends StatelessWidget {
 
   void _commit(double value) {
     RemoteFeedback.commit();
-    _tv.commit(model, value);
+    model.commitInput(input, value);
   }
 }

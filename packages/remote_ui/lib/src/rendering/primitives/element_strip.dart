@@ -33,32 +33,6 @@ class ElementStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stream = _streamedChange();
-    if (stream == null) {
-      return _layout();
-    }
-    return StreamBuilder<Object?>(
-      key: ObjectKey(model.remote.connection.controller),
-      stream: stream,
-      builder: (_, _) => _layout(),
-    );
-  }
-
-  /// Elements react to readings the device streams between panel updates.
-  Stream<Object?>? _streamedChange() {
-    final context = model.elementContext(item);
-    for (final element in definition.elements) {
-      final stream = element is RemoteInfo<Object>
-          ? element.watch?.call(context)
-          : null;
-      if (stream != null) {
-        return stream;
-      }
-    }
-    return null;
-  }
-
-  Widget _layout() {
     final layout = definition.layout;
     if (layout is ElementGridLayout) {
       return GridView.count(

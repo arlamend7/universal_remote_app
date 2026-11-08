@@ -3,8 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
+import '../support/no_controller_panel_session.dart';
+
 /// Only what the rocker reads; every other member is unsupported.
 final class _Panel implements RemotePanel {
+  @override
+  RemotePanelSession get connection => const NoControllerPanelSession();
+
   @override
   bool get ready => true;
   @override
