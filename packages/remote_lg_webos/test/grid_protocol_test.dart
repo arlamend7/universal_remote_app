@@ -169,10 +169,10 @@ void main() {
       Uri.parse('ws://127.0.0.1:3000'),
       const LgConnectionOptions(allowInsecure: true),
     );
-    pointer.motion('move', 12, -5);
-    pointer.motion('scroll', 0, 2);
-    pointer.click();
-    pointer.specialKey(RemoteKey.digit7);
+    await pointer.motion('move', 12, -5);
+    await pointer.motion('scroll', 0, 2);
+    await pointer.click();
+    await pointer.specialKey(RemoteKey.digit7);
     expect(transport.frames[0], contains('type:move\ndx:12\ndy:-5'));
     expect(transport.frames[1], contains('type:scroll'));
     expect(transport.frames[2], 'type:click\n\n');

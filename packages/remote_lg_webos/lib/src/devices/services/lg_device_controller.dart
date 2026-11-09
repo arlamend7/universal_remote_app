@@ -41,6 +41,9 @@ final class LgDeviceController extends TVRemoteBase
   final Duration pairingTimeout;
   final Duration requestTimeout;
   final _states = StreamController<DeviceConnectionState>.broadcast();
+  final _capabilityChanges = StreamController<void>.broadcast();
+  @override
+  Stream<void> get capabilityChanges => _capabilityChanges.stream;
   final _capabilities = LgCapabilityRegistry();
   late final _commands = LgCommandChannel(onUnavailable: _disable);
   late final _pointer = LgPointerConnection(
@@ -102,13 +105,18 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Future<void> volumeDown() => _volume.volumeDown();
   @override
-  Future<void> setVolume(int volume) => _volume.setVolume(volume);
+  Future<void> setVolume(int volume) =>
+      _use<LgVolumeController>(RemoteCapability.absoluteVolume)
+          .setVolume(volume);
   @override
-  Future<void> setMuted(bool muted) => _volume.setMuted(muted);
+  Future<void> setMuted(bool muted) =>
+      _use<LgVolumeController>(RemoteCapability.mute).setMuted(muted);
   @override
-  Future<VolumeState> readVolume() => _volume.readVolume();
+  Future<VolumeState> readVolume() =>
+      _use<LgVolumeController>(RemoteCapability.volumeFeedback).readVolume();
   @override
-  Stream<VolumeState> watchVolume() => _volume.watchVolume();
+  Stream<VolumeState> watchVolume() =>
+      _use<LgVolumeController>(RemoteCapability.volumeFeedback).watchVolume();
   @override
   Future<void> press(NavigationKey key) async => _navigation.press(key);
   @override
@@ -167,7 +175,7 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Future<void> launchApplication(String id) => _apps.launch(id);
   @override
-  Future<String?> currentApplication() => _apps.currentApplication();
+  Future<String?> currentApplication() async => (await currentContent()).appId;
   @override
   Set<String>? get reportedApplicationIds => _capabilities
       .controller<LgApplicationController>(RemoteCapability.applications)
@@ -391,7 +399,7 @@ final class LgDeviceController extends TVRemoteBase
     if (state != DeviceConnectionState.connected) {
       return;
     }
-    _setState(state);
+    _capabilityChanges.add(null);
   }
 
   Future<void> _closePointer() => _pointer.close();
@@ -461,5 +469,6 @@ final class LgDeviceController extends TVRemoteBase
     _disposed = true;
     await disconnect();
     await _states.close();
+    await _capabilityChanges.close();
   }
 }

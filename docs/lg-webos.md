@@ -94,3 +94,7 @@ IP alone, and manual values always win. Enable network wake on the TV; some
 models, network interfaces, routers, and power states cannot wake.
 No physical television has been tested in this workspace. Review the hardware
 checklist before claiming a model/firmware combination is supported.
+
+## Session capability checks
+
+Absolute volume, mute, and feedback are tracked separately from relative volume. An explicit command rejection disables the rejected control for that session. See the [provider capability audit](provider-capability-audit.md).

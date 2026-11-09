@@ -56,3 +56,7 @@ remain optional until layered configuration is actually needed.
 
 None of these future transports is implemented by the LG-first release. A socket
 adapter by itself does not make an undocumented device controllable.
+
+## Capability and feedback reference
+
+See the [provider capability audit](provider-capability-audit.md) for exact command mappings and supported feedback. Android Remote v2 volume reports are read-only in this implementation.

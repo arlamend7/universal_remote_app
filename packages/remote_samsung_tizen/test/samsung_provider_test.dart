@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_samsung_tizen/remote_samsung_tizen.dart';
 import 'package:remote_samsung_tizen/src/samsung_controller.dart';
@@ -54,6 +56,21 @@ void main() {
 
       await remote.press(NavigationKey.enter);
       await remote.volumeUp();
+      final write = transports.single.launchWrite = Completer<void>();
+      final launch = remote.launchApplication('123');
+      final rejected = expectLater(
+        launch,
+        throwsA(
+          isA<RemoteException>().having(
+            (error) => error.code,
+            'code',
+            'network',
+          ),
+        ),
+      );
+      write.completeError(StateError('test transport write rejected'));
+      await rejected;
+      transports.single.launchWrite = null;
       await remote.launchApplication('123');
       await remote.powerOff();
       expect(
@@ -200,6 +217,41 @@ void main() {
         ),
         isNull,
       );
+    },
+  );
+  test(
+    'disconnect cancels pending TV approval and closes the session',
+    () async {
+      final credentials = SamsungTestCredentials();
+      final device = SamsungProvider(credentials: credentials)
+          .manualDeviceFactory(
+            address: '192.168.1.42',
+            name: 'Samsung',
+            legacy: false,
+            allowInsecurePointer: false,
+            certificate: 'AQID',
+          );
+      final transport = SamsungTestTransport();
+      final controller = SamsungController(
+        device,
+        credentials,
+        () async {},
+        false,
+        openTransport: (_, _) async => transport,
+      );
+      addTearDown(controller.dispose);
+      final waiting = controller.connectionStates.firstWhere(
+        (state) => state == DeviceConnectionState.pairing,
+      );
+      final connecting = expectLater(
+        controller.connect(),
+        throwsA(isA<RemoteException>()),
+      );
+      await waiting;
+      await controller.disconnect();
+      await connecting;
+      expect(controller.state, DeviceConnectionState.disconnected);
+      expect(credentials.saved, isNull);
     },
   );
 }

@@ -29,29 +29,45 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Stream<DeviceConnectionState> get connectionStates => _states.stream;
 
+  final _capabilities = StreamController<void>.broadcast();
+  StreamSubscription<VolumeState>? _volumeSubscription;
+
   @override
-  List<CapabilityEvidence> get evidence => [
-    if (state == DeviceConnectionState.connected &&
-        (_session!.features & 2) != 0)
-      for (final capability in [
-        RemoteCapability.navigation,
-        RemoteCapability.accessorySettings,
-        RemoteCapability.media,
-        RemoteCapability.volume,
-      ])
-        CapabilityEvidence(
-          capability,
+  Stream<void> get capabilityChanges => _capabilities.stream;
+
+  @override
+  List<CapabilityEvidence> get evidence {
+    final session = _session;
+    if (state != DeviceConnectionState.connected || session == null) {
+      return const [];
+    }
+    return [
+      if (session.supportsKeys) ...[
+        _known(RemoteCapability.navigation),
+        _known(RemoteCapability.media),
+        const CapabilityEvidence(
+          RemoteCapability.channels,
           CapabilitySource.driver,
           CapabilityAvailability.known,
+          reason: 'Sends channel keys to the active TV input or app.',
         ),
-    if (state == DeviceConnectionState.connected &&
-        (_session!.features & 34) == 34)
-      const CapabilityEvidence(
-        RemoteCapability.power,
-        CapabilitySource.driver,
-        CapabilityAvailability.known,
-      ),
-  ];
+      ],
+      if (session.supportsVolumeKeys) _known(RemoteCapability.volume),
+      if (session.supportsPower) _known(RemoteCapability.power),
+      if (session.volume != null)
+        const CapabilityEvidence(
+          RemoteCapability.volumeFeedback,
+          CapabilitySource.driver,
+          CapabilityAvailability.verified,
+        ),
+    ];
+  }
+
+  CapabilityEvidence _known(RemoteCapability capability) => CapabilityEvidence(
+    capability,
+    CapabilitySource.driver,
+    CapabilityAvailability.known,
+  );
 
   @override
   Future<void> connect() async {
@@ -81,6 +97,13 @@ final class AndroidTvController extends TVRemoteBase
     final session = _session = AndroidRemoteSession(host, identity);
     await session.connect(() => unawaited(disconnect()));
     _ensureCurrent(attempt);
+    var feedbackAvailable = session.volume != null;
+    _volumeSubscription = session.volumes.listen((_) {
+      if (!feedbackAvailable && identical(_session, session)) {
+        feedbackAvailable = true;
+        _capabilities.add(null);
+      }
+    });
     _verifiedPeerIdentity = identity.fingerprint;
     _setState(DeviceConnectionState.connected);
   }
@@ -126,9 +149,12 @@ final class AndroidTvController extends TVRemoteBase
     _attempt++;
     _pairing?.close();
     _pairing = null;
+    final cancellation = _volumeSubscription?.cancel();
+    _volumeSubscription = null;
     _session?.close();
     _session = null;
     _setState(DeviceConnectionState.disconnected);
+    await cancellation;
   }
 
   @override
@@ -139,6 +165,7 @@ final class AndroidTvController extends TVRemoteBase
     _disposed = true;
     await disconnect();
     await _states.close();
+    await _capabilities.close();
   }
 
   Future<void> _key(int code) {
@@ -164,12 +191,13 @@ final class AndroidTvController extends TVRemoteBase
   Future<void> powerOff() =>
       supports(RemoteCapability.power) ? _key(223) : _unsupported();
   @override
-  Future<void> openAccessorySettings() =>
-      _key(AndroidRemoteSession.settingsKey);
+  Future<void> openAccessorySettings() => _unsupported();
   @override
-  Future<void> volumeUp() => _key(24);
+  Future<void> volumeUp() =>
+      supports(RemoteCapability.volume) ? _key(24) : _unsupported();
   @override
-  Future<void> volumeDown() => _key(25);
+  Future<void> volumeDown() =>
+      supports(RemoteCapability.volume) ? _key(25) : _unsupported();
   @override
   Future<void> press(NavigationKey key) => _key(switch (key) {
     NavigationKey.up => 19,
@@ -194,13 +222,15 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Future<void> setMuted(bool muted) => _unsupported();
   @override
-  Future<VolumeState> readVolume() => _unsupported();
+  Future<VolumeState> readVolume() async =>
+      _session?.volume ?? await _unsupported();
   @override
-  Stream<VolumeState> watchVolume() => const Stream.empty();
+  Stream<VolumeState> watchVolume() =>
+      _session?.volumes ?? const Stream.empty();
   @override
-  Future<void> channelUp() => _unsupported();
+  Future<void> channelUp() => _key(AndroidRemoteSession.channelUpKey);
   @override
-  Future<void> channelDown() => _unsupported();
+  Future<void> channelDown() => _key(AndroidRemoteSession.channelDownKey);
   @override
   Future<List<DeviceChannel>> channels() => _unsupported();
   @override

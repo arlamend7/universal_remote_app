@@ -46,7 +46,9 @@ void main() {
     await controller.sendText('/');
     await controller.launchApplication('12');
     await controller.selectInput('tvinput.hdmi1');
+    final changed = controller.capabilityChanges.first;
     await expectLater(controller.volumeUp(), throwsA(isA<RemoteException>()));
+    await changed;
     expect(controller.supports(RemoteCapability.volume), isFalse);
     expect(controller.supports(RemoteCapability.navigation), isTrue);
     expect(
@@ -61,4 +63,46 @@ void main() {
       ]),
     );
   });
+  test(
+    'streaming player without a catalog exposes only its supported keys',
+    () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => server.close(force: true));
+      server.listen((request) async {
+        request.response.write(switch (request.uri.path) {
+          '/query/device-info' => '<device-info><serial-number>PLAYER</serial-number><is-tv>false</is-tv><supports-audio-volume-control>true</supports-audio-volume-control><supports-tv-power-control>false</supports-tv-power-control></device-info>',
+          '/query/apps' => '<apps/>',
+          _ => '<active-app/>',
+        });
+        await request.response.close();
+      });
+      final endpoint = Uri(
+        scheme: 'http',
+        host: '127.0.0.1',
+        port: server.port,
+      );
+      final controller = RokuController(
+        RemoteDevice(
+          id: 'player',
+          name: 'Roku',
+          providerId: 'roku.ecp',
+          endpoints: [endpoint],
+        ),
+        RokuEcpClient(endpoint),
+      );
+      addTearDown(controller.dispose);
+      await controller.connect();
+      expect(controller.device.category, DeviceCategory.mediaPlayer);
+      expect(resolvedCapabilities(controller), {
+        RemoteCapability.navigation,
+        RemoteCapability.textInput,
+        RemoteCapability.playbackToggle,
+        RemoteCapability.volume,
+      });
+      await expectLater(
+        controller.sendMedia(MediaAction.play),
+        throwsA(isA<RemoteException>()),
+      );
+    },
+  );
 }

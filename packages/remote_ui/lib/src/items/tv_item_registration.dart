@@ -211,7 +211,6 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'Volume slider',
     RemoteItemCategory.volume,
     requires: const {
-      RemoteCapability.volume,
       RemoteCapability.absoluteVolume,
       RemoteCapability.volumeFeedback,
     },
@@ -223,7 +222,6 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     RemoteItemCategory.volume,
     axis: ItemAxis.vertical,
     requires: const {
-      RemoteCapability.volume,
       RemoteCapability.absoluteVolume,
       RemoteCapability.volumeFeedback,
     },
@@ -285,7 +283,6 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     RemoteItemCategory.volume,
     layout: LinearLayout(size: RemoteItemSize(4, 2, minimumWidth: 3)),
     requires: const {
-      RemoteCapability.volume,
       RemoteCapability.absoluteVolume,
       RemoteCapability.volumeFeedback,
       RemoteCapability.mute,
@@ -296,25 +293,21 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'mute',
     'Mute toggle',
     RemoteItemCategory.volume,
-    requires: const {
-      RemoteCapability.volume,
-      RemoteCapability.mute,
-      RemoteCapability.volumeFeedback,
-    },
+    requires: const {RemoteCapability.mute, RemoteCapability.volumeFeedback},
     elements: [TvItems.muteToggle],
   ),
   RemoteItemDefinition(
     'muteOn',
     'Mute',
     RemoteItemCategory.volume,
-    requires: const {RemoteCapability.volume, RemoteCapability.mute},
+    requires: const {RemoteCapability.mute},
     elements: [TvItems.muteOn],
   ),
   RemoteItemDefinition(
     'muteOff',
     'Unmute',
     RemoteItemCategory.volume,
-    requires: const {RemoteCapability.volume, RemoteCapability.mute},
+    requires: const {RemoteCapability.mute},
     elements: [TvItems.muteOff],
   ),
   RemoteItemDefinition(
@@ -331,7 +324,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
       ),
     ],
     layout: LinearLayout(size: RemoteItemSize(1, 1)),
-    requires: const {RemoteCapability.volume, RemoteCapability.absoluteVolume},
+    requires: const {RemoteCapability.absoluteVolume},
     elements: [TvItems.volumePreset],
   ),
   RemoteItemDefinition(

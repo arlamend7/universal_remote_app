@@ -75,6 +75,7 @@ final class SamsungSession {
   void _reject() {
     final approval = _approval;
     if (approval == null || approval.isCompleted) {
+      _finish();
       return;
     }
     approval.completeError(
@@ -88,7 +89,7 @@ final class SamsungSession {
   Future<List<DeviceApplication>> loadApplications() async {
     final catalog = _catalog = Completer<List<DeviceApplication>>();
     try {
-      _emit('ed.installedApp.get', '');
+      await _emit('ed.installedApp.get', '');
       return await catalog.future.timeout(
         const Duration(seconds: 2),
         onTimeout: () => [],
@@ -115,20 +116,20 @@ final class SamsungSession {
     catalog.complete(List.unmodifiable(apps.values));
   }
 
-  void key(String key) => _send('ms.remote.control', {
+  Future<void> key(String key) => _send('ms.remote.control', {
     'Cmd': 'Click',
     'DataOfCmd': key,
     'Option': 'false',
     'TypeOfRemote': 'SendRemoteKey',
   });
 
-  void launch(String id) =>
+  Future<void> launch(String id) =>
       _emit('ed.apps.launch', {'appId': id, 'action_type': 'DEEP_LINK'});
 
-  void _emit(String event, Object data) =>
+  Future<void> _emit(String event, Object data) =>
       _send('ms.channel.emit', {'event': event, 'to': 'host', 'data': data});
 
-  void _send(String method, Map<String, Object> params) {
+  Future<void> _send(String method, Map<String, Object> params) async {
     if (_closed) {
       throw const RemoteException(
         'network',
@@ -136,7 +137,7 @@ final class SamsungSession {
       );
     }
     try {
-      transport.send(jsonEncode({'method': method, 'params': params}));
+      await transport.send(jsonEncode({'method': method, 'params': params}));
     } catch (_) {
       throw const RemoteException(
         'network',

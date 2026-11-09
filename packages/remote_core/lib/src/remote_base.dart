@@ -7,6 +7,7 @@ import 'package:remote_core/src/device.dart';
 abstract class RemoteBase implements RemoteDriver {
   DeviceConnectionState get state;
   List<CapabilityEvidence> get evidence;
+  Stream<void> get capabilityChanges => const Stream.empty();
 
   /// Whether this session has driver evidence that [capability] is usable.
   bool supports(RemoteCapability capability) => evidence.any(
@@ -47,13 +48,23 @@ final class DeviceSession {
   DeviceSession(this.controller);
   final RemoteBase controller;
   StreamSubscription<DeviceConnectionState>? _states;
+  StreamSubscription<void>? _capabilities;
   Future<void>? _disposeFuture;
-  void observe(void Function(DeviceConnectionState) onState) {
+  void observe(
+    void Function(DeviceConnectionState) onState, {
+    void Function()? onCapabilities,
+  }) {
     _states = controller.connectionStates.listen(onState);
+    if (onCapabilities != null) {
+      _capabilities = controller.capabilityChanges.listen(
+        (_) => onCapabilities(),
+      );
+    }
   }
 
   Future<void> dispose() => _disposeFuture ??= _dispose();
   Future<void> _dispose() async {
+    await _capabilities?.cancel();
     await _states?.cancel();
     _states = null;
     await controller.dispose();

@@ -11,14 +11,20 @@ light, fan, projector, and unknown. Categories do not imply command support.
 discovery, driver, profile, learned command, or user), availability (advertised,
 known, verified, unavailable, unsupported), and an optional safe reason.
 
-LG probes volume, application listing, input listing, and pointer-socket setup
-without sending destructive controls. Only successful probes expose those typed
-controllers. A successful query verifies that operation at that time, not every
-command in the interface on every firmware. Later unsupported/permission failures
-remove the affected controller; the UI disables it and settings exposes evidence.
-Power-off cannot be safely probed, so it is marked driver-known, not verified.
-The UI asks before sending it. Wake requires an explicitly configured valid MAC;
-a sent magic packet is not proof that the TV woke.
+A valid volume read verifies feedback only. Relative volume, absolute volume
+and mute have separate evidence. A provider can revoke one after a firmware
+rejection without affecting the others. A pointer-channel setup establishes
+a usable path for driver-known controls. App and input catalogs must contain
+usable entries before the corresponding chooser is enabled. A socket write
+does not verify a command or an app launch.
+
+Providers publish session capability changes separately from connection
+states. The app evaluates the active driver and does not enable controls based
+on a saved capability snapshot. Power-off stays driver-known because sending
+it as a probe would change the TV state.
+
+See the [provider capability audit](provider-capability-audit.md) for command
+mappings, test coverage, limitations and physical verification status.
 
 Use a controller without depending on LG command names:
 
@@ -33,4 +39,4 @@ await controller.dispose();
 
 Climate, lighting, channel, and general pointer capability identifiers leave
 room for future drivers. Speculative manufacturer APIs have not been created.
-The media-playback contract is defined but not advertised by the LG MVP.
+Playback toggle and discrete media keys have separate capability requirements.

@@ -15,6 +15,10 @@ final class RokuController extends TVRemoteBase {
   RemoteDevice _device;
   final RokuEcpClient client;
   final _states = StreamController<DeviceConnectionState>.broadcast();
+  final _changes = StreamController<void>.broadcast();
+  @override
+  Stream<void> get capabilityChanges => _changes.stream;
+  final _unavailable = <RemoteCapability>{};
   final _capabilities = <RemoteCapability>{};
   RokuAppCatalog? _catalog;
   String? _serial;
@@ -32,11 +36,19 @@ final class RokuController extends TVRemoteBase {
 
   @override
   List<CapabilityEvidence> get evidence => [
+    for (final capability in _unavailable)
+      CapabilityEvidence(
+        capability,
+        CapabilitySource.driver,
+        CapabilityAvailability.unavailable,
+      ),
     for (final capability in _capabilities)
       CapabilityEvidence(
         capability,
         CapabilitySource.driver,
-        CapabilityAvailability.known,
+        capability == RemoteCapability.currentContent
+            ? CapabilityAvailability.verified
+            : CapabilityAvailability.known,
       ),
   ];
 
@@ -95,18 +107,23 @@ final class RokuController extends TVRemoteBase {
       RemoteCapability.navigation,
       RemoteCapability.textInput,
       RemoteCapability.playbackToggle,
-      if (isTv ||
-          info.getElement('supports-audio-volume-control')?.innerText == 'true')
+      if (_supportsControl(info, 'supports-audio-volume-control', isTv))
         RemoteCapability.volume,
-      if (isTv ||
-          info.getElement('supports-tv-power-control')?.innerText == 'true')
+      if (_supportsControl(info, 'supports-tv-power-control', isTv))
         RemoteCapability.power,
-      if (catalog != null) RemoteCapability.applications,
+      if (catalog?.apps.isNotEmpty == true) RemoteCapability.applications,
       if (content != null) RemoteCapability.currentContent,
       if (isTv && catalog?.inputs.isNotEmpty == true) RemoteCapability.inputs,
     });
     _state(DeviceConnectionState.connected);
   }
+
+  bool _supportsControl(XmlElement info, String name, bool defaultValue) =>
+      switch (info.getElement(name)?.innerText.trim()) {
+        'true' => true,
+        'false' => false,
+        _ => defaultValue,
+      };
 
   Future<CurrentContent?> _probeContent() async {
     try {
@@ -137,8 +154,10 @@ final class RokuController extends TVRemoteBase {
       await send();
     } on RemoteException catch (error) {
       if (generation == _generation &&
-          (error.code == 'permission' || error.code == 'unsupported')) {
-        _capabilities.remove(capability);
+          (error.code == 'permission' || error.code == 'unsupported') &&
+          _capabilities.remove(capability)) {
+        _unavailable.add(capability);
+        _changes.add(null);
       }
       rethrow;
     }
@@ -158,6 +177,7 @@ final class RokuController extends TVRemoteBase {
   Future<void> disconnect() async {
     ++_generation;
     _capabilities.clear();
+    _unavailable.clear();
     _catalog = null;
     _state(DeviceConnectionState.disconnected);
   }
@@ -170,6 +190,7 @@ final class RokuController extends TVRemoteBase {
     _disposed = true;
     await disconnect();
     await _states.close();
+    await _changes.close();
   }
 
   @override

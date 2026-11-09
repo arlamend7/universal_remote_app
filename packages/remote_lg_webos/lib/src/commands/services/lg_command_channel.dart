@@ -28,7 +28,9 @@ final class LgCommandChannel {
     try {
       return await client.request(path, payload: payload, timeout: timeout);
     } on RemoteException catch (error) {
-      _handleFailure(capability, error);
+      if (identical(client, _client)) {
+        _handleFailure(capability, error);
+      }
       rethrow;
     }
   }
@@ -42,14 +44,22 @@ final class LgCommandChannel {
     return client.request(path);
   }
 
-  Stream<Map<String, Object?>> subscribe(String path) {
+  Stream<Map<String, Object?>> subscribe(
+    String path, {
+    RemoteCapability? capability,
+  }) async* {
     final client = _client;
-    if (client != null) {
-      return client.subscribe(path);
+    if (client == null) {
+      throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
-    return Stream.error(
-      const RemoteException('disconnected', 'Connect to the TV first.'),
-    );
+    try {
+      yield* client.subscribe(path);
+    } on RemoteException catch (error) {
+      if (capability != null && identical(client, _client)) {
+        _handleFailure(capability, error);
+      }
+      rethrow;
+    }
   }
 
   void _handleFailure(RemoteCapability capability, RemoteException error) {

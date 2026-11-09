@@ -61,7 +61,8 @@ client identity in protected storage and checks the paired TV certificate on
 reconnect.
 
 Android TV support covers direction, OK, Back, Home, media keys, and relative
-volume. Power off is offered when the remote service advertises power and keys.
+volume when remote key input is negotiated. A valid volume report enables the level display.
+Power off is offered when the remote service advertises power and keys.
 The Android TV provider has been tested with a local TLS server. Physical TCL
 compatibility remains to be verified.
 
@@ -70,7 +71,7 @@ compatibility remains to be verified.
 Put the soundbar in Bluetooth pairing mode and choose **Bluetooth & accessories**
 from the remote menu. The shortcut is shown when the connected TV supports it.
 
-- On Google TV, open **Remotes & Accessories → Pair remote or accessory**.
+- On Google TV, open **Remotes & Accessories → Pair remote or accessory** using the TV settings.
 - On LG webOS, open **Sound Out → Use Wireless Speaker → Bluetooth Devices**.
   The names vary by webOS version.
 
@@ -277,3 +278,7 @@ package/widget tests and an Android debug build; no releases are published.
 - [Roadmap](docs/roadmap.md)
 
 Native builds are compile checks, not evidence of physical TV or mobile behavior.
+
+## Provider capabilities
+
+See the [provider capability audit](docs/provider-capability-audit.md) for supported commands, test coverage, and firmware limits.

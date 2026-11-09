@@ -246,7 +246,7 @@ final class SamsungController extends TVRemoteBase {
         'The Samsung TV did not report this app.',
       );
     }
-    _active.launch(id);
+    await _active.launch(id);
   }
 
   Future<Never> _unsupported() => Future.error(

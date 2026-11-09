@@ -34,3 +34,7 @@ Do not mark a device supported solely from local fake-server tests.
 - Enable diagnostics and inspect native/debug logs for accidental secrets.
 
 All physical-TV and physical-mobile-device items remain unverified.
+
+## Provider audit follow-up
+
+Repeat the [provider audit](provider-capability-audit.md) on a real TCL Google TV, Samsung Tizen TV, LG webOS TV, and an authorized Roku development setup. Record the model, firmware, feature result, and whether reconnect refreshed capabilities. Check Android volume feedback and TCL pairing separately from automated TLS fixtures.

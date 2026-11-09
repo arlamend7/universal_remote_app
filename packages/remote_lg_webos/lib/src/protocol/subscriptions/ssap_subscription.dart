@@ -40,17 +40,17 @@ final class SsapSubscription {
       return;
     }
     _controller.addError(error);
-    _cancel();
+    unawaited(_cancel());
     unawaited(_controller.close());
   }
 
-  void _start() {
+  Future<void> _start() async {
     if (_closed) {
       return;
     }
     _timer = Timer(timeout, _expire);
     try {
-      transport.send(
+      await transport.send(
         jsonEncode({
           'id': id,
           'type': 'subscribe',
@@ -67,7 +67,7 @@ final class SsapSubscription {
 
   void _expire() =>
       fail(const RemoteException('timeout', 'The TV subscription timed out.'));
-  void _cancel() {
+  Future<void> _cancel() async {
     if (_closed) {
       return;
     }
@@ -75,7 +75,7 @@ final class SsapSubscription {
     _timer?.cancel();
     onClosed();
     try {
-      transport.send(jsonEncode({'id': id, 'type': 'unsubscribe'}));
+      await transport.send(jsonEncode({'id': id, 'type': 'unsubscribe'}));
     } catch (_) {
       /* The session may already be closed. */
     }

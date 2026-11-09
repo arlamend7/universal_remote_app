@@ -36,6 +36,9 @@ final class RemoteCommandController {
       }
     } catch (exception) {
       _failed(exception, current);
+      if (refreshVolume) {
+        await _refresh(current);
+      }
     } finally {
       _finished();
     }

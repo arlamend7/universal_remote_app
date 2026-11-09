@@ -41,3 +41,7 @@ Control by mobile apps** and use **Enabled** for same-network control.
 
 The workspace pins `xml` 6.6.1 for ECP responses and records the resolved
 parser dependency in the audit snapshot.
+
+## Capability limits
+
+The driver exposes Play/Pause as one ECP toggle. An empty app catalog hides app actions, and explicit power and audio control flags take precedence over device category. See the [provider capability audit](provider-capability-audit.md).

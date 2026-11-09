@@ -216,12 +216,23 @@ class ConnectionController implements RemotePanelSession {
   }) {
     final session = DeviceSession(registry.createController(device));
     _session = session;
-    session.observe((value) {
+    void onState(DeviceConnectionState value) {
       if (waking && _isWakeStartupState(value)) {
         return;
       }
       _stateChanged(session, value, generation);
-    });
+    }
+
+    session.observe(
+      onState,
+      onCapabilities: () {
+        if (!_isCurrent(generation) || !identical(_session, session)) {
+          return;
+        }
+        _updated();
+        unawaited(_volume.sync(session.controller));
+      },
+    );
     return session;
   }
 

@@ -246,6 +246,41 @@ void main() {
       await owner.dispose();
     }
   });
+  test(
+    'absolute volume rejection disables only the absolute command',
+    () async {
+      final transport = FakeTransport();
+      standardResponses(transport);
+      final respond = transport.respond!;
+      transport.respond = (request) {
+        if (request['uri'] == 'ssap://audio/setVolume') {
+          transport.reject(request, '403 denied');
+          return;
+        }
+        respond(request);
+      };
+      final controller = LgDeviceController(
+        device: testDevice(),
+        credentials: MemoryCredentials(),
+        options: const LgConnectionOptions(allowInsecure: true),
+        connector: (uri) async =>
+            uri.path == '/pointer' ? FakeTransport() : transport,
+      );
+      addTearDown(controller.dispose);
+      await controller.connect();
+      final changed = controller.capabilityChanges.first;
+      await expectLater(
+        controller.setVolume(20),
+        throwsA(isA<RemoteException>()),
+      );
+      await changed;
+      expect(controller.supports(RemoteCapability.absoluteVolume), isFalse);
+      expect(controller.supports(RemoteCapability.mute), isTrue);
+      expect(controller.supports(RemoteCapability.volumeFeedback), isTrue);
+      await controller.volumeUp();
+    },
+  );
+
   test('unavailable volume reads do not revoke writes and revoked pairing deletes stale key', () async {
     final credentials = MemoryCredentials();
     final main = FakeTransport();

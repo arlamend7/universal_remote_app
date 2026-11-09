@@ -8,6 +8,19 @@ final class VolumeObserver {
   StreamSubscription<VolumeState>? _subscription;
   TVRemoteBase? _owner;
   int _generation = 0;
+  Future<void> sync(RemoteBase controller) async {
+    if (controller.supports(RemoteCapability.volumeFeedback)) {
+      if (!identical(_owner, controller)) {
+        await observe(controller);
+      }
+      return;
+    }
+    if (identical(_owner, controller)) {
+      value.value = null;
+      await detach();
+    }
+  }
+
   Future<void> observe(RemoteBase controller) async {
     final detaching = detach();
     final generation = _generation;
@@ -16,7 +29,7 @@ final class VolumeObserver {
       return;
     }
     if (controller is! TVRemoteBase ||
-        !controller.supports(RemoteCapability.volume)) {
+        !controller.supports(RemoteCapability.volumeFeedback)) {
       return;
     }
     _owner = controller;
@@ -43,7 +56,9 @@ final class VolumeObserver {
       }
       _received(reading);
     } catch (_) {
-      /* Optional state reads do not invalidate successful commands. */
+      if (generation == _generation) {
+        value.value = null;
+      }
     }
   }
 

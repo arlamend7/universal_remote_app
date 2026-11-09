@@ -69,12 +69,4 @@ final class LgApplicationController {
       },
     );
   }
-
-  Future<String?> currentApplication() async {
-    final value = await channel.send(
-      RemoteCapability.applications,
-      'com.webos.applicationManager/getForegroundAppInfo',
-    );
-    return value['appId'] as String?;
-  }
 }

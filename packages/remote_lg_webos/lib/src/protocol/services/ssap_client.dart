@@ -78,28 +78,31 @@ final class SsapClient {
       );
     }
     final id = _nextId();
+    final frame = jsonEncode({
+      'id': id,
+      'type': type,
+      if (path != null) 'uri': _uri(path),
+      'payload': payload,
+    });
     final pending = SsapPendingRequest(
       registration: registration,
       timeout: timeout ?? requestTimeout,
       onExpired: () => _pending.remove(id),
     );
     _pending[id] = pending;
+    unawaited(_write(id, frame));
+    return pending.future;
+  }
+
+  Future<void> _write(String id, String frame) async {
     try {
-      transport.send(
-        jsonEncode({
-          'id': id,
-          'type': type,
-          if (path != null) 'uri': _uri(path),
-          'payload': payload,
-        }),
-      );
+      await transport.send(frame);
     } catch (_) {
       _reject(
         id,
         const RemoteException('network', 'Could not send the TV request.'),
       );
     }
-    return pending.future;
   }
 
   String _uri(String path) {

@@ -22,3 +22,7 @@ See the LG, Android TV and Roku identifiers for concrete examples.
 `multicast_dns` dependency. iOS uses a service-driven Apple Bonjour adapter.
 Android TV owns its certificate probe, pairing and Remote v2 controller.
 Roku remains development-gated pending distribution authorization.
+
+## Capability evidence
+
+Use live evidence for each operation. Keep relative volume, absolute volume, and feedback separate. Emit a capability change when the active session loses a control. See the [provider audit](provider-capability-audit.md) for examples of operation-level evidence.

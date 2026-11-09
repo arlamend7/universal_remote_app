@@ -156,16 +156,20 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   @override
   void previewVolume(double value) => remote.previewVolume(value);
   @override
-  Future<void> setVolume(double value) =>
-      _changeVolume((tv) => tv.setVolume(value.round()));
+  Future<void> setVolume(double value) => _changeVolume(
+    (tv) => tv.setVolume(value.round()),
+    capability: RemoteCapability.absoluteVolume,
+  );
 
-  Future<void> _changeVolume(Future<void> Function(TVRemoteBase tv) change) =>
-      remote.connection.execute(() async {
-        final volume = tv(RemoteCapability.volume);
-        if (volume != null) {
-          await change(volume);
-        }
-      }, refreshVolume: true);
+  Future<void> _changeVolume(
+    Future<void> Function(TVRemoteBase tv) change, {
+    RemoteCapability capability = RemoteCapability.volume,
+  }) => remote.connection.execute(() async {
+    final volume = tv(capability);
+    if (volume != null) {
+      await change(volume);
+    }
+  }, refreshVolume: true);
   @override
   Future<List<DeviceApplication>> installedApps() async {
     final apps = tv(RemoteCapability.applications);
@@ -278,7 +282,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     if (device != null) {
       return execute(device.togglePlayback);
     }
-    return media(mediaPlaying ? MediaAction.pause : MediaAction.play);
+    return Future.value();
   }
 
   @override
@@ -330,7 +334,10 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     if (target == null) {
       return Future.value();
     }
-    return _changeVolume((tv) => tv.setMuted(target));
+    return _changeVolume(
+      (tv) => tv.setMuted(target),
+      capability: RemoteCapability.mute,
+    );
   }
 
   @override

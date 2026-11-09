@@ -7,6 +7,7 @@ final class SamsungTestTransport implements TextTransport {
   SamsungTestTransport({this.reportApps = true});
 
   final bool reportApps;
+  Completer<void>? launchWrite;
   final _frames = StreamController<String>();
   final sent = <Map<String, dynamic>>[];
 
@@ -16,9 +17,12 @@ final class SamsungTestTransport implements TextTransport {
   void receive(Map<String, Object> frame) => _frames.add(jsonEncode(frame));
 
   @override
-  void send(String message) {
+  Future<void> send(String message) async {
     final decoded = jsonDecode(message) as Map<String, dynamic>;
     sent.add(decoded);
+    if (decoded['params'] case {'event': 'ed.apps.launch'}) {
+      await launchWrite?.future;
+    }
     if (decoded['params'] case {'event': 'ed.installedApp.get'}) {
       receive({
         'event': 'ed.installedApp.get',

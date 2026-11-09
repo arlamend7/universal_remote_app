@@ -55,9 +55,9 @@ final class LgPointerConnection {
     return uri;
   }
 
-  void specialKey(RemoteKey key) =>
+  Future<void> specialKey(RemoteKey key) =>
       _send('type:button\nname:${key.wireName}\n\n');
-  void motion(String type, double dx, double dy) {
+  Future<void> motion(String type, double dx, double dy) {
     if (!{'move', 'scroll'}.contains(type) ||
         !dx.isFinite ||
         !dy.isFinite ||
@@ -65,13 +65,13 @@ final class LgPointerConnection {
         dy.abs() > 10000) {
       throw ArgumentError('Invalid pointer motion.');
     }
-    _send('type:$type\ndx:${dx.round()}\ndy:${dy.round()}\ndown:0\n\n');
+    return _send('type:$type\ndx:${dx.round()}\ndy:${dy.round()}\ndown:0\n\n');
   }
 
-  void click() => _send('type:click\n\n');
+  Future<void> click() => _send('type:click\n\n');
 
-  void press(NavigationKey key) => _send(encodeLgNavigation(key));
-  void _send(String frame) {
+  Future<void> press(NavigationKey key) => _send(encodeLgNavigation(key));
+  Future<void> _send(String frame) async {
     final transport = _transport;
     if (transport == null) {
       throw const RemoteException(
@@ -80,9 +80,11 @@ final class LgPointerConnection {
       );
     }
     try {
-      transport.send(frame);
+      await transport.send(frame);
     } catch (_) {
-      onUnavailable();
+      if (identical(_transport, transport)) {
+        onUnavailable();
+      }
       throw const RemoteException(
         'pointer',
         'The TV navigation socket disconnected.',

@@ -125,7 +125,8 @@ abstract final class TvItems {
         icon: playing ? Icons.pause : Icons.play_arrow,
         label: playing ? 'Pause' : 'Play',
         enabled: true,
-        execute: remote.togglePlayback,
+        execute: () =>
+            remote.media(playing ? MediaAction.pause : MediaAction.play),
       );
     },
   );

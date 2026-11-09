@@ -80,11 +80,11 @@ final class LgCapabilityResolver {
     final controller = LgVolumeController(commands);
     try {
       await controller.readVolume();
-      _verified(RemoteCapability.volume, controller);
-      _volumeCommands();
+      _volumeCommands(controller);
       if (isCurrent()) {
-        registry.record(
+        registry.enable(
           RemoteCapability.volumeFeedback,
+          controller,
           CapabilityAvailability.verified,
         );
       }
@@ -97,27 +97,21 @@ final class LgCapabilityResolver {
     if (!isCurrent()) {
       return;
     }
-    _volumeCommands();
-    registry.enable(
-      RemoteCapability.volume,
-      controller,
-      CapabilityAvailability.known,
-      reason:
-          'Volume feedback is unavailable; adjustment commands are '
-          'driver-supported but not yet verified. ${lgConnectionError(error).message}',
-    );
+    _volumeCommands(controller);
+    _unavailable(RemoteCapability.volumeFeedback, error);
   }
 
-  void _volumeCommands() {
+  void _volumeCommands(LgVolumeController controller) {
     if (!isCurrent()) {
       return;
     }
-    // These commands use the same authorized SSAP audio service.
-    registry.record(
+    for (final capability in [
+      RemoteCapability.volume,
       RemoteCapability.absoluteVolume,
-      CapabilityAvailability.known,
-    );
-    registry.record(RemoteCapability.mute, CapabilityAvailability.known);
+      RemoteCapability.mute,
+    ]) {
+      registry.enable(capability, controller, CapabilityAvailability.known);
+    }
   }
 
   Future<void> _applications() async {
@@ -125,7 +119,7 @@ final class LgCapabilityResolver {
     await _probe(
       RemoteCapability.applications,
       controller,
-      controller.applications,
+      () async => _nonEmpty(await controller.applications()),
     );
     if (!isCurrent() || !controller.hasSettings) {
       return;
@@ -148,7 +142,17 @@ final class LgCapabilityResolver {
 
   Future<void> _inputs() async {
     final controller = LgInputController(commands);
-    await _probe(RemoteCapability.inputs, controller, controller.inputs);
+    await _probe(
+      RemoteCapability.inputs,
+      controller,
+      () async => _nonEmpty(await controller.inputs()),
+    );
+  }
+
+  void _nonEmpty(List<Object> entries) {
+    if (entries.isEmpty) {
+      throw const RemoteException('unavailable', 'The TV returned no entries.');
+    }
   }
 
   Future<void> _navigation() =>
@@ -165,7 +169,7 @@ final class LgCapabilityResolver {
       registry.enable(
         RemoteCapability.pointer,
         pointer,
-        CapabilityAvailability.verified,
+        CapabilityAvailability.known,
       );
     }
   }
@@ -177,17 +181,17 @@ final class LgCapabilityResolver {
   ) async {
     try {
       await action();
-      _verified(kind, controller);
+      _known(kind, controller);
     } catch (error) {
       _unavailable(kind, error);
     }
   }
 
-  void _verified(RemoteCapability kind, Object controller) {
+  void _known(RemoteCapability kind, Object controller) {
     if (!isCurrent()) {
       return;
     }
-    registry.enable(kind, controller, CapabilityAvailability.verified);
+    registry.enable(kind, controller, CapabilityAvailability.known);
   }
 
   void _unavailable(RemoteCapability kind, Object error) {
