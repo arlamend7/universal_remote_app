@@ -20,6 +20,7 @@ import '../data/devices/repositories/saved_device_repository.dart';
 import '../data/devices/mappers/saved_device_mapper.dart';
 import '../data/dashboards/repositories/local_dashboard_repository.dart';
 import '../data/network/services/multicast_network_access.dart';
+import '../data/network/services/ios_android_tv_bonjour.dart';
 import '../data/network/functions/inspect_tv_certificate.dart';
 import '../domains/storage/contracts/application_storage.dart';
 import '../domains/diagnostics/services/diagnostic_logger.dart';
@@ -55,7 +56,14 @@ abstract final class AppBootstrap {
         registry ??
         (ProviderRegistry()
           ..register(provider)
-          ..register(AndroidTvProvider(credentials: credentials)));
+          ..register(
+            AndroidTvProvider(
+              credentials: credentials,
+              browseBonjour: Platform.isIOS
+                  ? IosAndroidTvBonjour().browse
+                  : null,
+            ),
+          ));
     if (registry == null &&
         !kReleaseMode &&
         const bool.fromEnvironment('ENABLE_ROKU_ECP')) {

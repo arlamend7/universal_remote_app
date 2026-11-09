@@ -10,9 +10,13 @@ final class AndroidTvProvider
         DeviceProvider,
         ManualDeviceProvider,
         IncrementalDiscoveryProvider {
-  const AndroidTvProvider({required this.credentials});
+  const AndroidTvProvider({required this.credentials, this.browseBonjour});
 
   final CredentialStore credentials;
+  final Future<List<({String name, String address, int port})>> Function(
+    DiscoveryCancellation cancellation,
+  )?
+  browseBonjour;
 
   @override
   String get id => 'android.tv';
@@ -28,7 +32,9 @@ final class AndroidTvProvider
   Future<List<RemoteDevice>> discoverIncrementally(
     DiscoveryCancellation cancellation,
     void Function(RemoteDevice) onDevice,
-  ) => const AndroidTvDiscovery().discover(id, cancellation, onDevice);
+  ) =>
+      AndroidTvDiscovery(browseBonjour: browseBonjour)
+          .discover(id, cancellation, onDevice);
 
   @override
   RemoteBase createController(RemoteDevice device) =>

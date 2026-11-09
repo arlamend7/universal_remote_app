@@ -45,11 +45,7 @@ final class SsdpSearchSession {
       duration ~/ (_maxAttempts * 2),
       (_) => _sendSearch(),
     );
-    final subscription = _socket.listen(
-      _socketEvent,
-      onError: (Object error, StackTrace stack) =>
-          _failed(SsdpSocketFailure('receive', error), stack),
-    );
+    final subscription = _socket.listen(_socketEvent, onError: _socketError);
     try {
       _startSearch();
       await Future.any<void>([
@@ -105,6 +101,15 @@ final class SsdpSearchSession {
       return;
     }
     _completed.completeError(error, stack);
+  }
+
+  void _socketError(Object error, StackTrace stack) {
+    // Dart delivers sendto failures through the socket stream asynchronously.
+    final stage =
+        error is SocketException && error.message.startsWith('Send failed')
+        ? 'send'
+        : 'receive';
+    _failed(SsdpSocketFailure(stage, error), stack);
   }
 
   void _socketEvent(RawSocketEvent event) {

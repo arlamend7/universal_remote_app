@@ -31,7 +31,7 @@ final class SsdpDiscovery {
     if (serviceType.contains(RegExp(r'[\r\n]')) || duration <= Duration.zero) {
       throw ArgumentError('Invalid SSDP search.');
     }
-    final routes = await (addresses?.call() ?? _localAddresses());
+    final routes = await _routes();
     if (routes.isEmpty) {
       throw const SsdpSocketFailure('noInterface', 'No active IPv4 interface');
     }
@@ -51,13 +51,30 @@ final class SsdpDiscovery {
     return _collect(results);
   }
 
-  Future<List<InternetAddress>> _localAddresses() async {
-    final interfaces = await NetworkInterface.list(
-      type: InternetAddressType.IPv4,
-      includeLoopback: false,
-    );
-    return interfaces.expand((interface) => interface.addresses).toList();
+  Future<List<InternetAddress>> _routes() async {
+    try {
+      if (addresses case final discover?) {
+        return await discover();
+      }
+      final interfaces = await NetworkInterface.list(
+        type: InternetAddressType.IPv4,
+        includeLoopback: false,
+      );
+      return interfaces
+          .where(
+            (interface) => !Platform.isIOS || isIosLanInterface(interface.name),
+          )
+          .expand((interface) => interface.addresses)
+          .toList();
+    } on SocketException catch (error) {
+      throw SsdpSocketFailure('interfaces', error);
+    }
   }
+
+  /// Darwin uses en interfaces for Wi-Fi and Ethernet. Cellular, VPN and
+  /// peer-to-peer interfaces are unsuitable for LAN SSDP searches.
+  static bool isIosLanInterface(String name) =>
+      RegExp(r'^en[0-9]+$').hasMatch(name);
 
   Future<SsdpRouteResult> _searchAddress(
     String serviceType,
@@ -87,16 +104,28 @@ final class SsdpDiscovery {
   }
 
   List<SsdpAdvertisement> _collect(List<SsdpRouteResult> results) {
-    final successful = results.where((result) => result.succeeded).toList();
-    if (successful.isEmpty) {
-      throw results.first.error!;
-    }
     final devices = <String, SsdpAdvertisement>{};
+    final successful = results.where((result) => result.succeeded);
     for (final result in successful) {
       _merge(result, devices);
     }
-    return List.unmodifiable(devices.values);
+    if (devices.isNotEmpty) {
+      return List.unmodifiable(devices.values);
+    }
+    final errors = results.map((route) => route.error).whereType<Object>();
+    final denied = errors.where(_blocked).firstOrNull;
+    if (denied != null) {
+      throw denied;
+    }
+    if (successful.isEmpty) {
+      throw errors.first;
+    }
+    return const [];
   }
+
+  bool _blocked(Object error) =>
+      error is SocketException &&
+      const {1, 13}.contains(error.osError?.errorCode);
 
   void _merge(SsdpRouteResult result, Map<String, SsdpAdvertisement> devices) {
     for (final advertisement in result.advertisements) {

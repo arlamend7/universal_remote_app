@@ -17,3 +17,4 @@ export 'src/pairing/contracts/pairing_code_receiver.dart';
 export 'src/bluetooth_accessory.dart';
 export 'src/providers/models/discovery_status.dart';
 export 'src/providers/models/provider_discovery_status.dart';
+export 'src/errors/discovery_operation_failure.dart';

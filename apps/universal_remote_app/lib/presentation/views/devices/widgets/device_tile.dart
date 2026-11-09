@@ -115,26 +115,12 @@ class DeviceTile extends StatelessWidget {
     return Text.rich(
       TextSpan(
         style: style?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-        children: [
-          if (details.isNotEmpty) TextSpan(text: details.join(' • ')),
-          // TextSpan(
-          //   text: _statusLabel,
-          //   style: TextStyle(color: _statusColor(theme.colorScheme)),
-          // ),
-        ],
+        children: [if (details.isNotEmpty) TextSpan(text: details.join(' • '))],
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
   }
-
-  String get _statusLabel => switch (model.stateOf(device)) {
-    DeviceConnectionState.connected => 'Active',
-    DeviceConnectionState.connecting => 'Connecting',
-    DeviceConnectionState.pairing => 'Pairing',
-    DeviceConnectionState.reconnecting => 'Waking',
-    DeviceConnectionState.disconnected => 'Not connected',
-  };
 
   Color _statusColor(ColorScheme colors) => switch (model.stateOf(device)) {
     DeviceConnectionState.connected => colors.primary,

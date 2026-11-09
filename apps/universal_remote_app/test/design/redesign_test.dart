@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_ui/remote_ui.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
@@ -43,13 +44,19 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byType(NavigationDestination), findsNWidgets(3));
-      expect(find.text('192.168.1.20'), findsNothing);
+      expect(find.text('Network wake'), findsNothing);
       await captureDesign(tester, key, '01-devices');
       await tester.tap(find.byTooltip('Living room options'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('View details'));
       await tester.pumpAndSettle();
-      expect(find.text('192.168.1.20'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AppSheet),
+          matching: find.text('192.168.1.20'),
+        ),
+        findsOneWidget,
+      );
       await captureDesign(tester, key, '02-device-details');
       await tester.tap(find.text('Customize remote'));
       await tester.pumpAndSettle();

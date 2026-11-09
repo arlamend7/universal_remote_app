@@ -5,6 +5,7 @@ import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
 import '../../../../domains/discovery/functions/discovery_diagnostic_fields.dart';
+import '../../../../domains/discovery/functions/discovery_failure_message.dart';
 
 final class DiscoveryViewModel extends ChangeNotifier {
   DiscoveryViewModel(this.dependencies) {
@@ -30,7 +31,14 @@ final class DiscoveryViewModel extends ChangeNotifier {
       .toList();
   String get diagnosticReport => const JsonEncoder.withIndent('  ').convert({
     'searchId': dependencies.discovery.searchId,
-    'providers': statuses.map(discoveryDiagnosticFields).toList(),
+    'providers': [
+      for (final status in statuses)
+        {
+          ...discoveryDiagnosticFields(status),
+          if (status.failure case final failure?)
+            'remedy': discoveryFailureMessage(failure.error),
+        },
+    ],
   });
   List<RemoteDevice> get found =>
       DeviceIdentity.unique(dependencies.discovery.devices.value);

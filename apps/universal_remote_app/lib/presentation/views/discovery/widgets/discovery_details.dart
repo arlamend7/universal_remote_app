@@ -28,6 +28,9 @@ class DiscoveryDetails extends StatelessWidget {
   Widget _provider(ProviderDiscoveryStatus report) {
     final fields = discoveryDiagnosticFields(report);
     final code = fields['code'];
+    final stage = fields['stage'];
+    final osCode = fields['osCode'];
+    final operation = osCode == null ? '$stage' : '$stage · OS $osCode';
     final failure = report.failure;
     final status = switch (report.status) {
       DiscoveryStatus.searching => 'Searching',
@@ -43,7 +46,7 @@ class DiscoveryDetails extends StatelessWidget {
       subtitle: Text(
         failure == null
             ? status
-            : '$status · $code\n${discoveryFailureMessage(failure.error)}',
+            : '$status · $code\n$operation\n${discoveryFailureMessage(failure.error)}',
       ),
     );
   }

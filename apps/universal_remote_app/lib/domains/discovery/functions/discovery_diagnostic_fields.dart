@@ -6,7 +6,8 @@ import 'package:remote_network/remote_network.dart';
 
 Map<String, Object> discoveryDiagnosticFields(ProviderDiscoveryStatus report) {
   final error = report.failure?.error;
-  final osCode = error is SocketException ? error.osError?.errorCode : null;
+  final osCode = discoveryOsCode(error);
+  final operation = error is DiscoveryOperationFailure ? error : null;
   return {
     'providerId': report.providerId,
     'status': report.status.name,
@@ -14,25 +15,55 @@ Map<String, Object> discoveryDiagnosticFields(ProviderDiscoveryStatus report) {
     'deviceCount': report.deviceCount,
     if (report.observations.isNotEmpty) 'observations': report.observations,
     if (error != null) 'exceptionType': _exceptionType(error),
-    'stage': error is SsdpSocketFailure ? error.stage : 'discover',
-    if (error != null) 'code': _failureCode(error, osCode),
+    'stage':
+        operation?.stage ??
+        (error is SsdpSocketFailure ? error.stage : 'discover'),
+    if (operation?.errorDomain case final domain?) 'errorDomain': domain,
+    if (error != null) 'code': discoveryFailureCode(error),
     if (osCode != null) 'osCode': osCode,
   };
 }
 
-String _exceptionType(Object error) =>
-    (error is SsdpSocketFailure ? error.cause : error).runtimeType.toString();
-
-String _failureCode(Object error, int? osCode) => switch (error) {
-  TimeoutException() => 'responseTimeout',
-  SocketException() when osCode == 1 || osCode == 13 => 'networkBlocked',
-  SocketException() when const {51, 65, 101, 113}.contains(osCode) =>
-    'networkUnreachable',
-  SsdpSocketFailure(stage: 'noInterface') => 'noNetworkInterface',
-  SsdpSocketFailure(stage: 'interface') => 'multicastInterfaceFailed',
-  SsdpSocketFailure(stage: 'bind') => 'socketBindFailed',
-  SsdpSocketFailure(stage: 'send') => 'multicastSendFailed',
-  SsdpSocketFailure(stage: 'receive') => 'socketReceiveFailed',
-  SocketException() => 'socketFailure',
-  _ => 'providerException',
+Object? _cause(Object? error) => switch (error) {
+  SsdpSocketFailure(:final cause) => cause,
+  DiscoveryOperationFailure(:final cause) => cause,
+  _ => error,
 };
+
+String _exceptionType(Object error) => _cause(error).runtimeType.toString();
+
+int? discoveryOsCode(Object? error) {
+  if (error is DiscoveryOperationFailure && error.osCode != null) {
+    return error.osCode;
+  }
+  final cause = _cause(error);
+  return switch (cause) {
+    SocketException(:final osError) => osError?.errorCode,
+    OSError(:final errorCode) => errorCode,
+    _ => null,
+  };
+}
+
+String discoveryFailureCode(Object error) {
+  if (error case DiscoveryOperationFailure(code: final code?)) {
+    return code;
+  }
+  final osCode = discoveryOsCode(error);
+  return switch (error) {
+    _ when _cause(error) is TimeoutException => 'responseTimeout',
+    _ when const {1, 13}.contains(osCode) => 'networkBlocked',
+    _ when const {50, 51, 65, 100, 101, 113}.contains(osCode) =>
+      'networkUnreachable',
+    SsdpSocketFailure(stage: 'noInterface') => 'noNetworkInterface',
+    SsdpSocketFailure(stage: 'interfaces') => 'interfaceEnumerationFailed',
+    SsdpSocketFailure(stage: 'interface') => 'multicastInterfaceFailed',
+    SsdpSocketFailure(stage: 'bind') => 'socketBindFailed',
+    SsdpSocketFailure(stage: 'send') => 'multicastSendFailed',
+    SsdpSocketFailure(stage: 'receive') => 'socketReceiveFailed',
+    DiscoveryOperationFailure() when _cause(error) is FormatException =>
+      'invalidAdvertisement',
+    DiscoveryOperationFailure() => 'mdnsOperationFailed',
+    SocketException() => 'socketFailure',
+    _ => 'providerException',
+  };
+}

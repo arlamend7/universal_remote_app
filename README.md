@@ -144,19 +144,41 @@ its power button sends a wake request and retries the connection while the TV
 starts. Connection status shows errors and offers retry/settings actions. See the
 [device-management review](docs/contexts/flutter/device-management-review.md).
 
-iOS SSDP requires Apple's multicast entitlement/provisioning approval on physical
-devices. It is requested in the runner but cannot be granted through source code.
-Before uploading to TestFlight, inspect the signature of the exported app:
+### Verify discovery on iOS
+
+The Runner Info.plist declares the Local Network usage description and
+`_androidtvremote2._tcp`. Android TV uses Apple's Bonjour browser on iOS and
+needs Local Network access. LG webOS sends SSDP multicast on Wi-Fi or Ethernet
+and also needs Apple's multicast networking entitlement. The Runner Debug,
+Profile, and Release configurations reference `Runner.entitlements`.
+The source entitlement is a request. The Apple team must have approval and
+the provisioning profile used for the export must authorize it.
+See [Apple's local network privacy guidance](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy).
+
+Before uploading to TestFlight, unpack the exported IPA and inspect the app
+signature and, when present, its embedded provisioning profile:
 
 ```sh
-codesign -d --entitlements :- "/path/to/Payload/Runner.app"
+app="/path/to/Payload/Runner.app"
+codesign -d --entitlements :- "$app"
+security cms -D -i "$app/embedded.mobileprovision" | plutil -extract Entitlements xml1 -o - -
 ```
 
-The signed entitlements should include `com.apple.developer.networking.multicast`
-set to true. On a physical iPhone, allow **Local Network**, then test discovery
-and **Connect by IP** separately. If discovery fails, open **Search details →
-Copy diagnostics** to capture provider results, socket codes, and protocol
-counters without collecting TV addresses or pairing credentials.
+For LG discovery, confirm `com.apple.developer.networking.multicast` is true
+in both. If it is absent, check the App ID and team approval, regenerate the
+profile, then re-export and verify the signature. A Dart socket errno alone
+cannot distinguish a missing entitlement from Local Network denial or a
+routing problem.
+
+On a physical iPhone, connect to the same LAN as the TVs and test LG and
+Android TV separately. Test with Local Network disabled, enable it for
+Universal Remote in Settings, then tap **Search again**. Close the sheet
+during a scan, reopen it, and check **Connect by IP** independently with
+permission enabled. If discovery fails, open **Search details → Copy
+diagnostics**. Record the build, provider, operation, OS error, and whether
+manual IP works. The diagnostic report excludes TV addresses and pairing
+credentials. Simulator runs and automated tests do not verify physical iOS
+network permissions or TV compatibility.
 
 Never claim background connectivity or wake works on every phone, network,
 or television.
