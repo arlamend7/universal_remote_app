@@ -24,6 +24,7 @@ export 'src/widgets/grid/grid_surface.dart';
 export 'src/widgets/grid/models/grid_viewport_metrics.dart';
 export 'src/widgets/grid/models/remote_preview_data.dart';
 export 'src/widgets/sheets/app_sheet.dart';
+export 'src/widgets/sheets/app_sheet_actions.dart';
 export 'src/widgets/sheets/show_app_sheet.dart';
 export 'src/editor/device_grids_controller.dart';
 export 'src/editor/dashboard_repository.dart';

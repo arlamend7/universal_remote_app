@@ -3,40 +3,74 @@ import 'package:flutter/material.dart';
 import '../../../widgets/layout/content_page.dart';
 import '../viewmodels/settings_viewmodel.dart';
 import '../widgets/appearance_settings.dart';
+import '../widgets/preference_settings.dart';
 
 class SettingsViewport extends StatelessWidget {
   const SettingsViewport({super.key, required this.model});
+
   final SettingsViewModel model;
+
   @override
   Widget build(BuildContext context) => ContentPage(
     maxWidth: 480,
+    padding: const EdgeInsets.fromLTRB(17, 16, 17, 24),
     children: [
-      Text('Settings', style: Theme.of(context).textTheme.titleLarge),
+      _header(context),
       const SizedBox(height: 20),
+      _heading(context, 'Appearance'),
       AppearanceSettings(model: model),
-      ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.help_outline),
-        title: const Text('Help'),
-        onTap: () => _help(context),
-      ),
+      const SizedBox(height: 22),
+      _heading(context, 'Preferences'),
+      PreferenceSettings(model: model),
       const SizedBox(height: 24),
-      const Text('Universal Remote', textAlign: TextAlign.center),
+      Text(
+        'Universal Remote',
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
     ],
   );
-  Future<void> _help(BuildContext context) => showDialog<void>(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: const Text('Connect your TV'),
-      content: const Text(
-        'Keep your TV and this device on the same network. Use Find TVs or connect by IP, then approve pairing on the TV.\n\nControls depend on your TV and audio output. Open View details for connection and capability information.',
+
+  Widget _header(BuildContext context) => Row(
+    children: [
+      Expanded(child: _activeDevice(context)),
+      Text(
+        'Settings',
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Got it'),
+      const Spacer(),
+    ],
+  );
+
+  Widget _activeDevice(BuildContext context) {
+    final device = model.connectedDevice;
+    if (device == null) {
+      return const SizedBox.shrink();
+    }
+    final theme = Theme.of(context);
+    return Row(
+      spacing: 6,
+      children: [
+        Icon(Icons.circle, size: 8, color: theme.colorScheme.primary),
+        Flexible(
+          child: Text(
+            '${device.toUpperCase()} ACTIVE',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall,
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _heading(BuildContext context, String title) => Padding(
+    padding: const EdgeInsets.only(left: 4, bottom: 8),
+    child: Text(
+      title.toUpperCase(),
+      semanticsLabel: title,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(letterSpacing: 1),
     ),
   );
 }

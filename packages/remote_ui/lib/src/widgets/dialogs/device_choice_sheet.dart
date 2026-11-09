@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_ui/src/widgets/sheets/show_app_sheet.dart';
 
 import 'device_choice_state.dart';
 
@@ -22,11 +23,8 @@ class DeviceChoiceSheet extends StatefulWidget {
     List<(String, String)> choices, {
     String? selectedId,
     bool grid = false,
-  }) => showModalBottomSheet<String>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    constraints: const BoxConstraints(maxWidth: 600),
+  }) => showAppModal<String>(
+    context,
     builder: (_) => DeviceChoiceSheet(
       title: title,
       choices: choices,

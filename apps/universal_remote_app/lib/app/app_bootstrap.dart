@@ -11,6 +11,7 @@ import 'package:remote_network/remote_network.dart';
 import 'package:remote_roku/remote_roku.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
+import '../data/settings/screen_awake.dart';
 import '../data/storage/adapters/native_preferences_storage.dart';
 import '../data/pairing/repositories/secure_credential_store.dart';
 import '../data/pairing/repositories/session_credential_store.dart';
@@ -68,7 +69,13 @@ abstract final class AppBootstrap {
       ),
       credentials,
     );
-    final settings = SettingsController(preferences, logger);
+    final settings = SettingsController(
+      preferences,
+      logger,
+      applyScreenAwake: Platform.isAndroid || Platform.isIOS
+          ? ScreenAwake.setEnabled
+          : null,
+    );
     final network = MulticastNetworkAccess();
     await saved.initialize();
     await settings.initialize();
@@ -78,6 +85,7 @@ abstract final class AppBootstrap {
       providers,
       saved,
       logger,
+      autoReconnect: () => settings.autoReconnect.value,
       wakeLearner: DeviceWakeLearner(
         lookup: saved.byId,
         update: saved.updateExisting,

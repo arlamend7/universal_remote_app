@@ -15,9 +15,11 @@ class ConnectionController implements RemotePanelSession {
     this.saved,
     this.logger, {
     this.wakeLearner,
+    this.autoReconnect,
     this.wakeRetryDelay = const Duration(seconds: 2),
   });
   final DeviceWakeLearner? wakeLearner;
+  final bool Function()? autoReconnect;
   final Duration wakeRetryDelay;
 
   final ProviderRegistry registry;
@@ -60,8 +62,9 @@ class ConnectionController implements RemotePanelSession {
 
   Future<void> turnOn(RemoteDevice device) {
     if (_disposed ||
-        selected.value?.id != device.id ||
-        state.value != DeviceConnectionState.disconnected ||
+        !registry.canWake(device) ||
+        (selected.value?.id == device.id &&
+            state.value != DeviceConnectionState.disconnected) ||
         commandBusy.value) {
       return Future.value();
     }
@@ -355,6 +358,9 @@ class ConnectionController implements RemotePanelSession {
       return;
     }
     _resumeConnection = false;
+    if (autoReconnect?.call() == false) {
+      return;
+    }
     final device = selected.value;
     if (device == null) {
       return;

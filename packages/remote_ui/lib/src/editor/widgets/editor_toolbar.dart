@@ -24,9 +24,9 @@ class EditorToolbar extends StatelessWidget {
     child: LayoutBuilder(
       builder: (context, constraints) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 6,
         children: [
           _actions(context, compact: constraints.maxWidth < 400),
-          const SizedBox(height: 6),
           _hint(context),
         ],
       ),

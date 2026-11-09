@@ -14,6 +14,16 @@ import UIKit
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UniversalRemotePreferences") {
       PreferencesChannel.register(with: registrar)
+      let display = FlutterMethodChannel(
+        name: "br.net.devcom.universal_remote/display", binaryMessenger: registrar.messenger())
+      display.setMethodCallHandler { call, result in
+        guard call.method == "setScreenAwake", let enabled = call.arguments as? Bool else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        UIApplication.shared.isIdleTimerDisabled = enabled
+        result(nil)
+      }
     }
   }
 }

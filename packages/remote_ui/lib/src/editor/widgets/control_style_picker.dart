@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_ui/src/widgets/sheets/show_app_sheet.dart';
 import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
@@ -64,11 +65,8 @@ class ControlStylePicker extends StatelessWidget {
     BuildContext context,
     List<RemoteItemDefinition<Object>> choices,
   ) async {
-    final id = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 600),
+    final id = await showAppModal<String>(
+      context,
       builder: (_) => StylePickerSheet(
         choices: choices,
         selectedId: definitionId,

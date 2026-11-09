@@ -21,7 +21,7 @@ void main() {
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
       expect(find.byType(LinearProgressIndicator), findsNothing);
-      await tester.tap(find.text('Find Nearby Devices'));
+      await tester.tap(find.byTooltip('Find Nearby Devices'));
       await tester.pump();
       await tester.pump();
       expect(find.text('Searching for nearby devices…'), findsOneWidget);
@@ -49,7 +49,7 @@ void main() {
       registry: ProviderRegistry()..register(provider),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.text('Find Nearby Devices'));
+    await tester.tap(find.byTooltip('Find Nearby Devices'));
     await tester.pump();
     await tester.pump();
     expect(find.byType(LinearProgressIndicator), findsOneWidget);

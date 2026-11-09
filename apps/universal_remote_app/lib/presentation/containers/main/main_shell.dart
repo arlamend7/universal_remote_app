@@ -21,10 +21,10 @@ class MainShell extends StatelessWidget {
     heightFactor: 1,
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 480),
-      child: _navigation(),
+      child: _destinations(),
     ),
   );
-  Widget _navigation() => NavigationBar(
+  Widget _destinations() => NavigationBar(
     selectedIndex: index,
     onDestinationSelected: onSelect,
     destinations: const [

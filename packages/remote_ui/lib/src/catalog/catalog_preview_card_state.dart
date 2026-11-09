@@ -37,9 +37,9 @@ class CatalogPreviewCardState extends State<CatalogPreviewCard> {
   Widget _content(BuildContext context) => Padding(
     padding: const EdgeInsets.all(10),
     child: Column(
+      spacing: 6,
       children: [
         Expanded(child: _preview()),
-        const SizedBox(height: 6),
         _name(Theme.of(context).colorScheme),
       ],
     ),

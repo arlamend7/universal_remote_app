@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
 
@@ -10,10 +11,26 @@ final class SettingsViewModel {
     dependencies.settings.accent,
     dependencies.settings.feedback,
     dependencies.settings.diagnostics,
+    dependencies.settings.screenAwake,
+    dependencies.settings.autoReconnect,
+    dependencies.connection.state,
+    dependencies.connection.selected,
   ]);
+  String? get connectedDevice =>
+      dependencies.connection.state.value == DeviceConnectionState.connected
+      ? dependencies.connection.selected.value?.name
+      : null;
   ThemeMode get theme => dependencies.settings.theme.value;
   int get accent => dependencies.settings.accent.value;
   bool get feedback => dependencies.settings.feedback.value;
+  bool get supportsScreenAwake =>
+      dependencies.settings.applyScreenAwake != null;
+  bool get screenAwake => dependencies.settings.screenAwake.value;
+  bool get autoReconnect => dependencies.settings.autoReconnect.value;
+  Future<void> setScreenAwake(BuildContext context, bool value) =>
+      _protect(context, () => dependencies.settings.setScreenAwake(value));
+  Future<void> setAutoReconnect(BuildContext context, bool value) =>
+      _protect(context, () => dependencies.settings.setAutoReconnect(value));
   bool get diagnostics => dependencies.settings.diagnostics.value;
   Future<void> setTheme(BuildContext context, ThemeMode? mode) async {
     if (mode == null) {

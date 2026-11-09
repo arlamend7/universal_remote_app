@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../widgets/sheets/app_sheet.dart';
+import '../../widgets/sheets/app_sheet_actions.dart';
 import 'text_entry_sheet.dart';
 
 class TextEntryState extends State<TextEntrySheet> {
@@ -17,9 +18,9 @@ class TextEntryState extends State<TextEntrySheet> {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 16,
       children: [
         const Text('Select a text field on the TV first. Text is not logged.'),
-        const SizedBox(height: 16),
         TextField(
           controller: text,
           maxLength: 2048,
@@ -27,15 +28,16 @@ class TextEntryState extends State<TextEntrySheet> {
           maxLines: 4,
           decoration: const InputDecoration(labelText: 'Text'),
         ),
-        FilledButton(
-          onPressed: () {
-            if (text.text.isNotEmpty) {
-              Navigator.pop(context, text.text);
-            }
-          },
-          child: const Text('Send'),
-        ),
       ],
     ),
+    footer: AppSheetActions(
+      primary: FilledButton(onPressed: _send, child: const Text('Send')),
+    ),
   );
+
+  void _send() {
+    if (text.text.isNotEmpty) {
+      Navigator.pop(context, text.text);
+    }
+  }
 }

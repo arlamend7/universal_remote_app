@@ -12,9 +12,8 @@ class DiscoveryDetails extends StatelessWidget {
   final DiscoveryViewModel model;
 
   @override
-  Widget build(BuildContext context) => ExpansionTile(
-    tilePadding: EdgeInsets.zero,
-    title: const Text('Search details'),
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
     children: [
       ...model.statuses.map(_provider),
       TextButton.icon(

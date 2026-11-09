@@ -14,17 +14,11 @@ class DeviceRenameState extends State<DeviceRenameSheet> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      AppSheet(title: 'Rename TV', child: _form());
-  Widget _form() => Form(
-    key: form,
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _field(),
-        const SizedBox(height: 16),
-        FilledButton(onPressed: _save, child: const Text('Save name')),
-      ],
+  Widget build(BuildContext context) => AppSheet(
+    title: 'Rename TV',
+    child: Form(key: form, child: _field()),
+    footer: AppSheetActions(
+      primary: FilledButton(onPressed: _save, child: const Text('Save name')),
     ),
   );
   Widget _field() => TextFormField(

@@ -49,9 +49,9 @@ class ChoiceItems extends StatelessWidget {
   );
   Widget _appLabel((String, String) choice) => Column(
     mainAxisAlignment: MainAxisAlignment.center,
+    spacing: 12,
     children: [
       TvAppIcon(appId: choice.$1, name: choice.$2, size: 36),
-      const SizedBox(height: 12),
       Text(
         choice.$2,
         maxLines: 2,

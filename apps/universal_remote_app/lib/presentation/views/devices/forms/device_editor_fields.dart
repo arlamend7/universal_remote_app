@@ -10,7 +10,10 @@ class DeviceEditorFields extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (!model.editing && model.setups.length > 1) _platform(),
+      if (!model.editing && model.setups.length > 1) ...[
+        _platform(),
+        const SizedBox(height: 16),
+      ],
       _name(),
       const SizedBox(height: 16),
       _address(),
@@ -30,6 +33,7 @@ class DeviceEditorFields extends StatelessWidget {
   );
   Widget _platform() => DropdownButtonFormField<String>(
     initialValue: model.provider.value,
+    isExpanded: true,
     decoration: const InputDecoration(labelText: 'TV platform'),
     items: [
       for (final entry in model.setups.entries)

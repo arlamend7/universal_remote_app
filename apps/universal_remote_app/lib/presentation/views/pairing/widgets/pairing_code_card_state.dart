@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:remote_ui/remote_ui.dart';
 
 import 'pairing_code_card.dart';
+import 'pairing_code_slots.dart';
 
 class PairingCodeCardState extends State<PairingCodeCard> {
   final _code = TextEditingController();
@@ -9,51 +11,83 @@ class PairingCodeCardState extends State<PairingCodeCard> {
   bool _submitting = false;
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    padding: EdgeInsets.fromLTRB(
-      24,
-      24,
-      24,
-      24 + MediaQuery.viewInsetsOf(context).bottom,
+  Widget build(BuildContext context) => AppSheet(
+    title: 'Pair TV',
+    subtitle: 'Enter the six characters shown on ${widget.deviceName}.',
+    onClose: widget.onCancel,
+    child: _codeEntry(),
+    footer: _actions(),
+  );
+
+  Widget _actions() => AppSheetActions(
+    secondary: OutlinedButton(
+      onPressed: widget.onCancel,
+      child: const Text('Cancel connection'),
     ),
+    primary: FilledButton(
+      onPressed: _submitting ? null : _submit,
+      child: const Text('Connect'),
+    ),
+  );
+
+  Widget _codeEntry() => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 20),
     child: Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'Enter the code on your TV',
-          style: Theme.of(context).textTheme.titleLarge,
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            ValueListenableBuilder(
+              valueListenable: _code,
+              builder: (_, value, _) => PairingCodeSlots(code: value.text),
+            ),
+            Positioned.fill(child: _field()),
+          ],
         ),
-        const SizedBox(height: 16),
-        _field(),
-        FilledButton(
-          onPressed: _submitting ? null : _submit,
-          child: const Text('Pair TV'),
-        ),
-        TextButton(
-          onPressed: widget.onCancel,
-          child: const Text('Cancel connection'),
-        ),
+        if (_error != null)
+          Text(
+            _error!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
       ],
     ),
   );
 
-  Widget _field() => TextField(
+  Widget _field() => Semantics(label: 'TV pairing code', child: _input());
+
+  Widget _input() => TextField(
     controller: _code,
     autofocus: true,
+    textAlign: TextAlign.center,
+    showCursor: false,
+    style: const TextStyle(
+      fontSize: 24,
+      color: Colors.transparent,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 8,
+    ),
     autocorrect: false,
     textCapitalization: TextCapitalization.characters,
     textInputAction: TextInputAction.done,
     inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9a-fA-F]'))],
     maxLength: 6,
-    decoration: InputDecoration(
-      labelText: 'TV pairing code',
-      errorText: _error,
+    decoration: const InputDecoration(
+      filled: false,
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      counterText: '',
     ),
     onSubmitted: (_) => _submit(),
   );
 
   Future<void> _submit() async {
     if (_submitting) {
+      return;
+    }
+    if (_code.text.length != 6) {
+      setState(() => _error = 'Enter all six characters.');
       return;
     }
     setState(() {

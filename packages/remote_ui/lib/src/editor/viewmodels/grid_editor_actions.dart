@@ -1,6 +1,7 @@
 import '../grid_editor_page.dart';
 
 import 'package:flutter/material.dart';
+import 'package:remote_ui/src/widgets/sheets/show_app_sheet.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
@@ -15,11 +16,8 @@ final class GridEditorActions {
   final GridItem? group;
   Future<void> edit(BuildContext context, GridItem item) async {
     model.select(item.id);
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 600),
+    await showAppModal<void>(
+      context,
       builder: (_) => WidgetSettingsSheet(
         item: item,
         model: model,
@@ -41,11 +39,8 @@ final class GridEditorActions {
         ),
       );
   Future<void> library(BuildContext context) async {
-    final definitionId = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 600),
+    final definitionId = await showAppModal<String>(
+      context,
       builder: (_) => WidgetLibrarySheet(
         model: model,
         dependencies: dependencies,

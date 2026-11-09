@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/sheets/show_app_sheet.dart';
+
 class UnavailableNotice extends StatelessWidget {
   const UnavailableNotice({
     super.key,
@@ -29,17 +31,6 @@ class UnavailableNotice extends StatelessWidget {
       ),
     ),
   );
-  Future<void> _explain(BuildContext context) => showDialog<void>(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: Text(title),
-      content: Text(reason),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
-        ),
-      ],
-    ),
-  );
+  Future<void> _explain(BuildContext context) =>
+      showAppSheet<void>(context, title: title, child: Text(reason));
 }

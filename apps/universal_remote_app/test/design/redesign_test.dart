@@ -88,7 +88,7 @@ void main() {
       await tester.tap(find.text('Settings'));
       await tester.pumpAndSettle();
       await captureDesign(tester, key, '06-preferences');
-      expect(find.text('Appearance'), findsOneWidget);
+      expect(find.text('APPEARANCE'), findsOneWidget);
       expect(find.byType(NavigationDestination), findsNWidgets(3));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));

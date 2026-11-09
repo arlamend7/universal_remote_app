@@ -38,13 +38,13 @@ void main() {
         ),
       );
       final rowPosition = tester.getTopLeft(find.text('Living room'));
-      await tester.tap(find.text('Find Nearby Devices'));
+      await tester.tap(find.byTooltip('Find Nearby Devices'));
       await tester.pump();
       await tester.pump();
       provider.response.complete([tv, tv]);
       await tester.pumpAndSettle();
       expect(find.byType(DeviceDiscoverySheet), findsOneWidget);
-      expect(find.text('Add'), findsNothing);
+      expect(find.text('Connect'), findsNothing);
       expect(find.text('Already added (1)'), findsOneWidget);
       await captureDesign(tester, capture, '20-discovery-modal');
       expect(tester.getTopLeft(find.text('Living room')), rowPosition);
@@ -67,13 +67,13 @@ void main() {
       releaseNetwork: () async {},
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.text('Find Nearby Devices'));
+    await tester.tap(find.byTooltip('Find Nearby Devices'));
     await tester.pump();
     provider.response.completeError(StateError('private TV data'));
     await tester.pumpAndSettle();
 
     final sheet = find.byType(DeviceDiscoverySheet);
-    expect(find.textContaining('No new devices found'), findsNothing);
+    expect(find.text('No Displays Found'), findsNothing);
     expect(find.textContaining('Network discovery failed'), findsOneWidget);
     expect(
       find.descendant(of: sheet, matching: find.text('Connect by IP')),
@@ -100,15 +100,15 @@ void main() {
       releaseNetwork: () async {},
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.text('Find Nearby Devices'));
+    await tester.tap(find.byTooltip('Find Nearby Devices'));
     await tester.pump();
     failing.response.completeError(StateError('Unavailable'));
     await tester.pumpAndSettle();
 
     expect(find.text(tv.name), findsOneWidget);
-    expect(find.text('Add'), findsOneWidget);
+    expect(find.text('Connect'), findsOneWidget);
     expect(find.textContaining('Network discovery failed'), findsNothing);
-    expect(find.textContaining('No new devices found'), findsNothing);
+    expect(find.text('No Displays Found'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
@@ -127,7 +127,7 @@ void main() {
       },
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.text('Find Nearby Devices'));
+    await tester.tap(find.byTooltip('Find Nearby Devices'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     expect(app.discovery.busy.value, isTrue);

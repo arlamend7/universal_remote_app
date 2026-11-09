@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_ui/remote_ui.dart';
 
 import 'pairing_code_card.dart';
 
@@ -21,41 +22,35 @@ class PairingProgressCard extends StatelessWidget {
       return PairingCodeCard(
         receiver: controller as PairingCodeReceiver,
         onCancel: model.disconnect,
+        deviceName: model.device?.name ?? 'your TV',
       );
     }
-    return SafeArea(child: _scroll(context));
+    return AppSheet(
+      title: _title,
+      onClose: model.disconnect,
+      child: _body(),
+      footer: AppSheetActions(
+        primary: OutlinedButton(
+          onPressed: model.disconnect,
+          child: const Text('Cancel connection'),
+        ),
+      ),
+    );
   }
 
-  Widget _scroll(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.all(28),
-    child: _body(context),
-  );
-  Widget _body(BuildContext context) => Column(
+  Widget _body() => Column(
     mainAxisSize: MainAxisSize.min,
+    spacing: 16,
     children: [
-      const Icon(Icons.tv_outlined, size: 40),
-      const SizedBox(height: 20),
       const SizedBox.square(
         dimension: 28,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      const SizedBox(height: 24),
-      Text(
-        _title,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
-      const SizedBox(height: 12),
       Text(
         model.state == DeviceConnectionState.reconnecting
             ? 'The remote will connect automatically when the TV is ready.'
             : 'Keep the TV on and accept its connection request.',
         textAlign: TextAlign.center,
-      ),
-      const SizedBox(height: 20),
-      TextButton(
-        onPressed: model.disconnect,
-        child: const Text('Cancel connection'),
       ),
     ],
   );

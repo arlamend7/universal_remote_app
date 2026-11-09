@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_palette.dart';
+import 'accent_slider_thumb.dart';
 
 /// Warm paper and forest-ink palette shared with the portfolio, tinted by an
 /// accent the user can change at any time.
@@ -19,6 +20,35 @@ abstract final class AppThemes {
     (name: 'Slate', value: 0xff475569),
   ];
 
+  static const quickAccents = [
+    (name: 'Turquoise', value: 0xff4bd2c0),
+    (name: 'Mint', value: 0xff70f4e3),
+    (name: 'Peach', value: 0xffffb299),
+    (name: 'Clay', value: 0xffd17a57),
+    (name: 'Coral', value: 0xffffad94),
+    (name: 'Ice', value: 0xff8cf6eb),
+  ];
+
+  static const hueSpectrum = [
+    Color(0xffff0000),
+    Color(0xffffff00),
+    Color(0xff00ff00),
+    Color(0xff00ffff),
+    Color(0xff0000ff),
+    Color(0xffff00ff),
+    Color(0xffff0000),
+  ];
+
+  static SliderThemeData spectrumSlider(ThemeData theme) =>
+      theme.sliderTheme.copyWith(
+        activeTrackColor: Colors.transparent,
+        inactiveTrackColor: Colors.transparent,
+        thumbShape: AccentSliderThumb(
+          fill: theme.colorScheme.surface,
+          outline: theme.colorScheme.onSurface,
+        ),
+      );
+
   static ThemeData get dark => build(Brightness.dark, defaultAccent);
   static ThemeData get light => build(Brightness.light, defaultAccent);
 
@@ -30,7 +60,7 @@ abstract final class AppThemes {
     final primary = dark
         ? (custom
               ? Color.lerp(accent, Colors.white, .4)!
-              : const Color(0xffbce4cd))
+              : const Color(0xff69d4c9))
         : accent;
     final scheme = ColorScheme(
       brightness: brightness,
@@ -59,7 +89,20 @@ abstract final class AppThemes {
   }
 
   static ThemeData _theme(ColorScheme scheme, AppPalette palette) {
-    const radius = 12.0;
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    );
+    final button = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 12),
+      ),
+      shape: WidgetStatePropertyAll(shape),
+    );
+    final fieldBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: scheme.outlineVariant),
+    );
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -76,23 +119,54 @@ abstract final class AppThemes {
           side: BorderSide(color: palette.border),
         ),
       ),
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(fontWeight: FontWeight.w600),
+      ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(radius)),
+        filled: true,
+        fillColor: scheme.surfaceContainerLow,
+        border: fieldBorder,
+        enabledBorder: fieldBorder,
+        focusedBorder: fieldBorder.copyWith(
+          borderSide: BorderSide(color: scheme.primary, width: 2),
+        ),
+        errorBorder: fieldBorder.copyWith(
+          borderSide: BorderSide(color: scheme.error),
+        ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 16,
+          vertical: 14,
         ),
       ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radius),
+      filledButtonTheme: FilledButtonThemeData(style: button),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: button.copyWith(
+          side: WidgetStateProperty.resolveWith(
+            (states) => BorderSide(
+              color: states.contains(WidgetState.disabled)
+                  ? scheme.outlineVariant.withValues(alpha: .4)
+                  : scheme.outlineVariant,
+            ),
           ),
         ),
       ),
+      textButtonTheme: TextButtonThemeData(style: button),
+      elevatedButtonTheme: ElevatedButtonThemeData(style: button),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+        style: IconButton.styleFrom(
+          minimumSize: const Size.square(44),
+          padding: EdgeInsets.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: SegmentedButton.styleFrom(
+          shape: shape,
+          side: BorderSide.none,
+          backgroundColor: scheme.surface,
+          selectedBackgroundColor: scheme.surfaceContainerHighest,
+          selectedForegroundColor: scheme.primary,
+        ),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
@@ -102,14 +176,28 @@ abstract final class AppThemes {
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: palette.card,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 72,
         elevation: 0,
         backgroundColor: scheme.surface,
-        indicatorColor: scheme.primary.withValues(alpha: .14),
+        indicatorColor: Colors.transparent,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
+          ),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
+          ),
+        ),
       ),
       sliderTheme: const SliderThemeData(
         trackHeight: 4,
@@ -131,13 +219,13 @@ abstract final class AppThemes {
   static AppPalette _dark(Color accent, bool custom) {
     if (!custom) {
       return const AppPalette(
-        surface: Color(0xff101c17),
-        low: Color(0xff17271e),
-        high: Color(0xff253b2e),
-        card: Color(0xff20342a),
-        text: Color(0xffe1ede5),
-        muted: Color(0xffb5c8bd),
-        border: Color(0xff4c6658),
+        surface: Color(0xff121416),
+        low: Color(0xff17191b),
+        high: Color(0xff292c2f),
+        card: Color(0xff1d1f21),
+        text: Color(0xffe1e3e5),
+        muted: Color(0xffb8c4c3),
+        border: Color(0xff394143),
       );
     }
     Color tint(double amount, int base) =>

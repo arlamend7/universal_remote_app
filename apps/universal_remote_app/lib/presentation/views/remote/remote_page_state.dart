@@ -3,6 +3,7 @@ import 'package:remote_core/remote_core.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:remote_ui/remote_ui.dart';
 
 import '../pairing/widgets/pairing_progress_card.dart';
 import 'remote_page.dart';
@@ -58,17 +59,18 @@ class RemotePageState extends State<RemotePage> {
   }
 
   Future<void> _showPairing() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
+    await showAppModal<void>(
+      context,
       isDismissible: false,
       enableDrag: false,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 480),
+      maxWidth: 480,
       builder: _pairing,
     );
     _pairingOpen = false;
     _pairingContext = null;
+    if (mounted && model.isPairing) {
+      await model.disconnect();
+    }
     _offerOffline();
   }
 

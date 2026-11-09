@@ -8,7 +8,7 @@ import io.flutter.plugin.common.MethodChannel
 class PreferencesChannel(context: Context, messenger: BinaryMessenger) {
     private val preferences = context.getSharedPreferences("universal_remote_preferences", Context.MODE_PRIVATE)
     private val channel = MethodChannel(messenger, "br.net.devcom.universal_remote/preferences")
-    private val allowedKeys = setOf("saved-devices.v1", "dashboards.v1", "settings.theme", "settings.diagnostics", "settings.accent", "settings.feedback")
+    private val allowedKeys = setOf("saved-devices.v1", "dashboards.v1", "settings.theme", "settings.diagnostics", "settings.accent", "settings.feedback", "settings.autoReconnect", "settings.screenAwake")
     init { channel.setMethodCallHandler(::handle) }
 
     private fun handle(call: MethodCall, result: MethodChannel.Result) {

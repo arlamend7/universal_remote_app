@@ -117,10 +117,10 @@ void main() {
         releaseNetwork: () async {},
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
-      await tester.tap(find.text('Find Nearby Devices'));
+      await tester.tap(find.byTooltip('Find Nearby Devices'));
       await tester.pumpAndSettle();
       expect(find.text('Living room'), findsOneWidget);
-      await tester.tap(find.text('Add'));
+      await tester.tap(find.text('Connect'));
       await tester.pumpAndSettle();
       expect(find.byTooltip('OK'), findsOneWidget);
       final ok = tester.widget<ActionButton>(
@@ -196,7 +196,7 @@ void main() {
       storage: MemoryStorage(),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
-    await tester.tap(find.text('Connect by IP'));
+    await tester.tap(find.byTooltip('Connect by IP'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Advanced settings'));
     await tester.pumpAndSettle();

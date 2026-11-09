@@ -8,13 +8,19 @@ import '../modals/show_device_details.dart';
 import 'device_details_viewmodel.dart';
 
 final class DevicesViewModel {
-  DevicesViewModel(this.dependencies, {required this.onConnect});
+  DevicesViewModel(
+    this.dependencies, {
+    required this.onConnect,
+    required this.onWake,
+  });
   final AppDependencies dependencies;
   final void Function(RemoteDevice) onConnect;
+  final void Function(RemoteDevice) onWake;
   Listenable get changes => Listenable.merge([
     dependencies.savedDevices.devices,
     dependencies.connection.state,
     dependencies.connection.selected,
+    dependencies.connection.commandBusy,
   ]);
   List<RemoteDevice> get saved => dependencies.savedDevices.devices.value;
   Future<void> menu(
@@ -42,9 +48,24 @@ final class DevicesViewModel {
     }
   }
 
+  int get connectedCount => saved.where(isConnected).length;
+
+  DeviceConnectionState stateOf(RemoteDevice device) =>
+      dependencies.connection.selected.value?.id == device.id
+      ? dependencies.connection.state.value
+      : DeviceConnectionState.disconnected;
+
   bool isConnected(RemoteDevice device) =>
-      dependencies.connection.selected.value?.id == device.id &&
-      dependencies.connection.state.value == DeviceConnectionState.connected;
+      stateOf(device) == DeviceConnectionState.connected;
+
+  bool canWake(RemoteDevice device) =>
+      stateOf(device) == DeviceConnectionState.disconnected &&
+      !dependencies.connection.commandBusy.value &&
+      dependencies.providers.canWake(device);
+
+  String? platformOf(RemoteDevice device) =>
+      dependencies.providers.manualSetups[device.providerId]?.label ??
+      device.manufacturer;
   Future<void> add(BuildContext context) async {
     final device = await editDevice(context, dependencies);
     if (device == null) {

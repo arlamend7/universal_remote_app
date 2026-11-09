@@ -44,9 +44,9 @@ class InfoDisplay extends StatelessWidget {
         ? text
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 6,
             children: [
               leading,
-              const SizedBox(width: 6),
               Flexible(child: text),
             ],
           );

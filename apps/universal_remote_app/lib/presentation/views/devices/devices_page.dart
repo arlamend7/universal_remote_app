@@ -10,7 +10,12 @@ class DevicesPage extends StatelessWidget {
     super.key,
     required AppDependencies dependencies,
     required void Function(RemoteDevice) onConnect,
-  }) : model = DevicesViewModel(dependencies, onConnect: onConnect);
+    required void Function(RemoteDevice) onWake,
+  }) : model = DevicesViewModel(
+         dependencies,
+         onConnect: onConnect,
+         onWake: onWake,
+       );
   final DevicesViewModel model;
   @override
   Widget build(BuildContext context) =>

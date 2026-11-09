@@ -18,19 +18,14 @@ class DeviceEditorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppSheet(
     title: model.editing ? 'Connection settings' : 'Connect by IP',
-    child: _content(),
+    child: DeviceEditorFields(model: model),
+    footer: _actions(),
   );
-  Widget _content() => Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      DeviceEditorFields(model: model),
-      const SizedBox(height: 20),
-      FilledButton(
-        onPressed: onSubmit,
-        child: Text(model.editing ? 'Save details' : 'Connect'),
-      ),
-      TextButton(onPressed: onCancel, child: const Text('Cancel')),
-    ],
+  Widget _actions() => AppSheetActions(
+    secondary: OutlinedButton(onPressed: onCancel, child: const Text('Cancel')),
+    primary: FilledButton(
+      onPressed: onSubmit,
+      child: Text(model.editing ? 'Save details' : 'Connect'),
+    ),
   );
 }

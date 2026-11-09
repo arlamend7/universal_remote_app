@@ -5,6 +5,7 @@ import 'package:remote_ui/src/ui_model.dart';
 
 import '../widgets/item_appearance_editor.dart';
 import '../../widgets/sheets/app_sheet.dart';
+import '../../widgets/sheets/app_sheet_actions.dart';
 import '../../widgets/dialogs/device_choice_sheet.dart';
 import '../widgets/control_preview_card.dart';
 import '../widgets/control_size_picker.dart';
@@ -57,8 +58,16 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      AppSheet(title: 'Edit control', child: _form());
+  Widget build(BuildContext context) => AppSheet(
+    title: 'Edit control',
+    child: _form(),
+    footer: AppSheetActions(
+      primary: FilledButton(
+        onPressed: loading ? null : () => _apply(),
+        child: const Text('Done'),
+      ),
+    ),
+  );
 
   GridItem get draft => widget.item.copy(
     definitionId: definitionId,
@@ -139,12 +148,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
       const SizedBox(height: 16),
-      FilledButton(
-        onPressed: loading ? null : () => _apply(),
-        child: const Text('Done'),
-      ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      Wrap(
+        alignment: WrapAlignment.center,
         children: [
           TextButton.icon(
             onPressed: loading ? null : _duplicate,

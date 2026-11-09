@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
+import '../widgets/sheets/app_sheet.dart';
 import 'catalog_preview_card.dart';
 import 'widget_library_sheet.dart';
 
@@ -13,29 +14,25 @@ class WidgetLibraryState extends State<WidgetLibrarySheet> {
   ]);
   String query = '';
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: SizedBox(
-      height: MediaQuery.sizeOf(context).height * .88,
-      child: Column(
-        children: [
-          _header(),
-          _search(),
-          Expanded(child: _catalog()),
-        ],
-      ),
-    ),
+  Widget build(BuildContext context) => AppSheet(
+    title: 'Add a control',
+    subtitle: 'Choose a compatible control for this device.',
+    closeLabel: 'Close library',
+    scrollable: false,
+    child: _body(context),
   );
-  Widget _header() => ListTile(
-    title: const Text('Add a control'),
-    subtitle: const Text('Choose a compatible control for this device.'),
-    trailing: IconButton(
-      tooltip: 'Close library',
-      onPressed: () => Navigator.pop(context),
-      icon: const Icon(Icons.close),
+
+  Widget _body(BuildContext context) => SizedBox(
+    height: MediaQuery.sizeOf(context).height * .80,
+    child: Column(
+      children: [
+        _search(),
+        Expanded(child: _catalog()),
+      ],
     ),
   );
   Widget _search() => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+    padding: const EdgeInsets.only(bottom: 12),
     child: TextField(
       decoration: const InputDecoration(
         prefixIcon: Icon(Icons.search),
@@ -64,7 +61,7 @@ class WidgetLibraryState extends State<WidgetLibrarySheet> {
       );
     }
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisExtent: 156,

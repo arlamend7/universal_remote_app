@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
+import 'package:remote_ui/remote_ui.dart';
 
 import 'certificate_review_dialog.dart';
 
@@ -10,8 +11,8 @@ Future<bool> confirmTvCertificate(
   PeerCertificate certificate, {
   required bool replacing,
 }) async =>
-    await showDialog<bool>(
-      context: context,
+    await showAppModal<bool>(
+      context,
       builder: (_) => CertificateReviewDialog(
         device: device,
         certificate: certificate,

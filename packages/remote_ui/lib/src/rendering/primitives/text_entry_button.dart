@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_ui/src/widgets/sheets/show_app_sheet.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
@@ -37,11 +38,8 @@ class TextEntryButton extends StatelessWidget {
 
   Future<void> _enter(BuildContext context) async {
     final owner = model.remote.connection.controller;
-    final text = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 600),
+    final text = await showAppModal<String>(
+      context,
       builder: (_) => const TextEntrySheet(),
     );
     if (text == null || !identical(model.remote.connection.controller, owner)) {

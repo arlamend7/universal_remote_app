@@ -3,6 +3,7 @@ import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
+import '../widgets/sheets/app_sheet.dart';
 import 'catalog_preview_card.dart';
 
 /// The alternative looks of one control, each drawn with the same sample
@@ -21,27 +22,18 @@ class StylePickerSheet extends StatelessWidget {
   final RemoteDevice device;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
+  Widget build(BuildContext context) => AppSheet(
+    title: 'Choose a style',
+    closeLabel: 'Close styles',
+    scrollable: false,
     child: SizedBox(
-      height: MediaQuery.sizeOf(context).height * .75,
-      child: Column(
-        children: [
-          ListTile(
-            title: const Text('Choose a style'),
-            trailing: IconButton(
-              tooltip: 'Close styles',
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close),
-            ),
-          ),
-          Expanded(child: _grid(context)),
-        ],
-      ),
+      height: MediaQuery.sizeOf(context).height * .68,
+      child: _grid(context),
     ),
   );
 
   Widget _grid(BuildContext context) => GridView.builder(
-    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    padding: EdgeInsets.zero,
     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
       crossAxisCount: 2,
       mainAxisExtent: 156,

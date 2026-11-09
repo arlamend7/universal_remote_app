@@ -7,10 +7,12 @@ class PairingCodeCard extends StatefulWidget {
   const PairingCodeCard({
     super.key,
     required this.receiver,
+    required this.deviceName,
     required this.onCancel,
   });
 
   final PairingCodeReceiver receiver;
+  final String deviceName;
   final VoidCallback onCancel;
 
   @override

@@ -42,6 +42,7 @@ final class AppRoutes {
   late final _devices = DevicesPage(
     dependencies: dependencies,
     onConnect: connect,
+    onWake: wake,
   );
 
   void select(int destination) => _selectedPage.value = destination;
@@ -49,6 +50,11 @@ final class AppRoutes {
   void connect(RemoteDevice device) {
     select(_remoteIndex);
     unawaited(dependencies.connection.connect(_savedConfiguration(device)));
+  }
+
+  void wake(RemoteDevice device) {
+    select(_remoteIndex);
+    unawaited(dependencies.connection.turnOn(_savedConfiguration(device)));
   }
 
   RemoteDevice _savedConfiguration(RemoteDevice device) {

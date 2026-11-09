@@ -8,15 +8,31 @@ Future<T?> showAppSheet<T>(
   String? subtitle,
   required Widget child,
   bool scrollable = true,
-}) => showModalBottomSheet<T>(
-  context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
-  constraints: const BoxConstraints(maxWidth: 600),
+  Widget? footer,
+}) => showAppModal<T>(
+  context,
   builder: (_) => AppSheet(
     title: title,
     subtitle: subtitle,
     scrollable: scrollable,
+    footer: footer,
     child: child,
   ),
+);
+
+/// Presents stateful sheet content with the standard app modal route.
+Future<T?> showAppModal<T>(
+  BuildContext context, {
+  required WidgetBuilder builder,
+  double maxWidth = 600,
+  bool isDismissible = true,
+  bool enableDrag = true,
+}) => showModalBottomSheet<T>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  constraints: BoxConstraints(maxWidth: maxWidth),
+  isDismissible: isDismissible,
+  enableDrag: enableDrag,
+  builder: builder,
 );

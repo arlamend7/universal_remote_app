@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
+import 'package:remote_ui/remote_ui.dart';
 
 class CertificateReviewDialog extends StatelessWidget {
   const CertificateReviewDialog({
@@ -13,15 +14,12 @@ class CertificateReviewDialog extends StatelessWidget {
   final PeerCertificate certificate;
   final bool replacing;
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(
-      replacing ? 'The TV certificate has changed' : 'Trust this TV?',
-    ),
-    content: _content(),
-    actions: _actions(context),
+  Widget build(BuildContext context) => AppSheet(
+    title: replacing ? 'The TV certificate has changed' : 'Trust this TV?',
+    child: _details(),
+    footer: _actions(context),
   );
-  Widget _content() =>
-      SizedBox(width: 400, child: SingleChildScrollView(child: _details()));
+
   Widget _details() => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,16 +47,16 @@ class CertificateReviewDialog extends StatelessWidget {
       ),
     ],
   );
-  List<Widget> _actions(BuildContext context) => [
-    TextButton(
+  Widget _actions(BuildContext context) => AppSheetActions(
+    secondary: OutlinedButton(
       onPressed: () => Navigator.pop(context, false),
       child: const Text('Cancel'),
     ),
-    FilledButton(
+    primary: FilledButton(
       onPressed: () => Navigator.pop(context, true),
       child: Text(
         replacing ? 'Replace certificate and pair' : 'Trust and pair',
       ),
     ),
-  ];
+  );
 }

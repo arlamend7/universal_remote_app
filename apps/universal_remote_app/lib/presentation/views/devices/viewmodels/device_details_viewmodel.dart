@@ -55,10 +55,8 @@ final class DeviceDetailsViewModel {
   }
 
   Future<void> rename(BuildContext context) async {
-    final name = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      constraints: const BoxConstraints(maxWidth: 600),
+    final name = await showAppModal<String>(
+      context,
       builder: (_) => DeviceRenameSheet(name: device.name),
     );
     if (name == null || !context.mounted) {

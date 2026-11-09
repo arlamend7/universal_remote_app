@@ -2,6 +2,7 @@ package br.net.devcom.universal_remote_app
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -11,7 +12,19 @@ class MainActivity : FlutterActivity() {
     private var multicastLock: WifiManager.MulticastLock? = null
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        preferencesChannel = PreferencesChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        val messenger = flutterEngine.dartExecutor.binaryMessenger
+        preferencesChannel = PreferencesChannel(applicationContext, messenger)
+        MethodChannel(messenger, "br.net.devcom.universal_remote/display")
+            .setMethodCallHandler { call, result ->
+                val enabled = call.arguments as? Boolean
+                if (call.method != "setScreenAwake" || enabled == null) {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                val flag = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                if (enabled) window.addFlags(flag) else window.clearFlags(flag)
+                result.success(null)
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger,
             "br.net.devcom.universal_remote/network").setMethodCallHandler { call, result ->
             try {
