@@ -136,7 +136,7 @@ class AppSheet extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [const Divider(height: 16), footer!],
+      children: [footer!],
     ),
   );
 }
