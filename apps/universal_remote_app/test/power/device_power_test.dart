@@ -19,7 +19,7 @@ void main() {
       final provider = FakeWakeProvider(startupFailures: 1);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.savedDevices.save(tv);
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
@@ -100,7 +100,7 @@ void main() {
       final provider = FakeProvider(fail: true);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.savedDevices.save(tv);
       final capture = GlobalKey();
@@ -132,7 +132,7 @@ void main() {
     final provider = FakeWakeProvider();
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
     );
     await app.savedDevices.save(tv);
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
@@ -165,7 +165,7 @@ void main() {
       final provider = FakeProvider(enabledControls: true);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.savedDevices.save(tv);
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));

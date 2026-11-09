@@ -7,9 +7,13 @@ provisioning, verify native credential persistence and invalidation, test TLS pi
 and modern/legacy firmware, and run the configured CI on an actual repository.
 Expand tests for sustained network transitions and concurrent lifecycle operations.
 Improve interface selection for SSDP and optional bounded UPnP metadata retrieval
-through the DEVCOM HTTP factory. Current discovery preserves advertised headers
+through the DEVCOM HTTP factory. Current discovery preserves bounded advertisement fields
 and does not fetch descriptions. Add accessibility/device-size coverage and an
 independent current-input adapter only after verifying an operation for it.
+
+V2 protocol-first discovery, provider definitions and versioned profiles are
+implemented. See [V2 validation](architecture-v2-validation.md) for the baseline,
+automated checks and hardware status.
 
 ## Later integrations
 

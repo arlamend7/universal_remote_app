@@ -3,22 +3,8 @@ import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/data/devices/mappers/saved_device_mapper.dart';
 
 void main() {
-  test('legacy LG profiles retain layout data and new profiles round-trip category and capabilities', () {
-    final mapper = SavedDeviceMapper(
-      categoryForProvider: (_) => DeviceCategory.television,
-    );
-    final legacy = mapper.fromJson({
-      'id': 'tv',
-      'name': 'TV',
-      'providerId': 'lg.webos',
-      'stableIdentity': true,
-      'endpoints': ['wss://192.168.1.20:3001'],
-      'metadata': {'remoteGrid.v2': 'existing layout'},
-    });
-    expect(legacy.category, DeviceCategory.television);
-    expect(legacy.capabilities, isEmpty);
-    expect(legacy.metadata['remoteGrid.v2'], 'existing layout');
-
+  test('V2 profiles round-trip category and known capabilities', () {
+    const mapper = SavedDeviceMapper();
     final ac = RemoteDevice(
       id: 'ac',
       name: 'AC',

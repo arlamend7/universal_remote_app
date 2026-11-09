@@ -4,12 +4,14 @@ import 'dart:io';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-Map<String, Object> discoveryDiagnosticFields(ProviderDiscoveryStatus report) {
+Map<String, Object> discoveryDiagnosticFields(ProtocolDiscoveryStatus report) {
   final error = report.failure?.error;
   final osCode = discoveryOsCode(error);
   final operation = error is DiscoveryOperationFailure ? error : null;
   return {
-    'providerId': report.providerId,
+    if (report.providerId case final id?) 'providerId': id,
+    'protocolId': report.protocolId.name,
+    if (report.serviceType case final service?) 'serviceType': service,
     'status': report.status.name,
     'durationMs': report.duration.inMilliseconds,
     'deviceCount': report.deviceCount,

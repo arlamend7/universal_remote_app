@@ -59,6 +59,24 @@ class DeviceDetailsContent extends StatelessWidget {
     tilePadding: EdgeInsets.zero,
     title: const Text('Advanced'),
     children: [
+      if (model.canChooseProvider)
+        _action(
+          'Preferred integration',
+          Icons.tune,
+          () => model.chooseProvider(context),
+        ),
+      if (model.canLink)
+        _action(
+          'Link saved integration',
+          Icons.add_link,
+          () => model.linkProfile(context),
+        ),
+      if (model.canUnlink)
+        _action(
+          'Unlink integration',
+          Icons.link_off,
+          () => model.unlinkProfile(context),
+        ),
       _action('Re-pair', Icons.refresh, () => model.rePair(context)),
       if (model.selected)
         _action('Disconnect', Icons.link_off, () => model.disconnect(context)),

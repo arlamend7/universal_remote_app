@@ -3,12 +3,9 @@ import Flutter
 import Network
 import UIKit
 
-/// Browses the declared Android TV service and resolves its numeric IPv4 endpoint.
-final class AndroidTVBonjourSearch: NSObject, NetServiceDelegate {
-  private let browser = NWBrowser(
-    for: .bonjour(type: "_androidtvremote2._tcp", domain: "local."),
-    using: .tcp
-  )
+/// Browses a declared Bonjour service and resolves its numeric IPv4 endpoint.
+final class BonjourSearch: NSObject, NetServiceDelegate {
+  private let browser: NWBrowser
   private let finish: FlutterResult
   private var services: [NWEndpoint: NetService] = [:]
   private var rows: [[String: Any]] = []
@@ -19,7 +16,8 @@ final class AndroidTVBonjourSearch: NSObject, NetServiceDelegate {
   private var ended = false
   private var ready = false
 
-  init(finish: @escaping FlutterResult) {
+  init(service: String, finish: @escaping FlutterResult) {
+    self.browser = NWBrowser(for: .bonjour(type: service, domain: "local."), using: .tcp)
     self.finish = finish
   }
 
@@ -99,7 +97,7 @@ final class AndroidTVBonjourSearch: NSObject, NetServiceDelegate {
   func netServiceDidResolveAddress(_ sender: NetService) {
     guard !ended else { return }
     pendingResolutions.remove(ObjectIdentifier(sender))
-    guard sender.port == 6466 else { return }
+    guard sender.port > 0 else { return }
     guard let address = sender.addresses?.compactMap(ipv4Address).first else {
       lastResolutionError = 0
       return

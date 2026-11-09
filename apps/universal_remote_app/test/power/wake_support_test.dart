@@ -10,7 +10,8 @@ void main() {
   test('wake needs integration support and a valid configured MAC, not metadata alone', () async {
     final fake = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(FakeProvider()),
+      registry: ProviderRegistry()
+        ..registerDefinition(FakeProvider().definition),
     );
     expect(
       fake.providers.canWake(

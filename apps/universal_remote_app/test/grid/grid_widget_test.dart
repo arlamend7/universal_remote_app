@@ -56,7 +56,7 @@ void main() {
       final provider = FakeProvider(enabledControls: true);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.savedDevices.save(tv);
       await app.grids.save(

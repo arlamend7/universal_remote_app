@@ -10,3 +10,4 @@ export 'src/pointer/functions/encode_lg_navigation.dart';
 export 'src/protocol/models/ssap_request.dart';
 export 'src/protocol/services/ssap_client.dart';
 export 'src/providers/lg_web_os_provider.dart';
+export 'src/discovery/lg_identifier.dart';

@@ -15,7 +15,7 @@ class DiscoveryDetails extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      ...model.statuses.map(_provider),
+      ...model.statuses.map(_protocol),
       TextButton.icon(
         onPressed: () =>
             Clipboard.setData(ClipboardData(text: model.diagnosticReport)),
@@ -25,7 +25,7 @@ class DiscoveryDetails extends StatelessWidget {
     ],
   );
 
-  Widget _provider(ProviderDiscoveryStatus report) {
+  Widget _protocol(ProtocolDiscoveryStatus report) {
     final fields = discoveryDiagnosticFields(report);
     final code = fields['code'];
     final stage = fields['stage'];
@@ -42,7 +42,7 @@ class DiscoveryDetails extends StatelessWidget {
       DiscoveryStatus.cancelled => 'Cancelled',
     };
     return ListTile(
-      title: Text(model.providerLabel(report.providerId)),
+      title: Text(model.searchLabel(report)),
       subtitle: Text(
         failure == null
             ? status

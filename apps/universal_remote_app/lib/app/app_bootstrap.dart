@@ -17,10 +17,9 @@ import '../data/pairing/repositories/secure_credential_store.dart';
 import '../data/pairing/repositories/session_credential_store.dart';
 import '../data/network/services/platform_hardware_address_resolver.dart';
 import '../data/devices/repositories/saved_device_repository.dart';
-import '../data/devices/mappers/saved_device_mapper.dart';
 import '../data/dashboards/repositories/local_dashboard_repository.dart';
 import '../data/network/services/multicast_network_access.dart';
-import '../data/network/services/ios_android_tv_bonjour.dart';
+import '../data/network/services/ios_bonjour.dart';
 import '../data/network/functions/inspect_tv_certificate.dart';
 import '../domains/storage/contracts/application_storage.dart';
 import '../domains/diagnostics/services/diagnostic_logger.dart';
@@ -37,6 +36,7 @@ abstract final class AppBootstrap {
     ApplicationStorage? credentialStorage,
     Future<PeerCertificate> Function(Uri)? inspectCertificate,
     ProviderRegistry? registry,
+    DiscoveryRegistry? discoveryProtocols,
     HardwareAddressResolver? hardwareAddressResolver,
     Future<void> Function()? acquireNetwork,
     Future<void> Function()? releaseNetwork,
@@ -51,30 +51,15 @@ abstract final class AppBootstrap {
         : null;
     final CredentialStore credentials =
         sessionCredentials ?? protectedCredentials;
-    final provider = LgWebOsProvider(credentials: credentials);
-    final providers =
-        registry ??
-        (ProviderRegistry()
-          ..register(provider)
-          ..register(
-            AndroidTvProvider(
-              credentials: credentials,
-              browseBonjour: Platform.isIOS
-                  ? IosAndroidTvBonjour().browse
-                  : null,
-            ),
-          ));
-    if (registry == null &&
-        !kReleaseMode &&
-        const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
-      providers.register(const RokuProvider());
-    }
+    final providers = registry ?? _providers(credentials);
+    final protocols = discoveryProtocols ?? _protocols();
+    final discoveryManager = DiscoveryManager(
+      protocols,
+      providers.definitions.map((definition) => definition.identifier),
+    );
     final logger = DiagnosticLogger();
     final saved = SavedDevicesController(
-      SavedDeviceRepository(
-        preferences,
-        mapper: SavedDeviceMapper(categoryForProvider: providers.categoryFor),
-      ),
+      SavedDeviceRepository(preferences),
       credentials,
     );
     final settings = SettingsController(
@@ -87,7 +72,10 @@ abstract final class AppBootstrap {
     final network = MulticastNetworkAccess();
     await saved.initialize();
     await settings.initialize();
-    final grids = DeviceGridsController(LocalDashboardRepository(preferences));
+    final grids = DeviceGridsController(
+      LocalDashboardRepository(preferences),
+      deviceKey: (device) => saved.logicalDevice(device.id)?.id ?? device.id,
+    );
     await grids.initialize();
     final connection = ConnectionController(
       providers,
@@ -104,7 +92,7 @@ abstract final class AppBootstrap {
     );
     return AppDependencies(
       discovery: DiscoveryController(
-        providers,
+        discoveryManager,
         acquireNetwork: acquireNetwork ?? network.acquire,
         releaseNetwork: releaseNetwork ?? network.release,
         logger: logger,
@@ -118,5 +106,24 @@ abstract final class AppBootstrap {
       providers: providers,
       inspectCertificate: inspectCertificate ?? inspectTvCertificate,
     );
+  }
+
+  static DiscoveryRegistry _protocols() => DiscoveryRegistry()
+    ..register(DiscoveryProtocol.ssdp, const SsdpProtocol().search)
+    ..register(
+      DiscoveryProtocol.bonjour,
+      Platform.isIOS ? IosBonjour().search : const MdnsDiscovery().search,
+    );
+
+  static ProviderRegistry _providers(CredentialStore credentials) {
+    final providers = ProviderRegistry()
+      ..registerDefinition(LgWebOsProvider(credentials: credentials).definition)
+      ..registerDefinition(
+        AndroidTvProvider(credentials: credentials).definition,
+      );
+    if (!kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
+      providers.registerDefinition(const RokuProvider().definition);
+    }
+    return providers;
   }
 }

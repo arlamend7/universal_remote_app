@@ -26,20 +26,13 @@ Add saves the device, closes the modal and opens its remote. Dismissal cancels t
 search; late results are ignored and network resources are released. Reopening
 waits for the previous cleanup.
 
-`DeviceIdentity` compares permanent provider IDs, normalized UUID/USN/UDN aliases
-and configured MACs. Endpoint fallback is limited to compatible manual profiles
-without conflicting permanent identities. Names are never identity. Matching
-permanent identities consolidate multiple interfaces/discovery mechanisms.
+The V2 `DeviceIdentifierResolver` uses namespaced provider identities and matching
+certificate evidence. Shared names, addresses and unverified MACs cannot establish
+identity. Cross-provider links require explicit user confirmation.
 
-`DiscoveryProfiles` learns the stable identity of a matched manual profile so
-later address changes do not create a new device. It retains the saved profile ID,
-credentials, trust, name and layout. **Update address** explicitly changes hosts
-while preserving scheme/port and certificate. Updating metadata replaces a saved
-row in place rather than moving it to the bottom.
-
-An old manual profile with no previously learned identifier cannot be reliably
-matched after its address changes. The implementation does not guess from a name
-or model, or merge conflicting UUIDs sharing a reused address.
+**Update address** applies a verified rediscovery while retaining the saved profile
+ID, name, credentials, certificate, transport and dashboard. When discovery lacks
+sufficient evidence, the user can update the address in Connection settings.
 
 ## Power and connection feedback
 

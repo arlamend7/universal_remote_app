@@ -1,8 +1,4 @@
-import 'dart:async';
-
 import 'package:remote_core/src/device.dart';
-import 'package:remote_core/src/discovery.dart';
-import 'package:remote_core/src/remote_base.dart';
 
 /// A provider owns the meaning of its connection configuration and failures.
 abstract interface class DeviceConnectionPolicy {
@@ -14,24 +10,10 @@ abstract interface class DeviceConnectionPolicy {
   RemoteDevice mergeDiscovered(RemoteDevice saved, RemoteDevice discovered);
 }
 
-abstract interface class DeviceProvider {
-  String get id;
-  bool supports(RemoteDevice device);
-  Future<List<RemoteDevice>> discover(DiscoveryCancellation cancellation);
-  RemoteBase createController(RemoteDevice device);
-}
-
 /// An integration that can wake a configured device without an active session.
 abstract interface class DeviceWakeProvider {
   bool canWakeDevice(RemoteDevice device);
   Future<void> wakeDevice(RemoteDevice device);
-}
-
-abstract interface class IncrementalDiscoveryProvider {
-  Future<List<RemoteDevice>> discoverIncrementally(
-    DiscoveryCancellation cancellation,
-    void Function(RemoteDevice) onDevice,
-  );
 }
 
 abstract interface class ManualDeviceProvider {

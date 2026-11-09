@@ -69,7 +69,8 @@ void main() {
   test('successful pairing learns and persists the MAC, and wake uses it before reconnecting', () async {
     final provider = FakeWakeProvider(requiresMac: true);
     final storage = MemoryStorage();
-    final registry = ProviderRegistry()..register(provider);
+    final registry = ProviderRegistry()
+      ..registerDefinition(provider.definition);
     final resolver = PlatformHardwareAddressResolver(
       supported: true,
       lookup: (host) async => _neighbor(host),
@@ -117,7 +118,7 @@ void main() {
       final response = Completer<String>();
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
         hardwareAddressResolver: PlatformHardwareAddressResolver(
           supported: true,
           lookup: (_) {
@@ -156,7 +157,7 @@ void main() {
       final response = Completer<String>();
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
         hardwareAddressResolver: PlatformHardwareAddressResolver(
           supported: true,
           lookup: (_) {
@@ -179,7 +180,7 @@ void main() {
     var lookups = 0;
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
       hardwareAddressResolver: PlatformHardwareAddressResolver(
         supported: true,
         lookup: (host) async {

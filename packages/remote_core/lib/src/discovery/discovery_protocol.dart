@@ -1,0 +1,4 @@
+enum DiscoveryProtocol {
+  ssdp,
+  bonjour,
+}

@@ -10,8 +10,8 @@ final class NativePreferencesStorage implements ApplicationStorage {
           const MethodChannel('br.net.devcom.universal_remote/preferences');
   final MethodChannel _channel;
   static const keys = {
-    'saved-devices.v1',
-    'dashboards.v1',
+    'saved-devices.v2',
+    'dashboards.v2',
     'settings.theme',
     'settings.diagnostics',
     'settings.accent',

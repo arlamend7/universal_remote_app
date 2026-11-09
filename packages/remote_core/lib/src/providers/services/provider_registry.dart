@@ -1,38 +1,38 @@
-import 'dart:async';
-
 import 'package:remote_core/src/remote_base.dart';
 import 'package:remote_core/src/device.dart';
-import 'package:remote_core/src/discovery.dart';
 import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/provider.dart';
 
-import '../models/discovery_status.dart';
-import '../models/provider_discovery_status.dart';
+import '../models/provider_definition.dart';
 
 final class ProviderRegistry {
-  final Map<String, DeviceProvider> _providers = {};
-  void register(DeviceProvider provider) {
-    if (provider.id.isEmpty || _providers.containsKey(provider.id)) {
-      throw ArgumentError('Provider ID must be unique and nonempty.');
-    }
-    _providers[provider.id] = provider;
+  final _definitions = <String, ProviderDefinition<RemoteBase>>{};
+
+  Iterable<ProviderDefinition<RemoteBase>> get definitions =>
+      _definitions.values;
+
+  bool isRegistered(String id) => _definitions.containsKey(id);
+
+  void registerDefinition(ProviderDefinition<RemoteBase> definition) {
+    _validateId(definition.id);
+    _definitions[definition.id] = definition;
   }
 
-  DeviceProvider providerFor(RemoteDevice device) {
-    final explicit = _providers[device.providerId];
-    if (explicit != null && explicit.supports(device)) {
-      return explicit;
+  void _validateId(String id) {
+    if (id.trim().isEmpty || _definitions.containsKey(id)) {
+      throw ArgumentError('Provider ID must be unique and nonempty.');
     }
-    final candidates = _providers.values
-        .where((p) => p.supports(device))
-        .toList();
-    if (candidates.length != 1) {
+  }
+
+  ProviderDefinition<RemoteBase> providerFor(RemoteDevice device) {
+    final definition = _definitions[device.providerId];
+    if (definition == null) {
       throw const RemoteException(
         'provider',
-        'No unique compatible provider was found.',
+        'The device integration is unavailable.',
       );
     }
-    return candidates.single;
+    return definition;
   }
 
   DeviceNetworkConfiguration networkConfiguration(RemoteDevice device) =>
@@ -40,9 +40,9 @@ final class ProviderRegistry {
       const DeviceNetworkConfiguration();
 
   Map<String, ManualDeviceSetup> get manualSetups => {
-    for (final provider in _providers.values)
-      if (provider is ManualDeviceProvider)
-        provider.id: _manualSetup(provider as ManualDeviceProvider),
+    for (final definition in _definitions.values)
+      if (definition.manualSetup case final setup?)
+        definition.id: _manualSetup(setup),
   };
 
   ManualDeviceSetup _manualSetup(ManualDeviceProvider provider) => (
@@ -83,9 +83,11 @@ final class ProviderRegistry {
   }
 
   ManualDeviceProvider? _onlyManualProvider() {
-    final candidates = _providers.values
-        .whereType<ManualDeviceProvider>()
-        .toList();
+    final candidates = [
+      ..._definitions.values
+          .map((definition) => definition.manualSetup)
+          .whereType<ManualDeviceProvider>(),
+    ];
     return candidates.length == 1 ? candidates.single : null;
   }
 
@@ -126,13 +128,6 @@ final class ProviderRegistry {
       _extension<DeviceConnectionPolicy>(device)?.canRetryAfterWake(error) ??
       false;
 
-  DeviceCategory categoryFor(String providerId) {
-    final provider = _providers[providerId];
-    return provider is DeviceConnectionPolicy
-        ? (provider as DeviceConnectionPolicy).category
-        : DeviceCategory.unknown;
-  }
-
   bool canReviewCertificate(RemoteDevice device, String? errorCode) =>
       _extension<DeviceConnectionPolicy>(device)
           ?.canReviewCertificate(device, errorCode) ??
@@ -159,141 +154,16 @@ final class ProviderRegistry {
       );
 
   T? _extension<T>(RemoteDevice device) {
-    try {
-      final provider = providerFor(device);
-      return provider is T ? provider as T : null;
-    } on RemoteException {
-      return null;
+    if (_definitions[device.providerId] case final definition?) {
+      return [
+        definition.manualSetup,
+        definition.wake,
+        definition.connection,
+      ].whereType<T>().firstOrNull;
     }
+    return null;
   }
 
   RemoteBase createController(RemoteDevice device) =>
       providerFor(device).createController(device);
-
-  Future<DiscoveryResult> discover({
-    Duration timeout = const Duration(seconds: 6),
-    DiscoveryCancellation? cancellation,
-    void Function(List<RemoteDevice>)? onDevices,
-    void Function(ProviderDiscoveryStatus)? onStatus,
-  }) async {
-    if (timeout <= Duration.zero) {
-      throw ArgumentError('Discovery timeout must be positive.');
-    }
-    if (cancellation?.isCancelled ?? false) {
-      return DiscoveryResult([], []);
-    }
-    final devices = <RemoteDevice>[];
-    final outcomes = await Future.wait(
-      _providers.values.map(
-        (provider) => _discoverProvider(
-          provider,
-          timeout,
-          cancellation,
-          (device) => _publishDevice(device, devices, onDevices),
-          onStatus,
-        ),
-      ),
-    );
-    return DiscoveryResult(
-      devices,
-      outcomes.map((outcome) => outcome.failure).whereType<DiscoveryFailure>(),
-    );
-  }
-
-  Future<ProviderDiscoveryStatus> _discoverProvider(
-    DeviceProvider provider,
-    Duration timeout,
-    DiscoveryCancellation? parent,
-    void Function(RemoteDevice) onDevice,
-    void Function(ProviderDiscoveryStatus)? onStatus,
-  ) async {
-    final timer = Stopwatch()..start();
-    final token = DiscoveryCancellation();
-    final devices = <RemoteDevice>[];
-    void publish(RemoteDevice device) {
-      if (token.isCancelled || (parent?.isCancelled ?? false)) {
-        return;
-      }
-      if (_addUnique(device, devices)) {
-        onDevice(device);
-      }
-    }
-
-    onStatus?.call(
-      ProviderDiscoveryStatus(
-        providerId: provider.id,
-        status: DiscoveryStatus.searching,
-      ),
-    );
-    DiscoveryFailure? failure;
-    try {
-      final found = await _responses(
-        provider,
-        token,
-        parent,
-        publish,
-      ).timeout(timeout);
-      found.forEach(publish);
-    } catch (error) {
-      failure = DiscoveryFailure(provider.id, error);
-    } finally {
-      token.cancel();
-    }
-    final cancelled = parent?.isCancelled ?? false;
-    final outcome = ProviderDiscoveryStatus(
-      providerId: provider.id,
-      status: _status(cancelled, devices.isNotEmpty, failure != null),
-      duration: timer.elapsed,
-      deviceCount: devices.length,
-      failure: cancelled ? null : failure,
-      observations: token.observations,
-    );
-    onStatus?.call(outcome);
-    return outcome;
-  }
-
-  DiscoveryStatus _status(bool cancelled, bool hasDevices, bool failed) {
-    if (cancelled) {
-      return DiscoveryStatus.cancelled;
-    }
-    if (failed) {
-      return hasDevices
-          ? DiscoveryStatus.partialSuccess
-          : DiscoveryStatus.failed;
-    }
-    return hasDevices ? DiscoveryStatus.success : DiscoveryStatus.empty;
-  }
-
-  Future<List<RemoteDevice>> _responses(
-    DeviceProvider provider,
-    DiscoveryCancellation token,
-    DiscoveryCancellation? parent,
-    void Function(RemoteDevice) onDevice,
-  ) => Future.any<List<RemoteDevice>>([
-    provider is IncrementalDiscoveryProvider
-        ? (provider as IncrementalDiscoveryProvider).discoverIncrementally(
-            token,
-            onDevice,
-          )
-        : provider.discover(token),
-    if (parent != null) parent.whenCancelled.then((_) => <RemoteDevice>[]),
-  ]);
-
-  void _publishDevice(
-    RemoteDevice device,
-    List<RemoteDevice> devices,
-    void Function(List<RemoteDevice>)? onDevices,
-  ) {
-    if (_addUnique(device, devices)) {
-      onDevices?.call(List.unmodifiable(devices));
-    }
-  }
-
-  bool _addUnique(RemoteDevice device, List<RemoteDevice> devices) {
-    if (devices.any((existing) => DeviceIdentity.same(existing, device))) {
-      return false;
-    }
-    devices.add(device);
-    return true;
-  }
 }

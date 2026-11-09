@@ -1,5 +1,9 @@
 # Capability model
 
+A discovery match establishes protocol compatibility. Capability evidence is
+owned by the selected controller and is never used to route an individual
+command to another provider.
+
 Device categories include television, air conditioner, media player, speaker,
 light, fan, projector, and unknown. Categories do not imply command support.
 
@@ -19,7 +23,8 @@ a sent magic packet is not proof that the TV woke.
 Use a controller without depending on LG command names:
 
 ```dart
-final controller = await registry.connect(device);
+final controller = registry.createController(device);
+await controller.connect();
 if (controller is TVRemoteBase && controller.supports(RemoteCapability.volume)) {
   await controller.volumeUp();
 }

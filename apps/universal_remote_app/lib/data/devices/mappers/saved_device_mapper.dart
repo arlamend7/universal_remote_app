@@ -1,8 +1,7 @@
 import 'package:remote_core/remote_core.dart';
 
 final class SavedDeviceMapper {
-  const SavedDeviceMapper({this.categoryForProvider});
-  final DeviceCategory Function(String)? categoryForProvider;
+  const SavedDeviceMapper();
   RemoteDevice fromJson(Object? value) {
     final map = value as Map<String, dynamic>;
     return RemoteDevice(
@@ -11,10 +10,10 @@ final class SavedDeviceMapper {
       providerId: map['providerId'] as String,
       manufacturer: map['manufacturer'] as String?,
       model: map['model'] as String?,
-      category: _category(map),
+      category: DeviceCategory.values.byName(map['category'] as String),
       capabilities: _capabilities(map['capabilities']),
       stableIdentity: map['stableIdentity'] as bool,
-      pairingState: PairingState.paired,
+      pairingState: PairingState.values.byName(map['pairingState'] as String),
       endpoints: (map['endpoints'] as List<dynamic>)
           .cast<String>()
           .map(Uri.parse)
@@ -22,18 +21,6 @@ final class SavedDeviceMapper {
       metadata: (map['metadata'] as Map<String, dynamic>)
           .cast<String, String>(),
     );
-  }
-
-  DeviceCategory _category(Map<String, dynamic> map) {
-    final name = map['category'];
-    if (name == null) {
-      return categoryForProvider?.call(map['providerId'] as String) ??
-          DeviceCategory.unknown;
-    }
-    return DeviceCategory.values
-            .where((item) => item.name == name)
-            .firstOrNull ??
-        DeviceCategory.unknown;
   }
 
   Set<RemoteCapability> _capabilities(Object? value) {
@@ -54,6 +41,7 @@ final class SavedDeviceMapper {
     'category': device.category.name,
     'capabilities': device.capabilities.map((item) => item.name).toList(),
     'stableIdentity': device.stableIdentity,
+    'pairingState': device.pairingState.name,
     'endpoints': device.endpoints
         .map((endpoint) => endpoint.toString())
         .toList(),

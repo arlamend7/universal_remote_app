@@ -9,6 +9,9 @@ class SavedDevicesController {
   SavedDevicesController(this.repository, this.credentials);
   final DeviceProfileRepository repository;
   final CredentialStore credentials;
+  final _registry = const DeviceRegistry();
+  List<RegisteredDevice> _registered = [];
+  Iterable<RegisteredDevice> get registered => _registered;
   final devices = ValueNotifier<List<RemoteDevice>>([]);
   Future<void>? _writes;
   bool _closing = false;
@@ -36,8 +39,23 @@ class SavedDevicesController {
   }
 
   /// The current saved record, or null when [id] is not saved.
-  RemoteDevice? byId(String? id) =>
-      devices.value.where((item) => item.id == id).firstOrNull;
+  RegisteredDevice? logicalDevice(String? id) =>
+      _registry.find(_registered, id);
+
+  RemoteDevice? byId(String? id) {
+    final logical = logicalDevice(id);
+    if (logical == null) {
+      return null;
+    }
+    final profile = logical.profiles
+        .where((profile) => profile.id == id)
+        .firstOrNull;
+    return copyDevice(
+      (profile ?? logical.preferredProfile).device,
+      name: logical.name,
+    );
+  }
+
   Future<void> updateExisting(
     String id,
     RemoteDevice? Function(RemoteDevice) update,
@@ -52,36 +70,172 @@ class SavedDevicesController {
     }
   });
   Future<void> initialize() async {
-    devices.value = await repository.load();
+    _publish(await repository.loadRegistered());
   }
 
   Future<void> save(RemoteDevice device) => _write(() => _save(device));
-  Future<void> _save(RemoteDevice device) async {
-    final exists = devices.value.any((item) => item.id == device.id);
-    final next = exists
-        ? devices.value
-              .map((item) => item.id == device.id ? device : item)
-              .toList()
-        : [...devices.value, device];
-    await repository.save(next);
-    devices.value = next;
+  Future<void> _save(RemoteDevice device) {
+    final current = logicalDevice(device.id);
+    if (current == null) {
+      return _persist([..._registered, _registry.fromProfile(device)]);
+    }
+    final profile = current.profiles
+        .where((profile) => profile.id == device.id)
+        .first;
+    final configuration = profile.userAssociated
+        ? copyDevice(device, name: profile.device.name)
+        : device;
+    return _replace(_registry.update(current, configuration));
+  }
+
+  Future<void> _replace(RegisteredDevice device) => _persist(
+    _registered
+        .map((current) => current.id == device.id ? device : current)
+        .toList(),
+  );
+
+  Future<void> _persist(List<RegisteredDevice> next) async {
+    await repository.saveRegistered(next);
+    _publish(next);
+  }
+
+  void _publish(List<RegisteredDevice> next) {
+    _registered = List.unmodifiable(next);
+    devices.value = [
+      for (final device in _registered)
+        copyDevice(device.preferredProfile.device, name: device.name),
+    ];
   }
 
   Future<void> rename(RemoteDevice device, String name) async {
     if (name.trim().isEmpty) {
       throw const RemoteException('name', 'Enter a device name.');
     }
-    await _write(
-      () => _save(copyDevice(byId(device.id) ?? device, name: name.trim())),
+    await _write(() async {
+      final current = logicalDevice(device.id);
+      if (current == null) {
+        return;
+      }
+      await _replace(
+        RegisteredDevice(
+          id: current.id,
+          name: name.trim(),
+          category: current.category,
+          profiles: current.profiles,
+          preferredProviderId: current.preferredProviderId,
+        ),
+      );
+    });
+  }
+
+  Future<void> preferProvider(String id, String providerId) => _write(() async {
+    final current = logicalDevice(id);
+    if (current == null) {
+      return;
+    }
+    await _replace(
+      RegisteredDevice(
+        id: current.id,
+        name: current.name,
+        category: current.category,
+        profiles: current.profiles,
+        preferredProviderId: providerId,
+      ),
+    );
+  });
+
+  Iterable<RegisteredDevice> associationCandidates(String id) {
+    final current = logicalDevice(id);
+    if (current == null || current.category == DeviceCategory.unknown) {
+      return const [];
+    }
+    final providers = current.profiles
+        .map((profile) => profile.providerId)
+        .toSet();
+    return _registered.where(
+      (candidate) =>
+          candidate.id != current.id &&
+          candidate.category == current.category &&
+          candidate.profiles.length == 1 &&
+          candidate.preferredProfile.confirmed &&
+          !providers.contains(candidate.preferredProfile.providerId),
     );
   }
 
+  Future<void> associate(String id, String otherId) => _write(() async {
+    final current = logicalDevice(id);
+    final other = associationCandidates(id)
+        .where((candidate) => candidate.id == otherId)
+        .firstOrNull;
+    if (current == null || other == null) {
+      throw const RemoteException(
+        'profileAssociation',
+        'These profiles cannot be linked.',
+      );
+    }
+    final profile = other.preferredProfile;
+    final updated = RegisteredDevice(
+      id: current.id,
+      name: current.name,
+      category: current.category,
+      preferredProviderId: current.preferredProviderId,
+      profiles: [
+        ...current.profiles,
+        ConnectionProfile(
+          profile.device,
+          confirmed: profile.confirmed,
+          userAssociated: true,
+        ),
+      ],
+    );
+    await _persist(
+      _registered
+          .where((device) => device.id != other.id)
+          .map((device) => device.id == current.id ? updated : device)
+          .toList(),
+    );
+  });
+
+  Future<void> detach(String id, String profileId) => _write(() async {
+    final current = logicalDevice(id);
+    final profile = current?.profiles
+        .where((profile) => profile.id == profileId && profile.userAssociated)
+        .firstOrNull;
+    if (current == null || profile == null) {
+      throw const RemoteException(
+        'profileAssociation',
+        'This profile cannot be unlinked.',
+      );
+    }
+    final updated = RegisteredDevice(
+      id: current.id,
+      name: current.name,
+      category: current.category,
+      preferredProviderId: current.preferredProviderId == profile.providerId
+          ? null
+          : current.preferredProviderId,
+      profiles: current.profiles.where(
+        (candidate) => candidate.id != profile.id,
+      ),
+    );
+    await _persist([
+      ..._registered.map(
+        (device) => device.id == current.id ? updated : device,
+      ),
+      _registry.fromProfile(profile.device),
+    ]);
+  });
+
   Future<void> forget(RemoteDevice device) => _write(() async {
-    // Delete secrets first. A failed metadata write never retains authorization.
-    await credentials.delete(device.id);
-    final next = devices.value.where((e) => e.id != device.id).toList();
-    await repository.save(next);
-    devices.value = next;
+    final current = logicalDevice(device.id);
+    if (current == null) {
+      await credentials.delete(device.id);
+      return;
+    }
+    for (final profile in current.profiles) {
+      await credentials.delete(profile.id);
+    }
+    await _persist(_registered.where((item) => item.id != current.id).toList());
   });
 
   Future<void> dispose() async {

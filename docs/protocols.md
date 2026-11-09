@@ -13,6 +13,23 @@ An advertised category does not imply a capability, and an open socket does not
 imply authorization. Driver knowledge is evidence, not a guarantee for every
 firmware. Learned commands and user profiles should preserve provenance.
 
+## Current discovery protocols
+
+- **SSDP** accepts service targets and emits source endpoints and bounded
+  advertisement fields. LG and Roku interpret those observations independently.
+- **Bonjour** accepts exact service types. iOS resolves declared services with
+  Apple's APIs, and other platforms use the existing Dart mDNS stack. The
+  Android TV identifier validates the Remote service port and may inspect its
+  certificate without pairing.
+- **Manual IP** creates a provider profile directly. It works independently of
+  discovery. No unrestricted scans are used.
+
+The manager runs each provider and service search in parallel with an
+independent timeout and status. iOS SSDP still requires approved multicast signing.
+Bonjour and SSDP require Local Network access on iOS. Android retains its
+multicast lock for the coordinated search. See the README signing checklist
+for device testing.
+
 Future drivers may use HTTP/HTTPS, TCP, BLE, classic Bluetooth, MQTT, native IR,
 RF hubs, Matter, gateways, or cloud APIs. They should adapt those transports to
 small capability controllers, keeping transport framing outside core. HTTP work

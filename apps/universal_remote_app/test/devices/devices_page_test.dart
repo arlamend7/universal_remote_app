@@ -55,7 +55,7 @@ void main() {
     final provider = FakeWakeProvider(requiresMac: true);
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
     );
     final bedroom = RemoteDevice(
       id: 'bedroom',

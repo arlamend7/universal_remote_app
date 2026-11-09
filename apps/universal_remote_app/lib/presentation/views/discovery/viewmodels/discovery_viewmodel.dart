@@ -10,6 +10,7 @@ import '../../../../domains/discovery/functions/discovery_failure_message.dart';
 final class DiscoveryViewModel extends ChangeNotifier {
   DiscoveryViewModel(this.dependencies) {
     dependencies.discovery.devices.addListener(notifyListeners);
+    dependencies.discovery.unresolved.addListener(notifyListeners);
     dependencies.discovery.busy.addListener(notifyListeners);
     dependencies.discovery.error.addListener(notifyListeners);
     dependencies.discovery.statuses.addListener(notifyListeners);
@@ -21,17 +22,23 @@ final class DiscoveryViewModel extends ChangeNotifier {
   bool get cancelled => dependencies.discovery.cancelled;
   bool get searching => dependencies.discovery.busy.value;
   String? get error => saveError ?? dependencies.discovery.error.value;
-  Iterable<ProviderDiscoveryStatus> get statuses =>
+  Iterable<ProtocolDiscoveryStatus> get statuses =>
       dependencies.discovery.statuses.value.values;
-  String providerLabel(String id) =>
-      dependencies.providers.manualSetups[id]?.label ?? id;
-  List<String> get searchingProviders => statuses
+  String searchLabel(ProtocolDiscoveryStatus report) =>
+      switch (report.provider) {
+        ProviderIdentity.custom => switch (report.protocolId) {
+          DiscoveryProtocol.ssdp => 'SSDP',
+          DiscoveryProtocol.bonjour => 'Bonjour',
+        },
+        final provider => provider.label,
+      };
+  List<String> get searchingProtocols => statuses
       .where((status) => status.status == DiscoveryStatus.searching)
-      .map((status) => providerLabel(status.providerId))
+      .map(searchLabel)
       .toList();
   String get diagnosticReport => const JsonEncoder.withIndent('  ').convert({
     'searchId': dependencies.discovery.searchId,
-    'providers': [
+    'protocols': [
       for (final status in statuses)
         {
           ...discoveryDiagnosticFields(status),
@@ -40,10 +47,14 @@ final class DiscoveryViewModel extends ChangeNotifier {
         },
     ],
   });
-  List<RemoteDevice> get found =>
-      DeviceIdentity.unique(dependencies.discovery.devices.value);
+  int get unresolvedCount => dependencies.discovery.unresolved.value.length;
+  List<RemoteDevice> get found => dependencies.discovery.devices.value;
   late final profiles = DiscoveryProfiles(
-    profiles: () => dependencies.savedDevices.devices.value,
+    profiles: () => dependencies.savedDevices.registered.expand(
+      (device) => device.profiles.map(
+        (profile) => copyDevice(profile.device, name: device.name),
+      ),
+    ),
     update: dependencies.savedDevices.updateExisting,
   );
   RemoteDevice? registered(RemoteDevice candidate) =>
@@ -55,27 +66,6 @@ final class DiscoveryViewModel extends ChangeNotifier {
   Future<void> search() async {
     saveError = null;
     await dependencies.discovery.search();
-    if (_disposed) {
-      return;
-    }
-    try {
-      await _rememberIdentities();
-    } catch (_) {
-      if (!_disposed) {
-        saveError =
-            'Devices were found, but their identities could not be saved.';
-        notifyListeners();
-      }
-    }
-  }
-
-  Future<void> _rememberIdentities() async {
-    for (final candidate in found) {
-      if (_disposed) {
-        return;
-      }
-      await profiles.remember(candidate);
-    }
   }
 
   void cancel() => dependencies.discovery.cancel();
@@ -90,6 +80,10 @@ final class DiscoveryViewModel extends ChangeNotifier {
       final existing = registered(candidate);
       if (existing != null) {
         return existing;
+      }
+      if (dependencies.savedDevices.byId(candidate.id) != null) {
+        saveError = 'This result conflicts with a saved device. Verify the TV and edit its address in Devices.';
+        return null;
       }
       await dependencies.savedDevices.save(candidate);
       return candidate;
@@ -130,6 +124,7 @@ final class DiscoveryViewModel extends ChangeNotifier {
     _disposed = true;
     cancel();
     dependencies.discovery.devices.removeListener(notifyListeners);
+    dependencies.discovery.unresolved.removeListener(notifyListeners);
     dependencies.discovery.busy.removeListener(notifyListeners);
     dependencies.discovery.error.removeListener(notifyListeners);
     dependencies.discovery.statuses.removeListener(notifyListeners);

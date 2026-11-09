@@ -1,46 +1,24 @@
-# Adding a provider
+# Adding an integration
 
-1. Implement `DeviceProvider` with a unique identifier and an explicit compatibility
-   predicate. Use reliable advertised IDs or persisted profile IDs, never an IP as
-   a permanent identity.
-2. Implement cancellable discovery. Bound network work, close owned resources in
-   finally blocks, and avoid changing unrelated providers' state.
-3. Implement a `DeviceController` with lifecycle state/events and typed capability
-   controllers. Pairing and authorization belong here, not in widgets.
-4. Keep reusable code pure Dart; inject transports and credential storage.
-5. Register the provider in AppBootstrap. The registry implementation does not
-   need modification. Add device-specific setup fields only if needed.
-6. Test selection, discovery failures/timeouts, deduplication, authorization,
-   protocol serialization, cancellation, unsupported controls, and disposal.
-7. Re-audit dependency publishers, public APIs, installed SDK compatibility, and
-   the full resolved graph before updating the reviewed dependency snapshot.
+1. Implement a `ProviderIdentifier` with a stable namespaced provider ID and
+   exact `DiscoveryRequirements`. Reuse an existing SSDP or Bonjour search
+   when the target fits. Accept evidence only for the service you support.
+2. Return a `ProviderMatch` with the original observation and a validated
+   `ConnectionProfile`. Mark uncertain compatibility as tentative. Keep
+   authentication evidence distinct from protocol compatibility.
+3. Implement the commands in a typed `RemoteBase`, `TVRemoteBase` or
+   `ACRemoteBase` controller. Advertise capabilities using the existing
+   evidence model. Pair and connect only when requested by the application.
+4. Assemble a `ProviderDefinition` with the identifier and factory. Attach
+   manual setup, connection policy or wake only if supported. Register the
+   definition in `AppBootstrap`. Add a platform Bonjour declaration if the
+   service requires one.
+5. Test identification with raw evidence, manual setup, cancellation,
+   authorization, controller creation and disposal. Test signed builds and
+   real devices before reporting hardware support.
 
-A hypothetical provider could implement this shape without changing core:
-
-```dart
-class ExampleProvider implements DeviceProvider {
-  ExampleProvider(this.discovery, this.controllerFactory);
-  final Future<List<RemoteDevice>> Function(DiscoveryCancellation) discovery;
-  final DeviceController Function(RemoteDevice) controllerFactory;
-  @override
-  String get id => 'example.device';
-  @override
-  bool supports(RemoteDevice device) => device.providerId == id;
-  @override
-  Future<List<RemoteDevice>> discover(DiscoveryCancellation token) => discovery(token);
-  @override
-  DeviceController createController(RemoteDevice device) => controllerFactory(device);
-}
-```
-
-This is a documentation example, not an empty production integration. Samsung,
-Roku, Matter, and IR providers should use their own documented discovery/pairing
-and transport implementations. Contract tests in remote_core demonstrate multiple
-providers, failure isolation, and controller disposal.
-
-
-The Android TV provider uses Flutter's pure Dart `multicast_dns` 0.3.3+1 for
-local discovery and Bouncy Castle's `pointycastle` 4.0.0 for RSA key generation,
-signing, ASN.1, and SHA-256. Both are pinned in the workspace lockfile. The
-provider accepts a self-signed peer only during the code-authenticated pairing
-exchange. Subsequent sessions check the exact certificate fingerprint.
+See the LG, Android TV and Roku identifiers for concrete examples.
+`remote_network` owns Dart SSDP and mDNS, including the existing
+`multicast_dns` dependency. iOS uses a service-driven Apple Bonjour adapter.
+Android TV owns its certificate probe, pairing and Remote v2 controller.
+Roku remains development-gated pending distribution authorization.

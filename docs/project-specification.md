@@ -186,14 +186,12 @@ Prefer typed capability controllers instead of a large interface containing ever
 An ideal consumer experience should resemble:
 
 ```dart
-final devices = await registry.discover();
+final result = await discoveryManager.discover();
+final controller = registry.createController(result.devices.first);
+await controller.connect();
 
-final tv = await registry.connect(devices.first);
-
-final volume = tv.capability<VolumeCapability>();
-
-if (volume != null) {
-  await volume.volumeUp();
+if (controller is TVRemoteBase && controller.supports(RemoteCapability.volume)) {
+  await controller.volumeUp();
 }
 ```
 
@@ -221,28 +219,13 @@ Do not assume that every advertised command is supported by every firmware.
 
 ## 6. Device Provider System
 
-Define an extensible `DeviceProvider` contract.
+A `ProviderIdentifier` declares discovery targets and interprets raw protocol evidence.
+A `ProviderDefinition` binds the identifier to a typed controller factory and
+optional manual setup, wake and connection policies.
 
-A provider should be able to:
-
-- Advertise its provider identifier.
-- Discover compatible devices.
-- Determine whether it supports a discovered device.
-- Create a corresponding device controller.
-- Handle provider-specific pairing.
-- Resolve supported capabilities.
-- Manage the device connection lifecycle.
-
-Create a central provider registry.
-
-The registry must support:
-
-- Registering multiple providers.
-- Running discovery across providers.
-- Isolating discovery failures.
-- Applying reasonable discovery timeouts.
-- Deduplicating discovered devices.
-- Resolving which provider should control a device.
+`DiscoveryManager` coordinates protocol searches, timeouts, failure isolation
+and identity resolution. `ProviderRegistry` resolves a saved profile to its
+exact integration. Controllers own pairing, commands and session state.
 - Supporting manually configured devices.
 
 Never use IP addresses alone as permanent device identities.

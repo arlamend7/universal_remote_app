@@ -9,13 +9,15 @@ final class SecureCredentialStore implements CredentialStore {
   final ApplicationStorage storage;
   @override
   Future<String?> read(String deviceId) =>
-      _protect(() => storage.read('client-key.$deviceId'), 'read');
+      _protect(() => storage.read('client-key.v2.$deviceId'), 'read');
   @override
-  Future<void> write(String deviceId, String credential) =>
-      _protect(() => storage.write('client-key.$deviceId', credential), 'save');
+  Future<void> write(String deviceId, String credential) => _protect(
+    () => storage.write('client-key.v2.$deviceId', credential),
+    'save',
+  );
   @override
   Future<void> delete(String deviceId) =>
-      _protect(() => storage.delete('client-key.$deviceId'), 'delete');
+      _protect(() => storage.delete('client-key.v2.$deviceId'), 'delete');
   Future<T> _protect<T>(Future<T> Function() operation, String action) async {
     try {
       return await operation();

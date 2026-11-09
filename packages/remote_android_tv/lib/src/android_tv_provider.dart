@@ -3,41 +3,23 @@ import 'dart:io';
 import 'package:remote_core/remote_core.dart';
 
 import 'android_tv_controller.dart';
-import 'discovery/android_tv_discovery.dart';
+import 'discovery/android_tv_identifier.dart';
 
-final class AndroidTvProvider
-    implements
-        DeviceProvider,
-        ManualDeviceProvider,
-        IncrementalDiscoveryProvider {
-  const AndroidTvProvider({required this.credentials, this.browseBonjour});
+final class AndroidTvProvider implements ManualDeviceProvider {
+  const AndroidTvProvider({required this.credentials});
 
   final CredentialStore credentials;
-  final Future<List<({String name, String address, int port})>> Function(
-    DiscoveryCancellation cancellation,
-  )?
-  browseBonjour;
 
-  @override
-  String get id => 'android.tv';
-
-  @override
+  String get id => AndroidTvIdentifier.providerId;
   bool supports(RemoteDevice device) => device.providerId == id;
 
-  @override
-  Future<List<RemoteDevice>> discover(DiscoveryCancellation cancellation) =>
-      discoverIncrementally(cancellation, (_) {});
+  ProviderDefinition<AndroidTvController> get definition => ProviderDefinition(
+    identifier: const AndroidTvIdentifier(),
+    createController: createController,
+    manualSetup: this,
+  );
 
-  @override
-  Future<List<RemoteDevice>> discoverIncrementally(
-    DiscoveryCancellation cancellation,
-    void Function(RemoteDevice) onDevice,
-  ) =>
-      AndroidTvDiscovery(browseBonjour: browseBonjour)
-          .discover(id, cancellation, onDevice);
-
-  @override
-  RemoteBase createController(RemoteDevice device) =>
+  AndroidTvController createController(RemoteDevice device) =>
       AndroidTvController(device, credentials);
 
   @override

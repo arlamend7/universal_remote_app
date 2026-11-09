@@ -6,7 +6,8 @@ import '../ui_model.dart';
 import 'dashboard_repository.dart';
 
 final class DeviceGridsController {
-  DeviceGridsController(this.repository);
+  DeviceGridsController(this.repository, {this.deviceKey});
+  final String Function(RemoteDevice)? deviceKey;
   final DashboardRepository repository;
   final revision = ValueNotifier(0);
   Map<String, String> _dashboards = {};
@@ -16,7 +17,10 @@ final class DeviceGridsController {
     _dashboards = await repository.load();
   }
 
-  GridLayout? forDevice(RemoteDevice device) => _decode(_dashboards[device.id]);
+  GridLayout? forDevice(RemoteDevice device) =>
+      _decode(_dashboards[_key(device)] ?? _dashboards[device.id]);
+
+  String _key(RemoteDevice device) => deviceKey?.call(device) ?? device.id;
 
   GridLayout? _decode(String? raw) {
     if (raw == null) {
@@ -37,7 +41,7 @@ final class DeviceGridsController {
         'The layout contains overlapping or invalid controls.',
       );
     }
-    final result = _writes.then((_) => _save(device.id, layout.encode()));
+    final result = _writes.then((_) => _save(_key(device), layout.encode()));
     _writes = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
     await result;
   }

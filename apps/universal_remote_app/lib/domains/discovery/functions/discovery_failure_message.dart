@@ -12,6 +12,8 @@ String discoveryFailureMessage(Object failure) {
   switch (diagnostic) {
     case 'localNetworkDenied':
       return 'Local Network access was denied. Enable it for Universal Remote in Settings, then search again.';
+    case 'discoveryUnavailable':
+      return 'This discovery protocol is unavailable. Try Connect by IP.';
     case 'bonjourUnavailable':
       return 'The iOS Bonjour adapter is unavailable. Install the latest build or connect by IP.';
     case 'bonjourResolveFailed':
@@ -19,6 +21,8 @@ String discoveryFailureMessage(Object failure) {
     case 'bonjourBrowseFailed':
     case 'mdnsOperationFailed':
       return 'Android TV discovery could not complete. Check Local Network access and Wi-Fi, then retry or connect by IP.';
+    case 'identificationFailed':
+      return 'A device responded but could not be identified. Search again or connect by IP.';
     case 'invalidAdvertisement':
       return 'A discovery response could not be read. Retry or connect by IP.';
     case 'networkBlocked':

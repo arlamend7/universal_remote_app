@@ -5,7 +5,7 @@ import 'package:universal_remote_app/app/app_bootstrap.dart';
 import '../support/memory_storage.dart';
 
 void main() {
-  test('manual profiles learn identity and retain trust, credentials, layout and order as addresses change', () async {
+  test('verified rediscovery can update a manual profile and retain trust, credentials, layout and order as addresses change', () async {
     final app = await AppBootstrap.initialize(storage: MemoryStorage());
     final manual = RemoteDevice(
       id: 'profile',
@@ -15,6 +15,7 @@ void main() {
       endpoints: [Uri.parse('wss://192.168.1.2:3001')],
       metadata: {
         'trustedCertificateDer': 'pinned',
+        'verifiedPeerIdentity': 'verified-tv',
         'remoteLayout.v1': 'layout',
       },
     );
@@ -35,9 +36,8 @@ void main() {
       name: 'Advertised name',
       providerId: 'lg.webos',
       endpoints: [Uri.parse('wss://192.168.1.2:3001')],
-      metadata: {'usn': 'uuid:one::service'},
+      metadata: {'advertisedPeerIdentity': 'verified-tv'},
     );
-    await profiles.remember(discovered);
     final changed = RemoteDevice(
       id: discovered.id,
       name: discovered.name,

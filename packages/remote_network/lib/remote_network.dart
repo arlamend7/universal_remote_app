@@ -16,3 +16,5 @@ export 'src/tls/functions/inspect_peer_certificate.dart';
 export 'src/wake_on_lan/functions/normalize_mac_address.dart';
 export 'src/wake_on_lan/functions/ipv4_broadcast_address.dart';
 export 'src/ssdp/models/ssdp_socket_failure.dart';
+export 'src/bonjour/mdns_discovery.dart';
+export 'src/ssdp/services/ssdp_protocol.dart';

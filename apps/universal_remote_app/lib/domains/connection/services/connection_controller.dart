@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
@@ -58,7 +59,16 @@ class ConnectionController implements RemotePanelSession {
   bool _disposed = false;
   bool _resumeConnection = false;
   bool _isCurrent(int generation) => !_disposed && generation == _generation;
-  Future<void> connect(RemoteDevice device) => _startConnection(device);
+  Future<void> connect(RemoteDevice device) {
+    final activeId = selected.value?.id;
+    final logical = saved.logicalDevice(device.id);
+    if (state.value == DeviceConnectionState.connected &&
+        activeId != device.id &&
+        logical?.profiles.any((profile) => profile.id == activeId) == true) {
+      return Future.value();
+    }
+    return _startConnection(device);
+  }
 
   Future<void> turnOn(RemoteDevice device) {
     if (_disposed ||
@@ -74,6 +84,7 @@ class ConnectionController implements RemotePanelSession {
   Future<void> _startConnection(
     RemoteDevice device, {
     bool waking = false,
+    bool allowFallback = true,
   }) async {
     if (_disposed ||
         (_sameTarget(device) &&
@@ -105,7 +116,79 @@ class ConnectionController implements RemotePanelSession {
         reset: _clear,
       );
     } catch (exception) {
+      if (allowFallback &&
+          !waking &&
+          await _tryFallback(device, exception, generation)) {
+        return;
+      }
       await _connectionFailed(_session, exception, generation);
+    }
+  }
+
+  Future<bool> _tryFallback(
+    RemoteDevice failed,
+    Object error,
+    int generation,
+  ) async {
+    if (!_isCurrent(generation) || !_isFallbackFailure(error)) {
+      return false;
+    }
+    final logical = saved.logicalDevice(failed.id);
+    if (logical == null) {
+      return false;
+    }
+    for (final profile in logical.profiles) {
+      if (await _canFallback(profile, failed, generation)) {
+        await _startConnection(
+          copyDevice(profile.device, name: logical.name),
+          allowFallback: false,
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isFallbackFailure(Object error) => switch (error) {
+    RemoteException(:final code) => const {
+      'network',
+      'connectionRefused',
+      'timeout',
+    }.contains(code),
+    SocketException(:final osError) => const {
+      50,
+      51,
+      60,
+      61,
+      64,
+      65,
+      100,
+      101,
+      110,
+      111,
+      113,
+    }.contains(osError?.errorCode),
+    _ => false,
+  };
+
+  Future<bool> _canFallback(
+    ConnectionProfile profile,
+    RemoteDevice failed,
+    int generation,
+  ) async {
+    if (!_isCurrent(generation) ||
+        !profile.confirmed ||
+        profile.providerId == failed.providerId ||
+        !registry.isRegistered(profile.providerId)) {
+      return false;
+    }
+    try {
+      final credential = await saved.credentials.read(profile.id);
+      return _isCurrent(generation) &&
+          credential != null &&
+          credential.isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -322,7 +405,13 @@ class ConnectionController implements RemotePanelSession {
   }
 
   Future<void> _deselect(RemoteDevice device) async {
-    if (selected.value?.id != device.id) {
+    final selectedId = selected.value?.id;
+    if (selectedId != device.id &&
+        saved
+                .logicalDevice(device.id)
+                ?.profiles
+                .any((profile) => profile.id == selectedId) !=
+            true) {
       return;
     }
     await disconnect();

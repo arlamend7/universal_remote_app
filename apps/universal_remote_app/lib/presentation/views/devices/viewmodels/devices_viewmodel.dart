@@ -50,10 +50,19 @@ final class DevicesViewModel {
 
   int get connectedCount => saved.where(isConnected).length;
 
-  DeviceConnectionState stateOf(RemoteDevice device) =>
-      dependencies.connection.selected.value?.id == device.id
-      ? dependencies.connection.state.value
-      : DeviceConnectionState.disconnected;
+  DeviceConnectionState stateOf(RemoteDevice device) {
+    final selected = dependencies.connection.selected.value?.id;
+    final sameDevice =
+        selected == device.id ||
+        dependencies.savedDevices
+                .logicalDevice(device.id)
+                ?.profiles
+                .any((profile) => profile.id == selected) ==
+            true;
+    return sameDevice
+        ? dependencies.connection.state.value
+        : DeviceConnectionState.disconnected;
+  }
 
   bool isConnected(RemoteDevice device) =>
       stateOf(device) == DeviceConnectionState.connected;

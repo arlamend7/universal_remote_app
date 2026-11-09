@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:remote_core/src/device.dart';
 
+import 'devices/models/registered_device.dart';
+import 'discovery/device_identifier_resolver.dart';
+import 'discovery/discovery_protocol.dart';
+import 'discovery/protocol_discovery_status.dart';
+
 /// Cooperative cancellation; providers must release discovery resources.
 final class DiscoveryCancellation {
   final _cancelled = Completer<void>();
@@ -31,101 +36,32 @@ final class DiscoveryCancellation {
 }
 
 final class DiscoveryFailure {
-  const DiscoveryFailure(this.providerId, this.error);
-  final String providerId;
+  const DiscoveryFailure(this.protocolId, this.error);
+  final DiscoveryProtocol protocolId;
   final Object error;
 }
 
 final class DiscoveryResult {
   DiscoveryResult(
-    Iterable<RemoteDevice> devices,
-    Iterable<DiscoveryFailure> failures,
-  ) : devices = List.unmodifiable(devices),
-      failures = List.unmodifiable(failures);
-  final List<RemoteDevice> devices;
-  final List<DiscoveryFailure> failures;
+    Iterable<ProtocolDiscoveryStatus> reports,
+    Iterable<RegisteredDevice> registeredDevices,
+  ) : reports = List.unmodifiable(reports),
+      registeredDevices = List.unmodifiable(registeredDevices);
+
+  final List<ProtocolDiscoveryStatus> reports;
+  List<DiscoveryFailure> get failures => List.unmodifiable(
+    reports.map((report) => report.failure).whereType<DiscoveryFailure>(),
+  );
+  final List<RegisteredDevice> registeredDevices;
+  List<RemoteDevice> get devices => List.unmodifiable(
+    registeredDevices.map((device) => device.preferredProfile.device),
+  );
 }
 
-/// Addresses are a fallback only when a permanent identity is missing.
-abstract final class DeviceIdentity {
-  static Set<String> keys(RemoteDevice device) {
-    final values = <String>{};
-    if (device.stableIdentity) {
-      values.add('id:${device.providerId}:${device.id.toLowerCase()}');
-    }
-    final peer = _peerIdentity(device);
-    if (peer != null) {
-      values.add('peer:${device.providerId}:$peer');
-    }
-    final alias = device.metadata['discoveryProfileId'];
-    if (alias != null) {
-      values.add('id:${device.providerId}:${alias.toLowerCase()}');
-    }
-    for (final field in ['usn', 'udn', 'uuid', 'discoveryIdentity']) {
-      final value = device.metadata[field]?.trim().toLowerCase();
-      if (value != null && value.isNotEmpty) {
-        values.add(
-          'uuid:${value.split('::').first.replaceFirst(RegExp(r'^uuid:'), '')}',
-        );
-      }
-    }
-    final mac = device.metadata['macAddress']
-        ?.replaceAll(RegExp(r'[^a-fA-F0-9]'), '')
-        .toLowerCase();
-    if (mac != null && mac.length == 12) {
-      values.add('mac:$mac');
-    }
-    return values;
-  }
-
-  static String? _peerIdentity(RemoteDevice device) =>
-      device.metadata['verifiedPeerIdentity'] ??
-      device.metadata['advertisedPeerIdentity'];
-
-  static bool same(RemoteDevice left, RemoteDevice right) {
-    if (left.providerId == right.providerId && left.id == right.id) {
-      return true;
-    }
-    final leftPeer = _peerIdentity(left);
-    final rightPeer = _peerIdentity(right);
-    if (left.providerId == right.providerId &&
-        leftPeer != null &&
-        rightPeer != null &&
-        leftPeer != rightPeer) {
-      return false;
-    }
-    final a = keys(left), b = keys(right);
-    if (a.intersection(b).isNotEmpty) {
-      return true;
-    }
-    if (left.providerId != right.providerId ||
-        (left.stableIdentity && right.stableIdentity)) {
-      return false;
-    }
-    // Do not merge conflicting UUIDs merely because a DHCP address was reused.
-    final aUuid = a.where((key) => key.startsWith('uuid:')).toSet();
-    final bUuid = b.where((key) => key.startsWith('uuid:')).toSet();
-    if (aUuid.isNotEmpty && bUuid.isNotEmpty) {
-      return false;
-    }
-    final hosts = left.endpoints.map((uri) => uri.host.toLowerCase()).toSet();
-    return right.endpoints.any((uri) => hosts.contains(uri.host.toLowerCase()));
-  }
-
-  static List<RemoteDevice> unique(Iterable<RemoteDevice> devices) {
-    final result = <RemoteDevice>[];
-    for (final device in devices) {
-      if (!result.any((existing) => same(existing, device))) {
-        result.add(device);
-      }
-    }
-    return result;
-  }
-}
-
-/// Learns stable identity without changing profile IDs, credentials or trust.
+/// Applies a verified rediscovery to the existing profile without changing its trust.
 final class DiscoveryProfiles {
   DiscoveryProfiles({required this.profiles, required this.update});
+  final _resolver = const DeviceIdentifierResolver();
   final Iterable<RemoteDevice> Function() profiles;
   final Future<void> Function(
     String id,
@@ -133,35 +69,8 @@ final class DiscoveryProfiles {
   )
   update;
   RemoteDevice? registered(RemoteDevice candidate) => profiles()
-      .where((device) => DeviceIdentity.same(device, candidate))
+      .where((device) => _resolver.same(device, candidate))
       .firstOrNull;
-  Map<String, String> _identity(RemoteDevice candidate) {
-    final uuid =
-        candidate.metadata['usn'] ??
-        candidate.metadata['uuid'] ??
-        candidate.metadata['udn'];
-    return {
-      if (uuid != null) 'discoveryIdentity': uuid,
-      if (candidate.stableIdentity) 'discoveryProfileId': candidate.id,
-    };
-  }
-
-  Future<void> remember(RemoteDevice candidate) async {
-    final existing = registered(candidate);
-    if (existing == null) {
-      return;
-    }
-    final identity = _identity(candidate);
-    await update(existing.id, (current) {
-      if (identity.entries.every(
-        (entry) => current.metadata[entry.key] == entry.value,
-      )) {
-        return null;
-      }
-      return copyDevice(current, metadata: {...current.metadata, ...identity});
-    });
-  }
-
   Future<void> updateAddress(RemoteDevice candidate) async {
     final existing = registered(candidate);
     final endpoint = candidate.endpoints.firstOrNull;
@@ -175,7 +84,6 @@ final class DiscoveryProfiles {
         endpoints: current.endpoints
             .map((old) => old.replace(host: endpoint.host))
             .toList(),
-        metadata: {...current.metadata, ..._identity(candidate)},
       ),
     );
   }

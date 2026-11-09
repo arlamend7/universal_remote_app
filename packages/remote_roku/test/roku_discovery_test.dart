@@ -11,7 +11,7 @@ void main() {
     () async {
       Future<RemoteDevice> discover(String host) async {
         final address = InternetAddress(host);
-        final provider = RokuProvider(
+        final protocol = SsdpProtocol(
           discovery: SsdpDiscovery(
             addresses: () async => [address],
             searchRoute: (service, _, _, _) async {
@@ -31,7 +31,12 @@ void main() {
             },
           ),
         );
-        return (await provider.discover(DiscoveryCancellation())).single;
+        final manager = DiscoveryManager(
+          DiscoveryRegistry()
+            ..register(DiscoveryProtocol.ssdp, protocol.search),
+          [const RokuIdentifier()],
+        );
+        return (await manager.discover()).devices.single;
       }
 
       final previous = await discover('192.168.1.10');

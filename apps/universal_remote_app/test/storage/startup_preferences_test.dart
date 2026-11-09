@@ -55,7 +55,7 @@ void main() {
     () async {
       final preferences = MemoryStorage();
       final protected = MemoryStorage()
-        ..values['client-key.${tv.id}'] = 'protected-client-key';
+        ..values['client-key.v2.${tv.id}'] = 'protected-client-key';
       final app = await AppBootstrap.initialize(
         storage: preferences,
         credentialStorage: protected,
@@ -72,7 +72,7 @@ void main() {
         await app.savedDevices.credentials.read(tv.id),
         'protected-client-key',
       );
-      expect(protected.reads, ['client-key.${tv.id}']);
+      expect(protected.reads, ['client-key.v2.${tv.id}']);
       await app.dispose();
     },
   );

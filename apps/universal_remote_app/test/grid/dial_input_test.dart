@@ -21,7 +21,7 @@ void main() {
       );
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.connection.connect(tv);
       final panel = DialPreviewPanel(app);

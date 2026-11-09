@@ -10,18 +10,23 @@ import 'package:remote_core/remote_core.dart';
 
 class DiscoveryController {
   DiscoveryController(
-    this.registry, {
+    this.manager, {
     required this.acquireNetwork,
     required this.releaseNetwork,
     this.logger,
   });
-  final ProviderRegistry registry;
+  final DiscoveryManager manager;
+  final unresolved = ValueNotifier<List<DiscoveryObservation>>(const []);
   final Future<void> Function() acquireNetwork;
   final Future<void> Function() releaseNetwork;
   final DiagnosticLogger? logger;
-  final statuses = ValueNotifier<Map<String, ProviderDiscoveryStatus>>(
-    const {},
-  );
+  final statuses =
+      ValueNotifier<
+        Map<
+          (ProviderIdentity, String?, DiscoveryProtocol, String?),
+          ProtocolDiscoveryStatus
+        >
+      >(const {});
   int searchId = 0;
   final devices = ValueNotifier<List<RemoteDevice>>([]);
   final busy = ValueNotifier(false);
@@ -51,6 +56,7 @@ class DiscoveryController {
     searchId++;
     final elapsed = Stopwatch()..start();
     statuses.value = const {};
+    unresolved.value = const [];
     busy.value = true;
     _record('discovery.started');
     error.value = null;
@@ -60,19 +66,14 @@ class DiscoveryController {
       if (cancellation.isCancelled) {
         return;
       }
-      final result = await registry.discover(
-        cancellation: cancellation,
-        onDevices: (found) => _publish(found, cancellation),
-        onStatus: (status) => _updateStatus(status, cancellation),
-      );
+      await _discover(cancellation);
       if (_disposed || cancellation.isCancelled) {
         return;
       }
-      devices.value = result.devices;
       final reports = statuses.value.values;
       if (reports.isNotEmpty &&
           reports.every((report) => report.status == DiscoveryStatus.failed)) {
-        error.value = discoveryFailureMessage(result.failures.first.error);
+        error.value = discoveryFailureMessage(reports.first.failure!.error);
       }
     } catch (failure) {
       if (!_disposed && !cancellation.isCancelled) {
@@ -92,15 +93,38 @@ class DiscoveryController {
     }
   }
 
+  Future<void> _discover(DiscoveryCancellation cancellation) async {
+    final updates = manager.watch(
+      cancellation: cancellation,
+      onStatus: (report) => _updateStatus(report, cancellation),
+      onUnresolved: (observation) {
+        if (!_disposed &&
+            !cancellation.isCancelled &&
+            unresolved.value.length < 128) {
+          unresolved.value = [...unresolved.value, observation];
+        }
+      },
+    );
+    await for (final found in updates) {
+      _publish(found, cancellation);
+    }
+  }
+
   void _updateStatus(
-    ProviderDiscoveryStatus status,
+    ProtocolDiscoveryStatus status,
     DiscoveryCancellation cancellation,
   ) {
-    _record('discovery.provider', discoveryDiagnosticFields(status));
+    _record('discovery.protocol', discoveryDiagnosticFields(status));
     if (_disposed || cancellation.isCancelled) {
       return;
     }
-    statuses.value = {...statuses.value, status.providerId: status};
+    final key = (
+      status.provider,
+      status.providerId,
+      status.protocolId,
+      status.serviceType,
+    );
+    statuses.value = {...statuses.value, key: status};
   }
 
   void _record(String event, [Map<String, Object> fields = const {}]) {
@@ -142,6 +166,7 @@ class DiscoveryController {
       return;
     }
     devices.value = [];
+    unresolved.value = const [];
     statuses.value = const {};
   }
 
@@ -152,5 +177,6 @@ class DiscoveryController {
     busy.dispose();
     error.dispose();
     statuses.dispose();
+    unresolved.dispose();
   }
 }

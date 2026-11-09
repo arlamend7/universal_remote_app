@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 import 'support/test_controller.dart';
 import 'support/test_device.dart';
-import 'support/test_provider.dart';
+import 'support/observation_identifier.dart';
 
 void main() {
   test(
@@ -27,7 +27,7 @@ void main() {
       final other = device('other', '192.168.1.10', {
         'advertisedPeerIdentity': 'other',
       });
-      expect(DeviceIdentity.same(saved, other), isFalse);
+      expect(const DeviceIdentifierResolver().same(saved, other), isFalse);
       final profiles = DiscoveryProfiles(
         profiles: () => [saved],
         update: (_, change) async => saved = change(saved) ?? saved,
@@ -76,78 +76,42 @@ void main() {
     expect(client.supports(RemoteCapability.navigation), isFalse);
     expect(() => RemoteDevice(id: '', name: 'TV'), throwsArgumentError);
   });
-  test('registry rejects duplicate IDs and selects matching provider', () {
-    final registry = ProviderRegistry()..register(TestProvider('one', []));
-    expect(
-      () => registry.register(TestProvider('one', [])),
-      throwsArgumentError,
+  test('registry rejects duplicate IDs and selects the exact definition', () {
+    final definition = ProviderDefinition(
+      identifier: ObservationIdentifier('one', DiscoveryProtocol.ssdp, 'test'),
+      createController: TestController.new,
     );
+    final registry = ProviderRegistry()..registerDefinition(definition);
+    expect(() => registry.registerDefinition(definition), throwsArgumentError);
     expect(registry.providerFor(device('one')).id, 'one');
     expect(
       () => registry.providerFor(device('missing')),
       throwsA(isA<RemoteException>()),
     );
   });
+
   test(
-    'discovery isolates failures and deduplicates stable identities',
+    'protocol timeout cancels the scan and empty searches stay empty',
     () async {
-      final tv = device('one');
-      final registry = ProviderRegistry()
-        ..register(TestProvider('one', [tv, tv]))
-        ..register(TestProvider('broken', [], fail: true))
-        ..register(TestProvider('empty', []));
-      final reports = <String, ProviderDiscoveryStatus>{};
-      final result = await registry.discover(
-        onStatus: (report) => reports[report.providerId] = report,
+      var closed = false;
+      final registry = DiscoveryRegistry()
+        ..register(DiscoveryProtocol.ssdp, (_, token, _) async {
+          await token.whenCancelled;
+          closed = true;
+        })
+        ..register(DiscoveryProtocol.bonjour, (_, _, _) async {});
+      final manager = DiscoveryManager(registry, [
+        ObservationIdentifier('one', DiscoveryProtocol.ssdp, 'test'),
+        ObservationIdentifier('two', DiscoveryProtocol.bonjour, 'test'),
+      ]);
+      final reports = <DiscoveryProtocol, ProtocolDiscoveryStatus>{};
+      final result = await manager.discover(
+        timeout: const Duration(milliseconds: 20),
+        onStatus: (status) => reports[status.protocolId] = status,
       );
-      expect(reports['one']!.status, DiscoveryStatus.success);
-      expect(reports['one']!.deviceCount, 1);
-      expect(reports['broken']!.status, DiscoveryStatus.failed);
-      expect(reports['empty']!.status, DiscoveryStatus.empty);
-      expect(result.devices, hasLength(1));
-      expect(result.failures.single.providerId, 'broken');
-    },
-  );
-  test(
-    'discovery publishes a fast provider while another is pending',
-    () async {
-      final cancellation = DiscoveryCancellation();
-      final tv = device('fast');
-      final hanging = TestProvider('slow', [], hang: true);
-      final registry = ProviderRegistry()
-        ..register(hanging)
-        ..register(TestProvider('fast', [tv, tv]));
-      final result = await registry.discover(
-        cancellation: cancellation,
-        onDevices: (found) {
-          expect(found, [tv]);
-          expect(hanging.token!.isCancelled, isFalse);
-          cancellation.cancel();
-        },
-      );
-      expect(result.devices, [tv]);
-      expect(hanging.token!.isCancelled, isTrue);
-    },
-  );
-  test('discovery timeout signals provider cancellation', () async {
-    final hanging = TestProvider('slow', [], hang: true);
-    final result = await (ProviderRegistry()..register(hanging)).discover(
-      timeout: const Duration(milliseconds: 20),
-    );
-    expect(result.failures, hasLength(1));
-    expect(hanging.token!.isCancelled, isTrue);
-  });
-  test(
-    'parent cancellation completes discovery and releases provider',
-    () async {
-      final cancellation = DiscoveryCancellation();
-      final hanging = TestProvider('slow', [], hang: true);
-      final result = (ProviderRegistry()..register(hanging)).discover(
-        cancellation: cancellation,
-      );
-      cancellation.cancel();
-      expect((await result).devices, isEmpty);
-      expect(hanging.token!.isCancelled, isTrue);
+      expect(closed, isTrue);
+      expect(result.failures.single.protocolId, DiscoveryProtocol.ssdp);
+      expect(reports[DiscoveryProtocol.bonjour]!.status, DiscoveryStatus.empty);
     },
   );
 }

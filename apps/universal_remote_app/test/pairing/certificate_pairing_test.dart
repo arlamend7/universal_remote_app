@@ -56,7 +56,7 @@ void main() {
             : base;
         dependencies = await AppBootstrap.initialize(
           storage: storage,
-          registry: ProviderRegistry()..register(provider),
+          registry: ProviderRegistry()..registerDefinition(provider.definition),
           hardwareAddressResolver: PlatformHardwareAddressResolver(
             supported: false,
           ),

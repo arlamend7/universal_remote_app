@@ -1,3 +1,4 @@
+import 'package:remote_core/remote_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/data/devices/repositories/saved_device_repository.dart';
@@ -9,8 +10,9 @@ import '../support/test_device.dart';
 void main() {
   test('saves dashboards separately and reloads them without rewriting the profile', () async {
     final storage = MemoryStorage();
-    await SavedDeviceRepository(storage).save([tv]);
-    final profileBytes = storage.values['saved-devices.v1'];
+    await SavedDeviceRepository(storage)
+        .saveRegistered([const DeviceRegistry().fromProfile(tv)]);
+    final profileBytes = storage.values['saved-devices.v2'];
     final app = await AppBootstrap.initialize(storage: storage);
     final grid = GridLayout([
       GridItem(
@@ -25,8 +27,8 @@ void main() {
       ),
     ]);
     await app.grids.save(tv, grid);
-    expect(storage.values['dashboards.v1'], isNotNull);
-    expect(storage.values['saved-devices.v1'], profileBytes);
+    expect(storage.values['dashboards.v2'], isNotNull);
+    expect(storage.values['saved-devices.v2'], profileBytes);
     await app.dispose();
 
     final reloaded = await AppBootstrap.initialize(storage: storage);

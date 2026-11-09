@@ -183,9 +183,9 @@ network permissions or TV compatibility.
 Never claim background connectivity or wake works on every phone, network,
 or television.
 
-Ordinary startup preferences no longer access Keychain. If you used an older
-build, **Preferences → Import older saved TVs** can recover its saved profiles/settings
-with an explicit protected-storage read. Pairing keys remain in secure storage.
+V2 uses a fresh device registry, dashboard store and pairing-key namespace.
+Old device data is ignored and remains untouched. Add your TVs again to set up
+V2 profiles. Pairing keys are stored separately from ordinary preferences.
 
 Find TVs now searches each active IPv4 network address and isolates interface
 failures. If it fails, the message distinguishes denied access, unavailable routes,

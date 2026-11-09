@@ -25,7 +25,7 @@ void main() {
       final provider = FakeProvider(enabledControls: true);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       final bedroom = RemoteDevice(
         id: 'bedroom',
@@ -115,7 +115,7 @@ void main() {
       final provider = FakeProvider(enabledControls: true);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.savedDevices.save(tv);
       final key = GlobalKey();
@@ -162,7 +162,7 @@ void main() {
       final provider = FakeProvider();
       final first = await AppBootstrap.initialize(
         storage: storage,
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await first.savedDevices.save(
         copyDevice(tv, metadata: {'lastConnectedAt': '2026-01-01T00:00:00Z'}),
@@ -172,7 +172,8 @@ void main() {
       final app = await AppBootstrap.initialize(
         storage: storage,
         credentialStorage: UnavailableSecureStorage(),
-        registry: ProviderRegistry()..register(nextProvider),
+        registry: ProviderRegistry()
+          ..registerDefinition(nextProvider.definition),
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
       await tester.pumpAndSettle();
@@ -198,7 +199,7 @@ void main() {
       final provider = FakeProvider(enabledControls: true);
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await app.savedDevices.save(tv);
       final key = GlobalKey();

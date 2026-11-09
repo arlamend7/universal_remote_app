@@ -1939,13 +1939,20 @@
       "kind": "root",
       "source": "root",
       "dependencies": [
+        "remote_core",
+        "multicast_dns",
         "test"
       ],
-      "directDependencies": [],
+      "directDependencies": [
+        "remote_core",
+        "multicast_dns"
+      ],
       "devDependencies": [
         "test"
       ],
       "dependencyConstraints": {
+        "remote_core": "^0.1.0",
+        "multicast_dns": "0.3.3+1",
         "test": "^1.31.1"
       }
     },
@@ -1984,13 +1991,11 @@
       "source": "root",
       "dependencies": [
         "remote_core",
-        "multicast_dns",
         "pointycastle",
         "test"
       ],
       "directDependencies": [
         "remote_core",
-        "multicast_dns",
         "pointycastle"
       ],
       "devDependencies": [
@@ -1998,7 +2003,6 @@
       ],
       "dependencyConstraints": {
         "remote_core": "^0.1.0",
-        "multicast_dns": "0.3.3+1",
         "pointycastle": "4.0.0",
         "test": "^1.31.1"
       }

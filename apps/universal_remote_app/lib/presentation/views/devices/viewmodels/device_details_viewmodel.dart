@@ -24,7 +24,16 @@ final class DeviceDetailsViewModel {
         : 'Address configured';
   }
 
-  bool get selected => dependencies.connection.selected.value?.id == device.id;
+  bool get selected {
+    final selected = dependencies.connection.selected.value?.id;
+    return selected == device.id ||
+        dependencies.savedDevices
+                .logicalDevice(device.id)
+                ?.profiles
+                .any((profile) => profile.id == selected) ==
+            true;
+  }
+
   bool get connected =>
       selected &&
       dependencies.connection.state.value == DeviceConnectionState.connected;
@@ -39,6 +48,87 @@ final class DeviceDetailsViewModel {
       selected ? dependencies.connection.controller?.evidence ?? [] : [];
   String? get currentApp =>
       connected ? dependencies.connection.currentContent.value?.appName : null;
+  RegisteredDevice? get _logical =>
+      dependencies.savedDevices.logicalDevice(original.id);
+  List<ConnectionProfile> get _profiles =>
+      _logical?.profiles.where((profile) => profile.confirmed).toList() ?? [];
+  bool get canChooseProvider =>
+      _profiles.map((profile) => profile.providerId).toSet().length > 1;
+  bool get canLink =>
+      dependencies.savedDevices.associationCandidates(original.id).isNotEmpty;
+  bool get canUnlink => _profiles.any((profile) => profile.userAssociated);
+
+  String _providerLabel(String id) =>
+      dependencies.providers.manualSetups[id]?.label ?? id;
+
+  Future<void> chooseProvider(BuildContext context) async {
+    final provider = await DeviceChoiceSheet.choose(
+      context,
+      'Preferred integration',
+      [
+        for (final profile in _profiles)
+          (profile.providerId, _providerLabel(profile.providerId)),
+      ],
+      selectedId: _logical?.preferredProfile.providerId,
+    );
+    if (provider != null && context.mounted) {
+      await _protect(
+        context,
+        () => dependencies.savedDevices.preferProvider(original.id, provider),
+      );
+    }
+  }
+
+  Future<void> linkProfile(BuildContext context) async {
+    final candidate = await DeviceChoiceSheet.choose(
+      context,
+      'Select the same physical device',
+      [
+        for (final other in dependencies.savedDevices.associationCandidates(
+          original.id,
+        ))
+          (
+            other.id,
+            '${other.name} · ${_providerLabel(other.preferredProfile.providerId)}',
+          ),
+      ],
+    );
+    if (candidate == null || !context.mounted) {
+      return;
+    }
+    final confirmed = await ConfirmationDialog.ask(
+      context,
+      title: 'Link these profiles?',
+      confirmLabel: 'Link profiles',
+      message: 'Confirm both profiles control the same physical device. You can unlink them later.',
+    );
+    if (confirmed && context.mounted) {
+      await _protect(
+        context,
+        () => dependencies.savedDevices.associate(original.id, candidate),
+      );
+    }
+  }
+
+  Future<void> unlinkProfile(BuildContext context) async {
+    final profileId = await DeviceChoiceSheet.choose(
+      context,
+      'Unlink integration',
+      [
+        for (final profile in _profiles.where(
+          (profile) => profile.userAssociated,
+        ))
+          (profile.id, _providerLabel(profile.providerId)),
+      ],
+    );
+    if (profileId != null && context.mounted) {
+      await _protect(
+        context,
+        () => dependencies.savedDevices.detach(original.id, profileId),
+      );
+    }
+  }
+
   Future<void> customize(BuildContext context) =>
       openRemoteEditor(context, dependencies, device);
   Future<void> edit(BuildContext context) async {

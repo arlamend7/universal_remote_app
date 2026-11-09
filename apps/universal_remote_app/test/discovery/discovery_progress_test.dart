@@ -7,6 +7,7 @@ import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
 import '../support/memory_storage.dart';
+import '../support/fixture_protocols.dart';
 import '../support/pending_discovery_provider.dart';
 import '../support/test_device.dart';
 
@@ -17,7 +18,8 @@ void main() {
       final provider = PendingDiscoveryProvider();
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
+        discoveryProtocols: fixtureProtocols([provider]),
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
       expect(find.byType(LinearProgressIndicator), findsNothing);
@@ -46,7 +48,8 @@ void main() {
     final provider = PendingDiscoveryProvider();
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
+      discoveryProtocols: fixtureProtocols([provider]),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
     await tester.tap(find.byTooltip('Find Nearby Devices'));

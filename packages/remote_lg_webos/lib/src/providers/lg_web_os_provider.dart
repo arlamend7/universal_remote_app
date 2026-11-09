@@ -5,24 +5,22 @@ import '../connection/models/lg_manual_device_factory.dart';
 import 'package:remote_lg_webos/src/connection/functions/lg_web_os_endpoint.dart';
 import 'package:remote_lg_webos/src/connection/models/lg_connection_options.dart';
 import 'package:remote_lg_webos/src/devices/services/lg_device_controller.dart';
-import 'package:remote_lg_webos/src/discovery/constants/lg_service_type.dart';
+
+import '../discovery/lg_identifier.dart';
+
 import 'package:remote_network/remote_network.dart';
 
 final class LgWebOsProvider
     implements
-        DeviceProvider,
         DeviceWakeProvider,
-        IncrementalDiscoveryProvider,
         ManualDeviceProvider,
         DeviceConnectionPolicy {
   LgWebOsProvider({
     required this.credentials,
-    this.discovery = const SsdpDiscovery(),
     this.options = const LgConnectionOptions(),
     TransportConnector? connector,
   }) : _connector = connector;
   final CredentialStore credentials;
-  final SsdpDiscovery discovery;
   final LgConnectionOptions options;
   final TransportConnector? _connector;
   @override
@@ -114,48 +112,15 @@ final class LgWebOsProvider
     );
   }
 
-  @override
-  String get id => 'lg.webos';
-  @override
+  String get id => LgIdentifier.providerId;
   bool supports(RemoteDevice device) => device.providerId == id;
-  @override
-  Future<List<RemoteDevice>> discover(DiscoveryCancellation cancellation) =>
-      _discover(cancellation);
 
-  @override
-  Future<List<RemoteDevice>> discoverIncrementally(
-    DiscoveryCancellation cancellation,
-    void Function(RemoteDevice) onDevice,
-  ) => _discover(cancellation, onDevice: onDevice);
-
-  Future<List<RemoteDevice>> _discover(
-    DiscoveryCancellation cancellation, {
-    void Function(RemoteDevice)? onDevice,
-  }) async {
-    if (cancellation.isCancelled) {
-      return [];
-    }
-    final responses = await discovery.search(
-      lgServiceType,
-      cancelled: cancellation.whenCancelled,
-      onStage: cancellation.record,
-      broadFallback: true,
-      onAdvertisement: onDevice == null
-          ? null
-          : (item) => onDevice(_device(item)),
-    );
-    return responses.map(_device).toList();
-  }
-
-  RemoteDevice _device(SsdpAdvertisement item) => RemoteDevice(
-    id: '$id:${item.identity}',
-    name: item.headers['friendlyname'] ?? 'LG webOS TV',
-    providerId: id,
-    manufacturer: 'LG',
-    model: item.headers['modelname'],
-    category: DeviceCategory.television,
-    endpoints: [lgWebOsEndpoint(item.source.address)],
-    metadata: {...item.headers, 'discoveredAddress': item.source.address},
+  ProviderDefinition<LgDeviceController> get definition => ProviderDefinition(
+    identifier: const LgIdentifier(),
+    createController: createController,
+    manualSetup: this,
+    wake: this,
+    connection: this,
   );
 
   /// A user-generated profile ID is mandatory: IP addresses are endpoints,
@@ -176,7 +141,6 @@ final class LgWebOsProvider
     endpoints: [lgWebOsEndpoint(address, secure: !legacy)],
     metadata: {'identitySource': 'userProfile'},
   );
-  @override
   LgDeviceController createController(RemoteDevice device) {
     if (!supports(device)) {
       throw const RemoteException(

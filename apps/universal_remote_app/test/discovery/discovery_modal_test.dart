@@ -6,6 +6,7 @@ import 'package:universal_remote_app/app/universal_remote_app.dart';
 import 'package:universal_remote_app/presentation/views/discovery/modals/device_discovery_sheet.dart';
 
 import '../support/memory_storage.dart';
+import '../support/fixture_protocols.dart';
 import '../support/fake_provider.dart';
 import '../support/capture_design.dart';
 import '../support/pending_discovery_provider.dart';
@@ -25,7 +26,8 @@ void main() {
       final provider = PendingDiscoveryProvider();
       final app = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
+        discoveryProtocols: fixtureProtocols([provider]),
         acquireNetwork: () async {},
         releaseNetwork: () async {},
       );
@@ -62,7 +64,8 @@ void main() {
     final provider = PendingDiscoveryProvider();
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
+      discoveryProtocols: fixtureProtocols([provider]),
       acquireNetwork: () async {},
       releaseNetwork: () async {},
     );
@@ -91,11 +94,13 @@ void main() {
     tester,
   ) async {
     final failing = PendingDiscoveryProvider(id: 'broken');
+    final working = FakeProvider();
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
       registry: ProviderRegistry()
-        ..register(FakeProvider())
-        ..register(failing),
+        ..registerDefinition(working.definition)
+        ..registerDefinition(failing.definition),
+      discoveryProtocols: fixtureProtocols([working, failing]),
       acquireNetwork: () async {},
       releaseNetwork: () async {},
     );
@@ -120,7 +125,8 @@ void main() {
     var releases = 0;
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
+      discoveryProtocols: fixtureProtocols([provider]),
       acquireNetwork: () async {},
       releaseNetwork: () async {
         releases++;

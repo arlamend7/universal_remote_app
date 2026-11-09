@@ -50,9 +50,12 @@ void main() {
   );
   test('credential keys cannot reach ordinary native preferences', () {
     final storage = NativePreferencesStorage(channel: channel);
-    expect(() => storage.write('client-key.tv', 'secret'), throwsArgumentError);
-    expect(() => storage.read('client-key.tv'), throwsArgumentError);
-    expect(() => storage.delete('client-key.tv'), throwsArgumentError);
+    expect(
+      () => storage.write('client-key.v2.tv', 'secret'),
+      throwsArgumentError,
+    );
+    expect(() => storage.read('client-key.v2.tv'), throwsArgumentError);
+    expect(() => storage.delete('client-key.v2.tv'), throwsArgumentError);
     expect(calls, isEmpty);
   });
 }

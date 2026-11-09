@@ -5,7 +5,7 @@ The current folder map and readability conventions are in
 [contexts/architecture/readability-rules.md](contexts/architecture/readability-rules.md).
 Navigation uses DEVCOM route_definer 4.0.0 at a verified, pinned Git revision.
 
-Universal Remote is a five-package Pub workspace. Core and protocol code is pure
+Universal Remote is a Pub workspace with the app and six library packages. Core and protocol code is pure
 Dart. The application and shared remote UI import Flutter. Native storage plugins remain in the application.
 
 ```mermaid
@@ -35,7 +35,7 @@ render it. Discovery, selected device, connection/pairing, volume/command progre
 saved profiles, and settings have separate observable values. Protocol state
 remains in the LG client. Tests replace storage, providers, and transports. Bootstrap uses native preferences
 for profiles/settings and a separate secure adapter only for pairing keys. It does
-not access Keychain during normal startup; older profiles migrate on explicit request.
+not access Keychain during normal startup.
 
 The app owns `AppDependencies` and disposes it once. Cleanup futures are reused
 so callers can await an in-progress disposal. A DeviceSession owns its driver and state subscription; VolumeObserver owns
@@ -45,23 +45,36 @@ rather than their device owner. Device clients own SSAP and pointer
 sockets, request timers, subscription timers, reconnect timers, and subscriptions.
 Discovery owns its UDP socket and always releases the native multicast lock.
 
-## Provider registry
+## Protocol discovery and device identity
 
-Providers declare an identifier, compatibility predicate, cancellable discovery,
-and a controller factory. The registry runs discovery concurrently, limits each
-provider's work, isolates failures, and publishes deduplicated results as
-providers finish. LG also emits results when SSDP advertisements arrive.
-Timeouts signal cooperative cancellation; a noncooperative future cannot be
-forcibly stopped by Dart, so providers must honor the token.
+`AppBootstrap` registers SSDP and Bonjour searches in `DiscoveryRegistry`.
+`DiscoveryManager` runs each provider's service searches in parallel, even when
+they use the same protocol. Each search has its own status, timeout and
+cancellation token. The app listens to an immutable stream of merged device
+snapshots. Repeated matches update the existing device when the evidence
+establishes the same identity. Provider and protocol identities use enums, and
+saved profiles retain their existing provider IDs.
+`LgIdentifier`, `AndroidTvIdentifier`, and `RokuIdentifier` validate evidence and
+produce provider-specific connection profiles. Identification never creates a
+controller. Unknown or ambiguous results remain visible in discovery without a
+Connect action.
 
-LG webOS and Android TV are registered providers. Manual profiles use cryptographically random
-local profile IDs; SSDP devices use advertised UUIDs. IP addresses are mutable
-endpoints. Separate manual and advertised profiles are not automatically merged
-without reliable identity evidence. Rediscovering a saved UUID preserves its
-local name, certificate configuration, and explicitly chosen transport.
-Android TV discovery uses a certificate fingerprint as a rediscovery hint.
-Only an authenticated connection records a verified fingerprint, and reconnect
-still checks the certificate pin saved during pairing.
+`DeviceIdentifierResolver` scopes identity to the integration. A matching
+certificate fingerprint can correlate an Android TV after DHCP renewal. LG and
+Roku service identities are namespaced and also require the same endpoint unless
+stronger evidence is available. Addresses, friendly names and unverified MAC
+addresses cannot establish an identity. Different integrations can be linked in
+Device details with explicit user confirmation and unlinked later.
+
+`ProviderRegistry` selects factories from `ProviderDefinition` and delegates
+optional manual, certificate and wake policies. Existing controllers own the
+commands, pairing and transports. The app and test fixtures use the protocol manager for discovery.
+
+`saved-devices.v2` stores logical IDs, display names and provider profiles.
+`dashboards.v2` stores layouts, and the secure store uses
+`client-key.v2.<profile-id>`. V2 ignores old device data and leaves it untouched.
+Corrupt V2 data is reported and preserved. Device associations and provider
+preference do not grant authorization.
 
 ```mermaid
 stateDiagram-v2
@@ -117,12 +130,15 @@ grouped in `device.dart` and `provider.dart`. Older controller type names
 remain available as aliases. Provider implementation files still follow
 the one-type-per-file rule.
 
-`ProviderRegistry.connect(device)` opens a session. `turnOn(device)` sends
+`ConnectionController.connect(device)` opens a session. `turnOn(device)` sends
 wake once and retries the connection through the same workflow used by the
 app's observable session adapter. The provider classifies startup errors and
 owns connection settings, legacy category mapping, and certificate policy.
 Core owns discovery identity matching and optional wake-address learning.
 The app supplies the platform address lookup and profile persistence callbacks.
+For a network connection failure, the coordinator may try one other confirmed
+profile with its own saved authorization. Pairing, certificate and command
+failures do not trigger failover. No commands are replayed.
 
 The grid editor's draft, sizing, undo/redo and save workflow live in
 `remote_ui`. It calls the app's `DashboardStore` adapter for persistence.

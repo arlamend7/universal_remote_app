@@ -17,33 +17,25 @@ RemoteDevice found(
 );
 
 void main() {
-  test(
-    'UUID matches changing addresses, interfaces and discovery mechanisms',
-    () {
-      final saved = found('a', '192.168.1.2', uuid: 'tv-one');
-      final changed = found('b', '192.168.1.8', uuid: 'tv-one');
-      final otherMechanism = found(
-        'c',
-        '192.168.1.9',
-        uuid: 'tv-one',
-        provider: 'other',
-      );
-      expect(DeviceIdentity.same(saved, changed), isTrue);
-      expect(
-        DeviceIdentity.unique([saved, changed, otherMechanism]),
-        hasLength(1),
-      );
-    },
-  );
-  test(
-    'manual profiles use address fallback but never merge conflicting UUIDs',
-    () {
-      final manual = found('profile', '192.168.1.2', stable: false);
-      final discovered = found('discovered', '192.168.1.2', uuid: 'tv-one');
-      expect(DeviceIdentity.same(manual, discovered), isTrue);
-      final replaced = found('other', '192.168.1.2', uuid: 'tv-two');
-      expect(DeviceIdentity.same(discovered, replaced), isFalse);
-      expect(DeviceIdentity.same(manual, found('new', '192.168.1.8')), isFalse);
-    },
-  );
+  const resolver = DeviceIdentifierResolver();
+  test('unverified UUIDs cannot match across addresses or providers', () {
+    final saved = found('a', '192.168.1.2', uuid: 'tv-one');
+    final changed = found('b', '192.168.1.8', uuid: 'tv-one');
+    final otherMechanism = found(
+      'c',
+      '192.168.1.9',
+      uuid: 'tv-one',
+      provider: 'other',
+    );
+    expect(resolver.same(saved, changed), isFalse);
+    expect(resolver.same(saved, otherMechanism), isFalse);
+  });
+  test('manual profiles require stronger evidence than a shared address', () {
+    final manual = found('profile', '192.168.1.2', stable: false);
+    final discovered = found('discovered', '192.168.1.2', uuid: 'tv-one');
+    expect(resolver.same(manual, discovered), isFalse);
+    final replaced = found('other', '192.168.1.2', uuid: 'tv-two');
+    expect(resolver.same(discovered, replaced), isFalse);
+    expect(resolver.same(manual, found('new', '192.168.1.8')), isFalse);
+  });
 }

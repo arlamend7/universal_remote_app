@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remote_core/remote_core.dart';
 
-final class IosAndroidTvBonjour {
-  IosAndroidTvBonjour({
+final class IosBonjour {
+  IosBonjour({
     this.channel = const MethodChannel(
       'br.net.devcom.universal_remote/discovery',
     ),
@@ -15,8 +15,9 @@ final class IosAndroidTvBonjour {
   int _nextRequest = 0;
 
   Future<List<({String name, String address, int port})>> browse(
-    DiscoveryCancellation cancellation,
-  ) async {
+    DiscoveryCancellation cancellation, {
+    required String service,
+  }) async {
     if (cancellation.isCancelled) {
       return [];
     }
@@ -30,10 +31,10 @@ final class IosAndroidTvBonjour {
       }),
     );
     try {
-      final rows = await channel.invokeListMethod<Object?>(
-        'browseAndroidTV',
-        id,
-      );
+      final rows = await channel.invokeListMethod<Object?>('browseBonjour', {
+        'id': id,
+        'service': service,
+      });
       if (cancellation.isCancelled) {
         return [];
       }
@@ -60,6 +61,28 @@ final class IosAndroidTvBonjour {
     }
   }
 
+  Future<void> search(
+    String service,
+    DiscoveryCancellation cancellation,
+    Future<void> Function(DiscoveryObservation) observe,
+  ) async {
+    final rows = await browse(cancellation, service: service);
+    cancellation.record('bonjour.resolved', rows.length);
+    for (final row in rows) {
+      if (cancellation.isCancelled) {
+        return;
+      }
+      await observe(
+        DiscoveryObservation(
+          protocolId: DiscoveryProtocol.bonjour,
+          serviceType: service,
+          endpoint: Uri(scheme: 'tcp', host: row.address, port: row.port),
+          metadata: {'name': row.name},
+        ),
+      );
+    }
+  }
+
   ({String name, String address, int port}) _parse(Object? row) {
     if (row case {
       'name': String name,
@@ -67,7 +90,11 @@ final class IosAndroidTvBonjour {
       'port': int port,
     }) {
       final ip = InternetAddress.tryParse(address);
-      if (ip != null && !ip.isLoopback && !ip.isMulticast && port == 6466) {
+      if (ip != null &&
+          !ip.isLoopback &&
+          !ip.isMulticast &&
+          port > 0 &&
+          port <= 65535) {
         return (name: name, address: ip.address, port: port);
       }
     }
@@ -80,7 +107,7 @@ final class IosAndroidTvBonjour {
 
   Future<void> _cancel(int id) async {
     try {
-      await channel.invokeMethod<void>('cancelAndroidTV', id);
+      await channel.invokeMethod<void>('cancelBonjour', id);
     } on PlatformException {
       // The native deadline still closes the browser if cancellation fails.
     } on MissingPluginException {

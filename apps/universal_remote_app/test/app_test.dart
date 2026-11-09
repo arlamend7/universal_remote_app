@@ -11,6 +11,7 @@ import 'package:universal_remote_app/data/pairing/repositories/secure_credential
 
 import 'support/fake_provider.dart';
 import 'support/memory_storage.dart';
+import 'support/fixture_protocols.dart';
 import 'support/test_device.dart';
 
 void main() {
@@ -21,9 +22,16 @@ void main() {
       final credentials = SecureCredentialStore(memory);
       final repository = SavedDeviceRepository(memory);
       await credentials.write(tv.id, 'secret');
-      await repository.save([tv]);
-      expect(memory.values['saved-devices.v1'], isNot(contains('secret')));
-      expect((await repository.load()).single.id, tv.id);
+      await repository.saveRegistered([const DeviceRegistry().fromProfile(tv)]);
+      expect(memory.values['saved-devices.v2'], isNot(contains('secret')));
+      expect(
+        ((await repository.loadRegistered())
+                .map((device) => device.preferredProfile.device)
+                .toList())
+            .single
+            .id,
+        tv.id,
+      );
       await credentials.delete(tv.id);
       expect(await credentials.read(tv.id), isNull);
     },
@@ -46,7 +54,7 @@ void main() {
     final provider = FakeProvider();
     final dependencies = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
     );
     await dependencies.connection.connect(tv);
     final first = dependencies.dispose();
@@ -61,7 +69,7 @@ void main() {
       final provider = FakeProvider(enabledControls: true);
       final dependencies = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await dependencies.savedDevices.save(tv);
       await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
@@ -112,7 +120,8 @@ void main() {
       final provider = FakeProvider();
       final dependencies = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
+        discoveryProtocols: fixtureProtocols([provider]),
         acquireNetwork: () async {},
         releaseNetwork: () async {},
       );
@@ -147,7 +156,7 @@ void main() {
     final provider = FakeProvider(pairing: true);
     final dependencies = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry()..register(provider),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
     unawaited(dependencies.connection.connect(tv));
@@ -177,7 +186,7 @@ void main() {
       final provider = FakeProvider(fail: true);
       final dependencies = await AppBootstrap.initialize(
         storage: MemoryStorage(),
-        registry: ProviderRegistry()..register(provider),
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
       );
       await dependencies.savedDevices.save(tv);
       await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));

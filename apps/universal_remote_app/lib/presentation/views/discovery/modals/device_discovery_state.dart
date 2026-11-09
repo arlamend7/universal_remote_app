@@ -49,11 +49,16 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     mainAxisSize: MainAxisSize.min,
     children: [
       if (model.searching)
-        DiscoveryProgress(providers: model.searchingProviders),
+        DiscoveryProgress(protocols: model.searchingProtocols),
       if (model.error != null) _message(Icons.info_outline, model.error!),
       if (!model.searching && model.cancelled)
         _message(Icons.pause_circle_outline, 'Search cancelled.'),
       if (_showEmpty) _empty(),
+      if (model.unresolvedCount > 0)
+        _message(
+          Icons.help_outline,
+          '${model.unresolvedCount} unrecognized discovery responses',
+        ),
       if (model.fresh.isNotEmpty) _resultsHeading(),
       ...model.fresh.map(_newDevice),
       if (model.known.isNotEmpty) _registered(),
@@ -74,7 +79,8 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
       !model.searching &&
       !model.cancelled &&
       model.error == null &&
-      model.found.isEmpty;
+      model.found.isEmpty &&
+      model.unresolvedCount == 0;
 
   Widget _footer() => Column(
     mainAxisSize: MainAxisSize.min,

@@ -7,7 +7,7 @@ import '../../../domains/storage/contracts/application_storage.dart';
 final class LocalDashboardRepository implements DashboardRepository {
   const LocalDashboardRepository(this.storage);
 
-  static const storageKey = 'dashboards.v1';
+  static const storageKey = 'dashboards.v2';
   final ApplicationStorage storage;
 
   @override
