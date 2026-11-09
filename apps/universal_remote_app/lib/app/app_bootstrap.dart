@@ -9,6 +9,7 @@ import 'package:remote_android_tv/remote_android_tv.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_network/remote_network.dart';
 import 'package:remote_roku/remote_roku.dart';
+import 'package:remote_samsung_tizen/remote_samsung_tizen.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
 import '../data/settings/screen_awake.dart';
@@ -123,6 +124,9 @@ abstract final class AppBootstrap {
       ..registerDefinition(LgWebOsProvider(credentials: credentials).definition)
       ..registerDefinition(
         AndroidTvProvider(credentials: credentials).definition,
+      )
+      ..registerDefinition(
+        SamsungProvider(credentials: credentials).definition,
       );
     if (!kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
       providers.registerDefinition(const RokuProvider().definition);

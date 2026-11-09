@@ -1,5 +1,6 @@
 import 'discovery_protocol.dart';
-/// Protocol IDs map to exact service targets. Searches may be shared by callers.
+
+/// Protocol IDs map to exact service targets. Preserve spelling on the wire.
 final class DiscoveryRequirements {
   DiscoveryRequirements(Map<DiscoveryProtocol, Set<String>> targets)
     : targets = Map.unmodifiable(targets.map(_freeze));
@@ -13,6 +14,9 @@ final class DiscoveryRequirements {
     if (services.any((service) => service.trim().isEmpty)) {
       throw ArgumentError('Discovery targets must be nonempty.');
     }
-    return MapEntry(protocol, Set.unmodifiable(services));
+    final unique = {
+      for (final service in services) service.toLowerCase(): service,
+    };
+    return MapEntry(protocol, Set.unmodifiable(unique.values));
   }
 }

@@ -1,7 +1,7 @@
 # Universal Remote
 
 A local-first universal remote built with Flutter and reusable Dart packages.
-It supports compatible LG webOS and Android TV / Google TV televisions.
+It supports compatible LG webOS, Android TV / Google TV, and Samsung Tizen televisions.
 
 ## Implemented
 
@@ -82,6 +82,23 @@ editor also offers **Bluetooth devices** and **Bluetooth device shortcut**.
 Use the first to choose a paired device, or pin one accessory with the second.
 Tapping a device toggles its current connection. Initial pairing still uses
 the TV menu.
+
+## Connect a Samsung Tizen TV
+
+1. Turn the TV on and connect it and your phone or computer to the same local network.
+2. Open **Find Nearby Devices**, or choose **Connect by IP → Samsung Tizen**.
+3. Open **Review TV certificate and pair** on the remote screen and verify the fingerprint
+   for your TV. Then choose **Allow** when the TV asks to pair.
+4. For wake from standby, enable **Power On with Mobile** on the TV and set its
+   active network interface's MAC address in **Device details** if it has not
+   been learned automatically.
+
+The provider uses the secure local remote channel on port 8002. It reuses an
+issued pairing token, supports navigation, relative volume, channel steps, media
+keys and power, and shows app shortcuts when the firmware reports an installed
+app catalog. App listing, launch behavior and standby wake vary by firmware.
+Automated tests use a simulated TV session. Physical Samsung TVs have not been
+verified.
 
 ## Test Roku locally
 
@@ -229,7 +246,7 @@ dart format --output=none --set-exit-if-changed packages apps/universal_remote_a
 dart run tool/check_structure.dart
 dart analyze
 dart run tool/audit_dependencies.dart
-dart test test packages/remote_core/test packages/remote_network/test packages/remote_lg_webos/test
+dart test test packages/remote_core/test packages/remote_network/test packages/remote_lg_webos/test packages/remote_android_tv/test packages/remote_roku/test packages/remote_samsung_tizen/test
 cd apps/universal_remote_app
 flutter test --no-pub
 flutter build apk --debug --target-platform android-arm64 --no-pub

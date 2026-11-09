@@ -16,13 +16,13 @@ firmware. Learned commands and user profiles should preserve provenance.
 ## Current discovery protocols
 
 - **SSDP** accepts service targets and emits source endpoints and bounded
-  advertisement fields. LG and Roku interpret those observations independently.
+  advertisement fields. LG, Roku and Samsung interpret those observations independently.
 - **Bonjour** accepts exact service types. iOS resolves declared services with
   Apple's APIs, and other platforms use the existing Dart mDNS stack. The
   Android TV identifier validates the Remote service port and may inspect its
   certificate without pairing.
 - **Unicast** checks saved local IP addresses alongside multicast discovery.
-  LG webOS compares its pinned TLS certificate, Android TV compares its saved
+  LG webOS and Samsung compare their pinned TLS certificates, Android TV compares its saved
   pairing certificate fingerprint, and the opt-in Roku integration compares
   the serial reported by its read-only ECP device-info endpoint. Probes require
   existing identity evidence and send no remote-control commands. An address

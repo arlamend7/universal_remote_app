@@ -97,8 +97,7 @@ final class DiscoveryManager {
     final reports = await Future.wait([
       for (final identifier in identifiers) ...[
         for (final entry in identifier.requirements.targets.entries)
-          for (final service
-              in entry.value.map((value) => value.toLowerCase()).toSet())
+          for (final service in entry.value)
             _search(
               identifier,
               entry.key,

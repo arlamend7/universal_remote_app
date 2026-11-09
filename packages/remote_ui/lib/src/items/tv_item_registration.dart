@@ -493,10 +493,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     RemoteItemCategory.channelArrows,
     axis: ItemAxis.vertical,
     layout: LinearLayout(adaptive: true),
-    requires: const {
-      RemoteCapability.channels,
-      RemoteCapability.currentContent,
-    },
+    requires: const {RemoteCapability.channels},
     elements: [TvItems.channelUp, TvItems.channelDown],
   ),
   RemoteItemDefinition(

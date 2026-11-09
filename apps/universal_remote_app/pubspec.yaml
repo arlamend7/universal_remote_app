@@ -14,6 +14,7 @@ dependencies:
   remote_lg_webos: ^0.1.0
   remote_android_tv: ^0.1.0
   remote_roku: ^0.1.0
+  remote_samsung_tizen: ^0.1.0
   remote_ui: ^0.1.0
   flutter_secure_storage: ^11.2.0
   route_definer:
