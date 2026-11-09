@@ -12,8 +12,14 @@ final class RokuEcpClient {
   static const _timeout = Duration(seconds: 3);
   static const _maxResponse = 512 * 1024;
 
-  Future<XmlElement> query(String name) async {
-    final body = await _request('GET', ['query', name]);
+  Future<XmlElement> query(
+    String name, {
+    DiscoveryCancellation? cancellation,
+  }) async {
+    final body = await _request('GET', [
+      'query',
+      name,
+    ], cancellation: cancellation);
     if (body.contains('<!DOCTYPE')) {
       throw const RemoteException(
         'protocol',
@@ -43,10 +49,19 @@ final class RokuEcpClient {
     await _request('POST', ['launch', id]);
   }
 
-  Future<String> _request(String method, List<String> path) async {
+  Future<String> _request(
+    String method,
+    List<String> path, {
+    DiscoveryCancellation? cancellation,
+  }) async {
     final client = HttpClient()
       ..connectionTimeout = _timeout
       ..findProxy = (_) => 'DIRECT';
+    if (cancellation != null) {
+      unawaited(
+        cancellation.whenCancelled.then((_) => client.close(force: true)),
+      );
+    }
     try {
       return await _exchange(client, method, path).timeout(_timeout);
     } on TimeoutException {

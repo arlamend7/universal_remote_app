@@ -1,6 +1,7 @@
 import '../device.dart';
 import '../devices/models/registered_device.dart';
 import 'provider_match.dart';
+import 'discovery_protocol.dart';
 
 /// Correlates only within explicit provider namespaces. An unverified address,
 /// name, MAC or cross-provider identifier is insufficient identity evidence.
@@ -16,10 +17,25 @@ final class DeviceIdentifierResolver {
     if (firstPeer != null && secondPeer != null) {
       return firstPeer == secondPeer;
     }
+    if (first.id == second.id &&
+        first.endpoints.any(second.endpoints.contains) &&
+        _hasSavedIdentity(first, second)) {
+      return true;
+    }
     return first.stableIdentity &&
         second.stableIdentity &&
         first.id == second.id &&
         first.endpoints.any(second.endpoints.contains);
+  }
+
+  bool _hasSavedIdentity(RemoteDevice first, RemoteDevice second) {
+    for (final key in ['trustedCertificateDer', 'discoveryIdentity']) {
+      final value = first.metadata[key];
+      if (value != null && value.isNotEmpty && value == second.metadata[key]) {
+        return true;
+      }
+    }
+    return false;
   }
 
   String? _peer(RemoteDevice device) =>
@@ -45,6 +61,8 @@ final class DeviceIdentifierResolver {
       matches.add(candidate);
       return;
     }
-    matches[index] = candidate;
+    if (candidate.evidence.protocolId != DiscoveryProtocol.unicast) {
+      matches[index] = candidate;
+    }
   }
 }

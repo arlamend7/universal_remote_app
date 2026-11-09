@@ -1,9 +1,10 @@
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_network/remote_network.dart';
 
 import '../connection/functions/lg_web_os_endpoint.dart';
 import 'constants/lg_service_type.dart';
 
-final class LgIdentifier implements ProviderIdentifier {
+final class LgIdentifier implements ProviderIdentifier, UnicastProbe {
   const LgIdentifier();
 
   static final providerId = ProviderIdentity.lgWebOs.storageId;
@@ -52,6 +53,26 @@ final class LgIdentifier implements ProviderIdentifier {
       ),
       observation,
     );
+  }
+
+  @override
+  Future<bool> probe(
+    RemoteDevice device,
+    DiscoveryCancellation cancellation,
+  ) async {
+    final endpoint = device.endpoints.singleOrNull;
+    final expected = device.metadata['trustedCertificateDer'];
+    if (cancellation.isCancelled ||
+        expected == null ||
+        endpoint == null ||
+        endpoint != lgWebOsEndpoint(endpoint.host)) {
+      return false;
+    }
+    final observed = await inspectPeerCertificate(
+      endpoint,
+      timeout: const Duration(milliseconds: 450),
+    );
+    return !cancellation.isCancelled && observed.derBase64 == expected;
   }
 
   String _name(DiscoveryObservation observation) {

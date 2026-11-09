@@ -1,4 +1,1 @@
-enum DiscoveryProtocol {
-  ssdp,
-  bonjour,
-}
+enum DiscoveryProtocol { ssdp, bonjour, unicast }

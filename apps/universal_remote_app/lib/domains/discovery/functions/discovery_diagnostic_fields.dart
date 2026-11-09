@@ -19,7 +19,11 @@ Map<String, Object> discoveryDiagnosticFields(ProtocolDiscoveryStatus report) {
     if (error != null) 'exceptionType': _exceptionType(error),
     'stage':
         operation?.stage ??
-        (error is SsdpSocketFailure ? error.stage : 'discover'),
+        (error is SsdpSocketFailure
+            ? error.stage
+            : report.protocolId == DiscoveryProtocol.unicast
+            ? 'unicast.probe'
+            : 'discover'),
     if (operation?.errorDomain case final domain?) 'errorDomain': domain,
     if (error != null) 'code': discoveryFailureCode(error),
     if (osCode != null) 'osCode': osCode,
@@ -66,6 +70,13 @@ String discoveryFailureCode(Object error) {
       'invalidAdvertisement',
     DiscoveryOperationFailure() => 'mdnsOperationFailed',
     SocketException() => 'socketFailure',
+    RemoteException(:final code) => switch (code) {
+      'timeout' => 'responseTimeout',
+      'network' => 'socketFailure',
+      'permission' => 'devicePermissionDenied',
+      'protocol' => 'invalidAdvertisement',
+      _ => 'providerException',
+    },
     _ => 'providerException',
   };
 }

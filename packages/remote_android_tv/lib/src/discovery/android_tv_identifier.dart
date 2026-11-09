@@ -2,7 +2,7 @@ import 'package:remote_core/remote_core.dart';
 
 import '../security/discover_peer_identity.dart';
 
-final class AndroidTvIdentifier implements ProviderIdentifier {
+final class AndroidTvIdentifier implements ProviderIdentifier, UnicastProbe {
   const AndroidTvIdentifier({this.inspectIdentity = discoverPeerIdentity});
 
   static final providerId = ProviderIdentity.androidTv.storageId;
@@ -56,5 +56,28 @@ final class AndroidTvIdentifier implements ProviderIdentifier {
       ),
       observation,
     );
+  }
+
+  @override
+  Future<bool> probe(
+    RemoteDevice device,
+    DiscoveryCancellation cancellation,
+  ) async {
+    final endpoint = device.endpoints.singleOrNull;
+    final expected =
+        device.metadata['verifiedPeerIdentity'] ??
+        device.metadata['advertisedPeerIdentity'];
+    if (cancellation.isCancelled ||
+        expected == null ||
+        endpoint == null ||
+        endpoint != Uri(scheme: 'tls', host: endpoint.host, port: 6466)) {
+      return false;
+    }
+    final observed = await discoverPeerIdentity(
+      endpoint.host,
+      timeout: const Duration(milliseconds: 450),
+      reportNetworkFailure: true,
+    );
+    return !cancellation.isCancelled && observed == expected;
   }
 }

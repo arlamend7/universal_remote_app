@@ -4,8 +4,57 @@ import 'package:remote_core/remote_core.dart';
 import 'package:test/test.dart';
 
 import 'support/observation_identifier.dart';
+import 'support/unicast_identifier.dart';
 
 void main() {
+  test(
+    'unicast probes only saved local addresses and survives failures',
+    () async {
+      RemoteDevice device(
+        String id,
+        String host, {
+        String provider = 'working',
+      }) => RemoteDevice(
+        id: id,
+        name: id,
+        providerId: provider,
+        endpoints: [Uri(scheme: 'tcp', host: host, port: 6466)],
+      );
+      final found = device('found', '192.168.1.20');
+      final attempted = <String>[];
+      final registry = DiscoveryRegistry()
+        ..register(DiscoveryProtocol.ssdp, (_, _, _) async {
+          throw StateError('Multicast unavailable');
+        });
+      final manager = DiscoveryManager(
+        registry,
+        [
+          UnicastIdentifier((candidate) async {
+            attempted.add(candidate.id);
+            if (candidate.id == 'failed') {
+              throw StateError('Connection refused');
+            }
+            return candidate == found;
+          }),
+        ],
+        savedProfiles: () => [
+          device('failed', '192.168.1.21'),
+          found,
+          device('public', '8.8.8.8'),
+          device('hostname', 'tv.local'),
+          device('other provider', '192.168.1.22', provider: 'other'),
+        ],
+      );
+      final result = await manager.discover();
+      expect(attempted, unorderedEquals(['failed', 'found']));
+      expect(result.devices.single.id, found.id);
+      expect(result.reports.map((report) => report.status), [
+        DiscoveryStatus.failed,
+        DiscoveryStatus.partialSuccess,
+      ]);
+    },
+  );
+
   test(
     'searches sharing a protocol and other protocols can fail independently',
     () async {

@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 
 import 'roku_app_catalog.dart';
 import 'roku_ecp_client.dart';
+import 'roku_serial.dart';
 
 final class RokuController extends TVRemoteBase {
   RokuController(this._device, this.client);
@@ -58,10 +59,8 @@ final class RokuController extends TVRemoteBase {
 
   Future<void> _identify(int generation) async {
     final info = await client.query('device-info');
-    final serial = info.getElement('serial-number')?.innerText.trim();
-    if (info.name.local != 'device-info' ||
-        serial == null ||
-        !RegExp(r'^[a-z0-9-]+$', caseSensitive: false).hasMatch(serial)) {
+    final serial = rokuSerial(info);
+    if (serial == null) {
       throw const RemoteException(
         'protocol',
         'The device did not report a Roku identity.',

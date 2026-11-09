@@ -21,6 +21,12 @@ firmware. Learned commands and user profiles should preserve provenance.
   Apple's APIs, and other platforms use the existing Dart mDNS stack. The
   Android TV identifier validates the Remote service port and may inspect its
   certificate without pairing.
+- **Unicast** checks saved local IP addresses alongside multicast discovery.
+  LG webOS compares its pinned TLS certificate, Android TV compares its saved
+  pairing certificate fingerprint, and the opt-in Roku integration compares
+  the serial reported by its read-only ECP device-info endpoint. Probes require
+  existing identity evidence and send no remote-control commands. An address
+  change or a new TV still requires SSDP, Bonjour, or manual IP setup.
 - **Manual IP** creates a provider profile directly. It works independently of
   discovery. No unrestricted scans are used.
 

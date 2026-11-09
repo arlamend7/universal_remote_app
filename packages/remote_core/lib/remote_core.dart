@@ -31,3 +31,4 @@ export 'src/discovery/discovery_manager.dart';
 export 'src/devices/services/device_registry.dart';
 export 'src/discovery/discovery_protocol.dart';
 export 'src/providers/models/provider_identity.dart';
+export 'src/discovery/unicast_probe.dart';

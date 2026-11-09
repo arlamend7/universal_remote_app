@@ -1,6 +1,6 @@
 import 'package:remote_core/remote_core.dart';
 
-final class ObservationIdentifier implements ProviderIdentifier {
+class ObservationIdentifier implements ProviderIdentifier {
   ObservationIdentifier(this.id, this.protocol, this.service);
   @override
   final String id;

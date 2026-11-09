@@ -24,14 +24,20 @@ final class DiscoveryViewModel extends ChangeNotifier {
   String? get error => saveError ?? dependencies.discovery.error.value;
   Iterable<ProtocolDiscoveryStatus> get statuses =>
       dependencies.discovery.statuses.value.values;
-  String searchLabel(ProtocolDiscoveryStatus report) =>
-      switch (report.provider) {
-        ProviderIdentity.custom => switch (report.protocolId) {
-          DiscoveryProtocol.ssdp => 'SSDP',
-          DiscoveryProtocol.bonjour => 'Bonjour',
-        },
-        final provider => provider.label,
-      };
+  String searchLabel(ProtocolDiscoveryStatus report) {
+    if (report.protocolId == DiscoveryProtocol.unicast) {
+      return '${report.provider.label} · Direct IP';
+    }
+    return switch (report.provider) {
+      ProviderIdentity.custom => switch (report.protocolId) {
+        DiscoveryProtocol.ssdp => 'SSDP',
+        DiscoveryProtocol.bonjour => 'Bonjour',
+        DiscoveryProtocol.unicast => 'Direct IP',
+      },
+      final provider => provider.label,
+    };
+  }
+
   List<String> get searchingProtocols => statuses
       .where((status) => status.status == DiscoveryStatus.searching)
       .map(searchLabel)

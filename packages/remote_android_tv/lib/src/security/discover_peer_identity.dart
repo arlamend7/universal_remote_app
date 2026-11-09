@@ -4,14 +4,18 @@ import 'pairing_proof.dart';
 
 /// Reads the certificate advertised by the pairing endpoint without trusting it
 /// or sending any pairing messages. A saved pin is still required to reconnect.
-Future<String?> discoverPeerIdentity(String address) async {
+Future<String?> discoverPeerIdentity(
+  String address, {
+  Duration timeout = const Duration(milliseconds: 900),
+  bool reportNetworkFailure = false,
+}) async {
   String? identity;
   try {
     final socket = await SecureSocket.connect(
       address,
       6467,
       context: SecurityContext(withTrustedRoots: false),
-      timeout: const Duration(milliseconds: 900),
+      timeout: timeout,
       onBadCertificate: (certificate) {
         identity = PairingProof.fingerprint(certificate.der);
         return false;
@@ -19,6 +23,9 @@ Future<String?> discoverPeerIdentity(String address) async {
     );
     socket.destroy();
   } on IOException {
+    if (identity == null && reportNetworkFailure) {
+      rethrow;
+    }
     return identity;
   }
   return identity;

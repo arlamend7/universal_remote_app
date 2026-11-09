@@ -23,6 +23,8 @@ String discoveryFailureMessage(Object failure) {
       return 'Android TV discovery could not complete. Check Local Network access and Wi-Fi, then retry or connect by IP.';
     case 'identificationFailed':
       return 'A device responded but could not be identified. Search again or connect by IP.';
+    case 'devicePermissionDenied':
+      return 'The device denied the request. Check its mobile remote-control setting, then retry.';
     case 'invalidAdvertisement':
       return 'A discovery response could not be read. Retry or connect by IP.';
     case 'networkBlocked':

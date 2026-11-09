@@ -11,10 +11,15 @@ import 'discovery_protocol.dart';
 import 'discovery_registry.dart';
 import 'provider_identifier.dart';
 import 'provider_match.dart';
+import 'unicast_probe.dart';
+import 'saved_address_discovery.dart';
 
 final class DiscoveryManager {
-  DiscoveryManager(this.registry, Iterable<ProviderIdentifier> identifiers)
-    : identifiers = List.unmodifiable(identifiers) {
+  DiscoveryManager(
+    this.registry,
+    Iterable<ProviderIdentifier> identifiers, {
+    this.savedProfiles,
+  }) : identifiers = List.unmodifiable(identifiers) {
     if (this.identifiers.map((identifier) => identifier.id).toSet().length !=
         this.identifiers.length) {
       throw ArgumentError('Discovery identifiers must be unique.');
@@ -22,6 +27,7 @@ final class DiscoveryManager {
   }
 
   final DiscoveryRegistry registry;
+  final Iterable<RemoteDevice> Function()? savedProfiles;
   final List<ProviderIdentifier> identifiers;
   final _resolver = const DeviceIdentifierResolver();
 
@@ -89,7 +95,7 @@ final class DiscoveryManager {
     }
 
     final reports = await Future.wait([
-      for (final identifier in identifiers)
+      for (final identifier in identifiers) ...[
         for (final entry in identifier.requirements.targets.entries)
           for (final service
               in entry.value.map((value) => value.toLowerCase()).toSet())
@@ -101,8 +107,18 @@ final class DiscoveryManager {
               timeout,
               publish,
               onStatus,
-              onUnresolved,
+              (token, found) => _find(
+                identifier,
+                entry.key,
+                service,
+                token,
+                found,
+                onUnresolved,
+              ),
             ),
+        if (identifier is UnicastProbe)
+          ..._unicastSearch(identifier, parent, timeout, publish, onStatus),
+      ],
     ]);
     return DiscoveryResult(reports, matches.map(_resolver.resolve));
   }
@@ -118,7 +134,8 @@ final class DiscoveryManager {
     Duration timeout,
     void Function(ProviderMatch) publish,
     void Function(ProtocolDiscoveryStatus)? onStatus,
-    void Function(DiscoveryObservation)? onUnresolved,
+    Future<void> Function(DiscoveryCancellation, void Function(ProviderMatch))
+    scanDevices,
   ) async {
     final elapsed = Stopwatch()..start();
     final token = DiscoveryCancellation();
@@ -133,33 +150,15 @@ final class DiscoveryManager {
         status: DiscoveryStatus.searching,
       ),
     );
-    final scan = _scan(protocol, service, token, (observation) async {
-      final ProviderMatch? match;
-      try {
-        match = await _identify(identifier, observation, token);
-      } catch (error) {
-        token.record('identifier.failed');
-        failure ??= DiscoveryFailure(
-          protocol,
-          DiscoveryOperationFailure(
-            'identify',
-            error,
-            code: 'identificationFailed',
-          ),
-        );
-        return;
-      }
-      if (parent.isCancelled || token.isCancelled) {
-        return;
-      }
-      if (match == null) {
-        token.record('observation.unresolved');
-        onUnresolved?.call(observation);
-        return;
-      }
-      _resolver.add(matches, match);
-      publish(match);
-    });
+    final scan = Future.sync(
+      () => scanDevices(token, (match) {
+        if (parent.isCancelled || token.isCancelled) {
+          return;
+        }
+        _resolver.add(matches, match);
+        publish(match);
+      }),
+    );
     try {
       await Future.any([scan.timeout(timeout), parent.whenCancelled]);
     } catch (error) {
@@ -181,6 +180,75 @@ final class DiscoveryManager {
     );
     onStatus?.call(report);
     return report;
+  }
+
+  Iterable<Future<ProtocolDiscoveryStatus>> _unicastSearch(
+    ProviderIdentifier identifier,
+    DiscoveryCancellation parent,
+    Duration timeout,
+    void Function(ProviderMatch) publish,
+    void Function(ProtocolDiscoveryStatus)? onStatus,
+  ) sync* {
+    final candidates = savedProfiles
+        ?.call()
+        .where((device) => device.providerId == identifier.id)
+        .take(32)
+        .toList();
+    if (candidates == null || candidates.isEmpty) {
+      return;
+    }
+    yield _search(
+      identifier,
+      DiscoveryProtocol.unicast,
+      'saved-address',
+      parent,
+      timeout,
+      publish,
+      onStatus,
+      (token, found) => const SavedAddressDiscovery().search(
+        identifier as UnicastProbe,
+        candidates,
+        token,
+        found,
+      ),
+    );
+  }
+
+  Future<void> _find(
+    ProviderIdentifier identifier,
+    DiscoveryProtocol protocol,
+    String service,
+    DiscoveryCancellation token,
+    void Function(ProviderMatch) found,
+    void Function(DiscoveryObservation)? onUnresolved,
+  ) async {
+    DiscoveryOperationFailure? failure;
+    await _scan(protocol, service, token, (observation) async {
+      final ProviderMatch? match;
+      try {
+        match = await _identify(identifier, observation, token);
+      } catch (error) {
+        token.record('identifier.failed');
+        failure ??= DiscoveryOperationFailure(
+          'identify',
+          error,
+          code: 'identificationFailed',
+        );
+        return;
+      }
+      if (token.isCancelled) {
+        return;
+      }
+      if (match == null) {
+        token.record('observation.unresolved');
+        onUnresolved?.call(observation);
+        return;
+      }
+      found(match);
+    });
+    if (failure case final error?) {
+      throw error;
+    }
   }
 
   Future<void> _waitForCleanup(Future<void> scan) async {

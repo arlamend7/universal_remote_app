@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:remote_core/remote_core.dart';
 
 import 'roku_endpoint.dart';
+import 'roku_ecp_client.dart';
+import 'roku_serial.dart';
 
-final class RokuIdentifier implements ProviderIdentifier {
+final class RokuIdentifier implements ProviderIdentifier, UnicastProbe {
   const RokuIdentifier();
 
   static final providerId = ProviderIdentity.roku.storageId;
@@ -61,5 +63,28 @@ final class RokuIdentifier implements ProviderIdentifier {
       ),
       observation,
     );
+  }
+
+  @override
+  Future<bool> probe(
+    RemoteDevice device,
+    DiscoveryCancellation cancellation,
+  ) async {
+    final endpoint = device.endpoints.singleOrNull;
+    final expected =
+        device.metadata['rokuSerial'] ??
+        device.metadata['discoveryIdentity']?.split(':').last;
+    if (cancellation.isCancelled ||
+        expected == null ||
+        endpoint == null ||
+        !isRokuLanAddress(InternetAddress.tryParse(endpoint.host)) ||
+        endpoint != rokuEndpoint(endpoint.host)) {
+      return false;
+    }
+    final info = await RokuEcpClient(endpoint)
+        .query('device-info', cancellation: cancellation);
+    final serial = rokuSerial(info);
+    return !cancellation.isCancelled &&
+        serial?.toLowerCase() == expected.toLowerCase();
   }
 }

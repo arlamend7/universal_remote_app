@@ -53,14 +53,17 @@ abstract final class AppBootstrap {
         sessionCredentials ?? protectedCredentials;
     final providers = registry ?? _providers(credentials);
     final protocols = discoveryProtocols ?? _protocols();
-    final discoveryManager = DiscoveryManager(
-      protocols,
-      providers.definitions.map((definition) => definition.identifier),
-    );
     final logger = DiagnosticLogger();
     final saved = SavedDevicesController(
       SavedDeviceRepository(preferences),
       credentials,
+    );
+    final discoveryManager = DiscoveryManager(
+      protocols,
+      providers.definitions.map((definition) => definition.identifier),
+      savedProfiles: () => saved.registered.expand(
+        (device) => device.profiles.map((profile) => profile.device),
+      ),
     );
     final settings = SettingsController(
       preferences,
