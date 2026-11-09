@@ -18,6 +18,9 @@ class DeviceEditorState extends State<DeviceEditor> {
           : registry.networkConfiguration(device),
       factory: registry.createManualDevice,
       setups: registry.manualSetups,
+      identifyAddress: registry.canIdentifyAddresses
+          ? registry.identifyAddress
+          : null,
       device: widget.device,
     );
   }
@@ -33,9 +36,9 @@ class DeviceEditorState extends State<DeviceEditor> {
       ListenableBuilder(listenable: model.changes, builder: _dialog);
   Widget _dialog(BuildContext context, Widget? child) =>
       DeviceEditorDialog(model: model, onSubmit: _submit, onCancel: _cancel);
-  void _submit() {
-    final device = model.submit();
-    if (device == null) {
+  Future<void> _submit() async {
+    final device = await model.submit();
+    if (!mounted || device == null) {
       return;
     }
     Navigator.of(context).pop(device);

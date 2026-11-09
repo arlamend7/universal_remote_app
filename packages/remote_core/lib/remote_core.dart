@@ -33,3 +33,4 @@ export 'src/discovery/discovery_protocol.dart';
 export 'src/providers/models/provider_identity.dart';
 export 'src/discovery/unicast_probe.dart';
 export 'src/discovery/is_local_probe_address.dart';
+export 'src/discovery/address_identifier.dart';

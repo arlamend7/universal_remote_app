@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 
 import '../viewmodels/devices_viewmodel.dart';
-import 'device_tile.dart';
+import 'swipe_device_tile.dart';
 
 class DeviceListSection extends StatelessWidget {
   const DeviceListSection({super.key, required this.model});
@@ -14,7 +14,6 @@ class DeviceListSection extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       _heading(context),
-      const SizedBox(height: 8),
       if (model.saved.isEmpty) _empty(context),
       ...model.saved.map(_card),
     ],
@@ -24,7 +23,7 @@ class DeviceListSection extends StatelessWidget {
     final theme = Theme.of(context);
     final count = model.connectedCount;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Wrap(
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
@@ -61,7 +60,12 @@ class DeviceListSection extends StatelessWidget {
     );
   }
 
-  Widget _empty(BuildContext context) => Card(
+  Widget _empty(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: _emptyCard(context),
+  );
+
+  Widget _emptyCard(BuildContext context) => Card(
     color: Theme.of(context).colorScheme.surfaceContainerLow,
     child: Padding(
       padding: const EdgeInsets.all(24),
@@ -76,6 +80,6 @@ class DeviceListSection extends StatelessWidget {
   Widget _card(RemoteDevice device) => Padding(
     key: ValueKey(device.id),
     padding: const EdgeInsets.only(bottom: 8),
-    child: DeviceTile(model: model, device: device),
+    child: SwipeDeviceTile(model: model, device: device),
   );
 }

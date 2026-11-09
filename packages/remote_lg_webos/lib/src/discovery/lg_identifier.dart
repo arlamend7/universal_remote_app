@@ -4,7 +4,8 @@ import 'package:remote_network/remote_network.dart';
 import '../connection/functions/lg_web_os_endpoint.dart';
 import 'constants/lg_service_type.dart';
 
-final class LgIdentifier implements ProviderIdentifier, UnicastProbe {
+final class LgIdentifier
+    implements ProviderIdentifier, UnicastProbe, AddressIdentifier {
   const LgIdentifier();
 
   static final providerId = ProviderIdentity.lgWebOs.storageId;
@@ -54,6 +55,12 @@ final class LgIdentifier implements ProviderIdentifier, UnicastProbe {
       observation,
     );
   }
+
+  @override
+  Future<bool> recognizesAddress(
+    String address,
+    DiscoveryCancellation cancellation,
+  ) => probeSsdpAddress(address, lgServiceType, cancellation);
 
   @override
   Future<bool> probe(

@@ -6,7 +6,6 @@ import '../../../../app/app_dependencies.dart';
 import 'package:remote_ui/remote_ui.dart';
 
 import '../../../../routes/open_remote_editor.dart';
-import '../modals/device_rename_sheet.dart';
 import '../modals/edit_device.dart';
 
 final class DeviceDetailsViewModel {
@@ -138,24 +137,13 @@ final class DeviceDetailsViewModel {
     }
     await _protect(context, () async {
       await dependencies.savedDevices.save(edited);
+      if (edited.name != device.name) {
+        await dependencies.savedDevices.rename(edited, edited.name);
+      }
       if (selected) {
         await dependencies.connection.connect(edited);
       }
     });
-  }
-
-  Future<void> rename(BuildContext context) async {
-    final name = await showAppModal<String>(
-      context,
-      builder: (_) => DeviceRenameSheet(name: device.name),
-    );
-    if (name == null || !context.mounted) {
-      return;
-    }
-    await _protect(
-      context,
-      () => dependencies.savedDevices.rename(device, name),
-    );
   }
 
   Future<void> rePair(BuildContext context) async {
@@ -180,24 +168,6 @@ final class DeviceDetailsViewModel {
 
   Future<void> disconnect(BuildContext context) =>
       _protect(context, dependencies.connection.disconnect);
-  Future<bool> forget(BuildContext context) async {
-    final confirmed = await ConfirmationDialog.ask(
-      context,
-      title: 'Forget ${device.name}?',
-      confirmLabel: 'Forget',
-      message: 'Removes this TV, its layout and saved authorization.',
-    );
-    if (!confirmed || !context.mounted) {
-      return false;
-    }
-    var removed = false;
-    await _protect(context, () async {
-      await dependencies.connection.forget(device);
-      removed = true;
-    });
-    return removed;
-  }
-
   Future<void> _protect(
     BuildContext context,
     Future<void> Function() action,

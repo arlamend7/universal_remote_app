@@ -1,4 +1,5 @@
 import 'discovery_protocol.dart';
+
 /// Untrusted protocol evidence. No observation is an authenticated device ID.
 final class DiscoveryObservation {
   DiscoveryObservation({

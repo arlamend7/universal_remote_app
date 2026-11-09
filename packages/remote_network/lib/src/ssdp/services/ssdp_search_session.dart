@@ -166,6 +166,9 @@ final class SsdpSearchSession {
   }
 
   void _configureMulticast() {
+    if (destination != null && !destination!.isMulticast) {
+      return;
+    }
     _socket.multicastHops = 2;
     final address = localAddress;
     if (address == null) {
@@ -198,8 +201,9 @@ final class SsdpSearchSession {
     final target = broadFallback && _attempts == _maxAttempts && _found.isEmpty
         ? 'ssdp:all'
         : serviceType;
+    final host = destination?.address ?? '239.255.255.250';
     final request = utf8.encode(
-      'M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: "ssdp:discover"\r\nMX: 2\r\nST: $target\r\n\r\n',
+      'M-SEARCH * HTTP/1.1\r\nHOST: $host:$destinationPort\r\nMAN: "ssdp:discover"\r\nMX: 2\r\nST: $target\r\n\r\n',
     );
     final sent = _socket.send(
       request,

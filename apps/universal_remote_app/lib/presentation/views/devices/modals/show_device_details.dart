@@ -14,7 +14,7 @@ Future<void> showDeviceDetails(
   RemoteDevice device,
 ) => showAppSheet<void>(
   context,
-  title: 'Device settings',
+  title: 'Device info',
   child: DeviceDetailsContent(
     model: DeviceDetailsViewModel(dependencies, device),
   ),

@@ -34,8 +34,6 @@ class DeviceDetailsContent extends StatelessWidget {
         onPressed: () => model.customize(context),
         child: const Text('Customize remote'),
       ),
-      _action('Rename', Icons.edit_outlined, () => model.rename(context)),
-      _action('Connection settings', Icons.link, () => model.edit(context)),
       _advanced(context),
     ],
   );
@@ -81,19 +79,6 @@ class DeviceDetailsContent extends StatelessWidget {
       if (model.selected)
         _action('Disconnect', Icons.link_off, () => model.disconnect(context)),
       CapabilityEvidenceList(evidence: model.evidence),
-      TextButton(
-        onPressed: () => _forget(context),
-        child: Text(
-          'Forget device',
-          style: TextStyle(color: Theme.of(context).colorScheme.error),
-        ),
-      ),
     ],
   );
-  Future<void> _forget(BuildContext context) async {
-    final removed = await model.forget(context);
-    if (removed && context.mounted) {
-      Navigator.pop(context);
-    }
-  }
 }

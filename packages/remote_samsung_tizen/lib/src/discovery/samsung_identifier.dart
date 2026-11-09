@@ -3,7 +3,8 @@ import 'package:remote_network/remote_network.dart';
 
 import '../connection/samsung_endpoint.dart';
 
-final class SamsungIdentifier implements ProviderIdentifier, UnicastProbe {
+final class SamsungIdentifier
+    implements ProviderIdentifier, UnicastProbe, AddressIdentifier {
   const SamsungIdentifier();
 
   static const service = 'urn:samsung.com:service:MultiScreenService:1';
@@ -53,6 +54,12 @@ final class SamsungIdentifier implements ProviderIdentifier, UnicastProbe {
       observation,
     );
   }
+
+  @override
+  Future<bool> recognizesAddress(
+    String address,
+    DiscoveryCancellation cancellation,
+  ) => probeSsdpAddress(address, service, cancellation);
 
   @override
   Future<bool> probe(

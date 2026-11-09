@@ -41,13 +41,29 @@ final class DeviceGridsController {
         'The layout contains overlapping or invalid controls.',
       );
     }
-    final result = _writes.then((_) => _save(_key(device), layout.encode()));
-    _writes = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
-    await result;
+    final key = _key(device);
+    await _enqueue(() => _persist({..._dashboards, key: layout.encode()}));
   }
 
-  Future<void> _save(String deviceId, String layout) async {
-    final next = {..._dashboards, deviceId: layout};
+  Future<void> removeForDevice(Iterable<String> ids) {
+    final keys = ids.toSet();
+    return _enqueue(() async {
+      final next = {..._dashboards}
+        ..removeWhere((key, _) => keys.contains(key));
+      if (next.length == _dashboards.length) {
+        return;
+      }
+      await _persist(next);
+    });
+  }
+
+  Future<void> _enqueue(Future<void> Function() operation) {
+    final result = _writes.then((_) => operation());
+    _writes = result.then<void>((_) {}, onError: (Object _, StackTrace _) {});
+    return result;
+  }
+
+  Future<void> _persist(Map<String, String> next) async {
     await repository.save(next);
     _dashboards = next;
     revision.value++;

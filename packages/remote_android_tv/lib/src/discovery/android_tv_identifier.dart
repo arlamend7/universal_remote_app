@@ -2,7 +2,8 @@ import 'package:remote_core/remote_core.dart';
 
 import '../security/discover_peer_identity.dart';
 
-final class AndroidTvIdentifier implements ProviderIdentifier, UnicastProbe {
+final class AndroidTvIdentifier
+    implements ProviderIdentifier, UnicastProbe, AddressIdentifier {
   const AndroidTvIdentifier({this.inspectIdentity = discoverPeerIdentity});
 
   static final providerId = ProviderIdentity.androidTv.storageId;
@@ -56,6 +57,23 @@ final class AndroidTvIdentifier implements ProviderIdentifier, UnicastProbe {
       ),
       observation,
     );
+  }
+
+  @override
+  Future<bool> recognizesAddress(
+    String address,
+    DiscoveryCancellation cancellation,
+  ) async {
+    if (cancellation.isCancelled) {
+      return false;
+    }
+    final peers = await Future.wait([
+      for (final port in [6466, 6467])
+        discoverPeerIdentity(address, port: port),
+    ]);
+    return !cancellation.isCancelled &&
+        peers.first != null &&
+        peers.first == peers.last;
   }
 
   @override

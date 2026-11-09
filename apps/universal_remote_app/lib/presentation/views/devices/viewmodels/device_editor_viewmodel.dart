@@ -5,11 +5,14 @@ final class DeviceEditorViewModel {
   DeviceEditorViewModel({
     required this.factory,
     this.device,
+    this.identifyAddress,
     this.setups = const {},
     DeviceNetworkConfiguration configuration =
         const DeviceNetworkConfiguration(),
   }) {
-    provider.value = device?.providerId ?? setups.keys.firstOrNull;
+    provider.value =
+        device?.providerId ??
+        (identifyAddress == null ? setups.keys.firstOrNull : null);
     name.text = device?.name ?? 'Living room TV';
     address.text = configuration.address;
     certificate.text = configuration.certificate;
@@ -19,6 +22,11 @@ final class DeviceEditorViewModel {
     legacyPointer.value = configuration.allowInsecurePointer;
   }
   final ManualDeviceFactory factory;
+  final Future<List<String>> Function(String, DiscoveryCancellation)?
+  identifyAddress;
+  final checking = ValueNotifier(false);
+  DiscoveryCancellation? _scan;
+  bool _disposed = false;
   final Map<String, ManualDeviceSetup> setups;
   final provider = ValueNotifier<String?>(null);
   final RemoteDevice? device;
@@ -31,9 +39,10 @@ final class DeviceEditorViewModel {
   final legacyPointer = ValueNotifier(false);
   final error = ValueNotifier<String?>(null);
   Listenable get changes =>
-      Listenable.merge([legacy, legacyPointer, error, provider]);
+      Listenable.merge([legacy, legacyPointer, error, provider, checking]);
   bool get showsAdvancedSetup =>
-      setups[provider.value]?.showsAdvancedSetup ?? true;
+      setups[provider.value]?.showsAdvancedSetup ??
+      (editing || identifyAddress == null);
   bool get editing => device != null;
   void setLegacy(bool enabled) {
     legacy.value = enabled;
@@ -43,11 +52,52 @@ final class DeviceEditorViewModel {
     legacyPointer.value = enabled;
   }
 
-  RemoteDevice? submit() {
+  Future<RemoteDevice?> submit() async {
+    if (checking.value || _disposed) {
+      return null;
+    }
+    error.value = null;
+    if (editing || provider.value != null || identifyAddress == null) {
+      return _create(provider.value);
+    }
+    return _detect();
+  }
+
+  Future<RemoteDevice?> _detect() async {
+    final token = _scan = DiscoveryCancellation();
+    final host = address.text.trim();
+    checking.value = true;
+    try {
+      final matches = await identifyAddress!(host, token);
+      if (_disposed || address.text.trim() != host) {
+        return null;
+      }
+      if (matches.length == 1) {
+        return _create(matches.single);
+      }
+      error.value = matches.isEmpty
+          ? 'Could not detect the TV platform. Choose it manually and try again.'
+          : 'More than one platform matched. Choose the platform for your TV.';
+      return null;
+    } catch (exception) {
+      if (!_disposed) {
+        error.value = _message(exception);
+      }
+      return null;
+    } finally {
+      token.cancel();
+      _scan = null;
+      if (!_disposed) {
+        checking.value = false;
+      }
+    }
+  }
+
+  RemoteDevice? _create(String? selectedProvider) {
     try {
       final create = editing
           ? factory
-          : setups[provider.value]?.factory ?? factory;
+          : setups[selectedProvider]?.factory ?? factory;
       return create(
         address: address.text,
         name: name.text,
@@ -75,6 +125,9 @@ final class DeviceEditorViewModel {
   }
 
   void dispose() {
+    _disposed = true;
+    _scan?.cancel();
+    checking.dispose();
     name.dispose();
     address.dispose();
     certificate.dispose();

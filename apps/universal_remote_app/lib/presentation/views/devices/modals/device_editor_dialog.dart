@@ -24,8 +24,14 @@ class DeviceEditorDialog extends StatelessWidget {
   Widget _actions() => AppSheetActions(
     secondary: OutlinedButton(onPressed: onCancel, child: const Text('Cancel')),
     primary: FilledButton(
-      onPressed: onSubmit,
-      child: Text(model.editing ? 'Save details' : 'Connect'),
+      onPressed: model.checking.value ? null : onSubmit,
+      child: Text(_submitLabel),
     ),
   );
+  String get _submitLabel {
+    if (model.checking.value) {
+      return 'Checking TV…';
+    }
+    return model.editing ? 'Save details' : 'Connect';
+  }
 }

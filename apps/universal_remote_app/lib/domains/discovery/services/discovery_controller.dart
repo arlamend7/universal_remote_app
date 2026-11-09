@@ -29,6 +29,8 @@ class DiscoveryController {
       >(const {});
   int searchId = 0;
   final devices = ValueNotifier<List<RemoteDevice>>([]);
+  final recentDevices = ValueNotifier<List<RemoteDevice>>(const []);
+  Timer? _presenceExpiry;
   final busy = ValueNotifier(false);
   final error = ValueNotifier<String?>(null);
   DiscoveryCancellation? _cancellation;
@@ -61,6 +63,7 @@ class DiscoveryController {
     _record('discovery.started');
     error.value = null;
     devices.value = [];
+    _clearPresence();
     try {
       await acquireNetwork();
       if (cancellation.isCancelled) {
@@ -140,6 +143,17 @@ class DiscoveryController {
       return;
     }
     devices.value = found;
+    recentDevices.value = found;
+    _presenceExpiry?.cancel();
+    if (found.isNotEmpty) {
+      _presenceExpiry = Timer(const Duration(seconds: 45), _clearPresence);
+    }
+  }
+
+  void _clearPresence() {
+    _presenceExpiry?.cancel();
+    _presenceExpiry = null;
+    recentDevices.value = const [];
   }
 
   Future<void> _releaseNetwork() async {
@@ -173,6 +187,8 @@ class DiscoveryController {
   void dispose() {
     _disposed = true;
     cancel();
+    _presenceExpiry?.cancel();
+    recentDevices.dispose();
     devices.dispose();
     busy.dispose();
     error.dispose();

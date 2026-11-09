@@ -207,6 +207,11 @@ void main() {
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
     await tester.tap(find.byTooltip('Connect by IP'));
     await tester.pumpAndSettle();
+    expect(find.text('Detect automatically'), findsOneWidget);
+    await tester.tap(find.text('Detect automatically'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('LG webOS').last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Advanced settings'));
     await tester.pumpAndSettle();
     expect(

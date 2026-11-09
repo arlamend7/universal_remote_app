@@ -13,10 +13,12 @@ class DevicesViewport extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ContentPage(
     maxWidth: 640,
-    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+    padding: const EdgeInsets.only(top: 12, bottom: 24),
     children: [
-      _header(context),
-      const SizedBox(height: 18),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+        child: _header(context),
+      ),
       DeviceListSection(model: model),
     ],
   );

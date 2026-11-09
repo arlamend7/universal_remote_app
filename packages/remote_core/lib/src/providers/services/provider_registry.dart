@@ -4,12 +4,53 @@ import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/provider.dart';
 
 import '../models/provider_definition.dart';
+import '../../discovery.dart';
+import '../../discovery/address_identifier.dart';
+import '../../discovery/is_local_probe_address.dart';
 
 final class ProviderRegistry {
   final _definitions = <String, ProviderDefinition<RemoteBase>>{};
 
   Iterable<ProviderDefinition<RemoteBase>> get definitions =>
       _definitions.values;
+
+  bool get canIdentifyAddresses => definitions.any(
+    (definition) =>
+        definition.manualSetup != null &&
+        definition.identifier is AddressIdentifier,
+  );
+
+  Future<List<String>> identifyAddress(
+    String address,
+    DiscoveryCancellation cancellation,
+  ) async {
+    if (!isLocalProbeAddress(address)) {
+      throw const FormatException('Enter a numeric local TV IP address.');
+    }
+    final results = await Future.wait([
+      for (final definition in definitions)
+        if (definition.manualSetup != null &&
+            definition.identifier is AddressIdentifier)
+          _identifyAddress(definition, address, cancellation),
+    ]);
+    return cancellation.isCancelled ? [] : results.whereType<String>().toList();
+  }
+
+  Future<String?> _identifyAddress(
+    ProviderDefinition<RemoteBase> definition,
+    String address,
+    DiscoveryCancellation cancellation,
+  ) async {
+    final identifier = definition.identifier as AddressIdentifier;
+    try {
+      final matches = await identifier
+          .recognizesAddress(address, cancellation)
+          .timeout(const Duration(seconds: 4));
+      return matches ? definition.id : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   bool isRegistered(String id) => _definitions.containsKey(id);
 

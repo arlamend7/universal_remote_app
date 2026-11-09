@@ -5,21 +5,90 @@ The current folder map and readability conventions are in
 [contexts/architecture/readability-rules.md](contexts/architecture/readability-rules.md).
 Navigation uses DEVCOM route_definer 4.0.0 at a verified, pinned Git revision.
 
-Universal Remote is a Pub workspace with the app and six library packages. Core and protocol code is pure
-Dart. The application and shared remote UI import Flutter. Native storage plugins remain in the application.
+Universal Remote is a Pub workspace. The app and `remote_ui` use Flutter.
+`remote_core`, `remote_network`, and the provider packages use Dart.
+Native storage and platform adapters are wired in the app.
+
+## From finding a TV to controlling it
 
 ```mermaid
 flowchart TD
-  Bootstrap[AppBootstrap] --> Dependencies[AppDependencies]
-  Dependencies --> Screens[Flutter screens]
-  Screens --> State[Injected controllers and ValueNotifiers]
-  State --> Registry[ProviderRegistry]
-  Registry --> LG[remote_lg_webos]
-  LG --> Core[remote_core]
-  LG --> Network[remote_network]
-  State --> Storage[ApplicationStorage and CredentialStore]
-  Storage --> Native[flutter_secure_storage]
+  subgraph discovery["1 · Find a TV"]
+    nearby["Find Nearby Devices · run searches in parallel"]
+    nearby --> ssdp["SSDP · collect service advertisements and device IDs"]
+    nearby --> bonjour["Bonjour · browse services and resolve addresses"]
+    nearby --> direct["Direct IP / Unicast · probe saved addresses"]
+  end
+
+  subgraph providers["Providers"]
+    lgProvider["LG webOS"]
+    rokuProvider["Roku"]
+    samsungProvider["Samsung Tizen"]
+    androidProvider["Android TV / Google TV"]
+    otherProviders["…"]
+  end
+
+  subgraph identification["2 · Decide which provider can connect"]
+    match["Provider identifiers evaluate discovery evidence"]
+    known["Provider verifies saved device identity"]
+    list["Nearby list merges and updates results as they arrive"]
+    match --> list
+    known --> list
+  end
+
+  lgProvider --> match
+  rokuProvider --> match
+  samsungProvider --> match
+  androidProvider --> match
+  otherProviders --> match
+
+  ssdp --> match
+  bonjour --> match
+  direct --> known
+
+  subgraph connection["3 · Connect and pair"]
+    select["User selects a device"]
+    open["Selected provider opens a connection"]
+    authorize["Verify trust and pair when required, or reuse saved credentials"]
+    ready["Connected provider reports supported capabilities"]
+    select --> open --> authorize --> ready
+  end
+
+  list --> select
+  manual["Connect by IP · enter the TV address"] --> addressChecks["Enabled providers check that address in parallel"]
+  providers -.-> addressChecks
+  addressChecks -->|"One match"| select
+  addressChecks -->|"No match or several matches · choose provider manually"| select
+
+  subgraph remoteUi["Remote UI · remote_ui"]
+    catalog["Remote item catalog · Direction pad, Volume rocker, Channel rocker, Apps, Keyboard"]
+  end
+
+  subgraph controls["4 · Show controls and send a command"]
+    grid["Show supported controls in the saved or starter layout"]
+    action["Remote sends a typed action to the active provider"]
+    execute["Active provider translates and executes the action"]
+    tv["TV receives the command"]
+    grid -->|"User activates a control"| action --> execute --> tv
+  end
+
+  ready --> grid
+  catalog -->|"Items filtered by device capabilities"| grid
+  providers -.->|"Only the active provider executes"| execute
 ```
+
+The three lanes are shared discovery mechanisms. Each provider and service
+search runs independently, so one failure or timeout appears in **Search details**
+while other searches can still add devices to the list. Provider identifiers
+decide which responses they recognize. An **SSDP USN** is an identifier inside
+a reply that a provider can use to distinguish devices.
+Matching evidence updates the same row. A TV can appear in Nearby before
+pairing, and **Connect by IP** works independently of discovery.
+
+LG webOS, Android TV / Google TV, and Samsung Tizen are registered by default.
+Roku is opt-in for development builds. Bluetooth accessory controls on supported
+TVs are separate from TV discovery. Amazon Fire TV has no registered provider
+in this version.
 
 ## Injection and ownership
 
@@ -33,7 +102,7 @@ There is no Riverpod, GetIt, global service locator, or hidden dependency lookup
 `ValueNotifier` owns UI state; `ValueListenableBuilder` and `ListenableBuilder`
 render it. Discovery, selected device, connection/pairing, volume/command progress,
 saved profiles, and settings have separate observable values. Protocol state
-remains in the LG client. Tests replace storage, providers, and transports. Bootstrap uses native preferences
+remains in the provider clients. Tests replace storage, providers, and transports. Bootstrap uses native preferences
 for profiles/settings and a separate secure adapter only for pairing keys. It does
 not access Keychain during normal startup.
 
@@ -54,13 +123,13 @@ cancellation token. The app listens to an immutable stream of merged device
 snapshots. Repeated matches update the existing device when the evidence
 establishes the same identity. Provider and protocol identities use enums, and
 saved profiles retain their existing provider IDs.
-`LgIdentifier`, `AndroidTvIdentifier`, and `RokuIdentifier` validate evidence and
-produce provider-specific connection profiles. Identification never creates a
+`LgIdentifier`, `AndroidTvIdentifier`, `SamsungIdentifier`, and `RokuIdentifier`
+validate evidence and produce provider-specific connection profiles. Identification never creates a
 controller. Unknown or ambiguous results remain visible in discovery without a
 Connect action.
 
 `DeviceIdentifierResolver` scopes identity to the integration. A matching
-certificate fingerprint can correlate an Android TV after DHCP renewal. LG and
+certificate fingerprint can correlate an Android TV after DHCP renewal. LG, Samsung and
 Roku service identities are namespaced and also require the same endpoint unless
 stronger evidence is available. Addresses, friendly names and unverified MAC
 addresses cannot establish an identity. Different integrations can be linked in
@@ -80,8 +149,10 @@ preference do not grant authorization.
 stateDiagram-v2
   [*] --> Disconnected
   Disconnected --> Connecting: user selects TV
-  Connecting --> Pairing: SSAP socket open
-  Pairing --> Connected: registered and capability checks complete
+  Connecting --> Pairing: TV authorization required
+  Connecting --> Connected: existing authorization accepted
+  Connecting --> Disconnected: connection failed or cancelled
+  Pairing --> Connected: authorization accepted
   Pairing --> Disconnected: rejection / timeout / cancellation
   Connected --> Reconnecting: unexpected socket loss
   Reconnecting --> Connected: authorized reconnect

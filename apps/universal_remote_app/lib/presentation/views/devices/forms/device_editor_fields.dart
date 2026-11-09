@@ -10,7 +10,8 @@ class DeviceEditorFields extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (!model.editing && model.setups.length > 1) ...[
+      if (!model.editing &&
+          (model.setups.length > 1 || model.identifyAddress != null)) ...[
         _platform(),
         const SizedBox(height: 16),
       ],
@@ -32,15 +33,27 @@ class DeviceEditorFields extends StatelessWidget {
     ],
   );
   Widget _platform() => DropdownButtonFormField<String>(
-    initialValue: model.provider.value,
+    initialValue: model.provider.value ?? _automatic,
+
     isExpanded: true,
     decoration: const InputDecoration(labelText: 'TV platform'),
     items: [
+      if (model.identifyAddress != null)
+        const DropdownMenuItem(
+          value: _automatic,
+          child: Text('Detect automatically'),
+        ),
       for (final entry in model.setups.entries)
         DropdownMenuItem(value: entry.key, child: Text(entry.value.label)),
     ],
-    onChanged: (value) => model.provider.value = value,
+    onChanged: model.checking.value ? null : _selectPlatform,
   );
+
+  static const _automatic = '';
+
+  void _selectPlatform(String? value) {
+    model.provider.value = value == _automatic ? null : value;
+  }
 
   Widget _name() => TextField(
     controller: model.name,
@@ -48,6 +61,7 @@ class DeviceEditorFields extends StatelessWidget {
   );
   Widget _address() => TextField(
     controller: model.address,
+    enabled: !model.checking.value,
     autocorrect: false,
     decoration: const InputDecoration(
       labelText: 'TV IP address',

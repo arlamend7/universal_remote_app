@@ -5,6 +5,9 @@ import '../../../../app/app_dependencies.dart';
 import '../modals/edit_device.dart';
 import '../../discovery/modals/show_device_discovery.dart';
 import '../modals/show_device_details.dart';
+
+import 'package:remote_ui/remote_ui.dart';
+
 import 'device_details_viewmodel.dart';
 
 final class DevicesViewModel {
@@ -21,25 +24,11 @@ final class DevicesViewModel {
     dependencies.connection.state,
     dependencies.connection.selected,
     dependencies.connection.commandBusy,
+    dependencies.discovery.recentDevices,
   ]);
   List<RemoteDevice> get saved => dependencies.savedDevices.devices.value;
-  Future<void> menu(
-    BuildContext context,
-    RemoteDevice device,
-    String choice,
-  ) async {
-    final details = DeviceDetailsViewModel(dependencies, device);
-    switch (choice) {
-      case 'details':
-        await showDeviceDetails(context, dependencies, device);
-      case 'layout':
-        await details.customize(context);
-      case 'rename':
-        await details.rename(context);
-      case 'forget':
-        await details.forget(context);
-    }
-  }
+  Future<void> info(BuildContext context, RemoteDevice device) =>
+      showDeviceDetails(context, dependencies, device);
 
   Future<void> search(BuildContext context) async {
     final device = await showDeviceDiscovery(context, dependencies);
@@ -72,6 +61,19 @@ final class DevicesViewModel {
       !dependencies.connection.commandBusy.value &&
       dependencies.providers.canWake(device);
 
+  bool possiblyAwake(RemoteDevice device) {
+    if (!dependencies.providers.canWake(device)) {
+      return false;
+    }
+    const resolver = DeviceIdentifierResolver();
+    final logical = dependencies.savedDevices.logicalDevice(device.id);
+    final profiles =
+        logical?.profiles.map((profile) => profile.device) ?? [device];
+    return dependencies.discovery.recentDevices.value.any(
+      (found) => profiles.any((profile) => resolver.same(profile, found)),
+    );
+  }
+
   String? platformOf(RemoteDevice device) =>
       dependencies.providers.manualSetups[device.providerId]?.label ??
       device.manufacturer;
@@ -83,35 +85,27 @@ final class DevicesViewModel {
     onConnect(device);
   }
 
-  Future<void> edit(
-    BuildContext context,
-    RemoteDevice device, {
-    required bool saved,
-  }) async {
-    final edited = await editDevice(context, dependencies, device: device);
-    if (edited == null) {
-      return;
-    }
-    try {
-      await _save(edited, saved);
-      onConnect(edited);
-    } catch (_) {
-      _showError(context, 'Could not save protected device details.');
-    }
-  }
-
-  Future<void> _save(RemoteDevice device, bool saved) async {
-    if (!saved) {
-      return;
-    }
-    await dependencies.savedDevices.save(device);
-  }
+  Future<void> edit(BuildContext context, RemoteDevice device) =>
+      DeviceDetailsViewModel(dependencies, device).edit(context);
 
   Future<void> forget(BuildContext context, RemoteDevice device) async {
+    final confirmed = await ConfirmationDialog.ask(
+      context,
+      title: 'Delete ${device.name}?',
+      confirmLabel: 'Delete',
+      message:
+          'Removes this device, its saved layouts and pairing credentials.',
+    );
+    if (!confirmed || !context.mounted) {
+      return;
+    }
     try {
       await dependencies.connection.forget(device);
     } catch (_) {
-      _showError(context, 'Could not remove the protected device data.');
+      _showError(
+        context,
+        'Could not remove the saved device data. Please retry.',
+      );
     }
   }
 

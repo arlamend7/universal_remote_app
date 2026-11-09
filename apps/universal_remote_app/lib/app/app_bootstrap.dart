@@ -86,6 +86,7 @@ abstract final class AppBootstrap {
       saved,
       logger,
       autoReconnect: () => settings.autoReconnect.value,
+      removeDashboards: grids.removeForDevice,
       wakeLearner: DeviceWakeLearner(
         lookup: saved.byId,
         update: saved.updateExisting,

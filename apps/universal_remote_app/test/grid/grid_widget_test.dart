@@ -165,7 +165,7 @@ void main() {
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
       await tester.tap(find.text('Devices'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Living room options'));
+      await tester.tap(find.byTooltip('Living room info'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Customize remote'));
       await tester.pumpAndSettle();
@@ -208,7 +208,7 @@ void main() {
       );
       await tester.tap(find.text('Devices'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Living room options'));
+      await tester.tap(find.byTooltip('Living room info'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Customize remote'));
       await tester.pumpAndSettle();

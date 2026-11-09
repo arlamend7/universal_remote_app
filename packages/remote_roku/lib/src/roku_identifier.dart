@@ -6,7 +6,8 @@ import 'roku_endpoint.dart';
 import 'roku_ecp_client.dart';
 import 'roku_serial.dart';
 
-final class RokuIdentifier implements ProviderIdentifier, UnicastProbe {
+final class RokuIdentifier
+    implements ProviderIdentifier, UnicastProbe, AddressIdentifier {
   const RokuIdentifier();
 
   static final providerId = ProviderIdentity.roku.storageId;
@@ -63,6 +64,20 @@ final class RokuIdentifier implements ProviderIdentifier, UnicastProbe {
       ),
       observation,
     );
+  }
+
+  @override
+  Future<bool> recognizesAddress(
+    String address,
+    DiscoveryCancellation cancellation,
+  ) async {
+    if (cancellation.isCancelled ||
+        !isRokuLanAddress(InternetAddress.tryParse(address))) {
+      return false;
+    }
+    final info = await RokuEcpClient(rokuEndpoint(address))
+        .query('device-info', cancellation: cancellation);
+    return !cancellation.isCancelled && rokuSerial(info) != null;
   }
 
   @override

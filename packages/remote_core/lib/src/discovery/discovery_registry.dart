@@ -13,12 +13,11 @@ final class DiscoveryRegistry {
 
   void register(DiscoveryProtocol protocolId, DiscoverySearch search) {
     if (_searches.containsKey(protocolId)) {
-      throw ArgumentError(
-        'Discovery protocol IDs must be unique.',
-      );
+      throw ArgumentError('Discovery protocol IDs must be unique.');
     }
     _searches[protocolId] = search;
   }
 
-  DiscoverySearch? operator [](DiscoveryProtocol protocolId) => _searches[protocolId];
+  DiscoverySearch? operator [](DiscoveryProtocol protocolId) =>
+      _searches[protocolId];
 }

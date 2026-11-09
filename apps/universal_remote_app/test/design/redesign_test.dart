@@ -46,9 +46,7 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(3));
       expect(find.text('Network wake'), findsNothing);
       await captureDesign(tester, key, '01-devices');
-      await tester.tap(find.byTooltip('Living room options'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('View details'));
+      await tester.tap(find.byTooltip('Living room info'));
       await tester.pumpAndSettle();
       expect(
         find.descendant(

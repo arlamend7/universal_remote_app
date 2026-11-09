@@ -83,6 +83,14 @@ Use the first to choose a paired device, or pin one accessory with the second.
 Tapping a device toggles its current connection. Initial pairing still uses
 the TV menu.
 
+## Connect by IP
+
+Enter the TV's local IP address and leave **TV platform** set to
+**Detect automatically**. Enabled providers check that address in parallel.
+A single match continues to connection and pairing. If detection finds no
+match or several matches, choose the TV platform manually. Some firmware
+answers Nearby discovery while ignoring direct identification probes.
+
 ## Connect a Samsung Tizen TV
 
 1. Turn the TV on and connect it and your phone or computer to the same local network.

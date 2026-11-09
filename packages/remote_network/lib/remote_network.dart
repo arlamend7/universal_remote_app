@@ -18,3 +18,4 @@ export 'src/wake_on_lan/functions/ipv4_broadcast_address.dart';
 export 'src/ssdp/models/ssdp_socket_failure.dart';
 export 'src/bonjour/mdns_discovery.dart';
 export 'src/ssdp/services/ssdp_protocol.dart';
+export 'src/ssdp/services/probe_ssdp_address.dart';

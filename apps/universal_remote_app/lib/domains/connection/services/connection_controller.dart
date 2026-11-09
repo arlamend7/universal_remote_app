@@ -16,10 +16,12 @@ class ConnectionController implements RemotePanelSession {
     this.saved,
     this.logger, {
     this.wakeLearner,
+    this.removeDashboards,
     this.autoReconnect,
     this.wakeRetryDelay = const Duration(seconds: 2),
   });
   final DeviceWakeLearner? wakeLearner;
+  final Future<void> Function(Iterable<String>)? removeDashboards;
   final bool Function()? autoReconnect;
   final Duration wakeRetryDelay;
 
@@ -400,7 +402,13 @@ class ConnectionController implements RemotePanelSession {
   }
 
   Future<void> forget(RemoteDevice device) async {
+    final logical = saved.logicalDevice(device.id);
     await _deselect(device);
+    await removeDashboards?.call({
+      device.id,
+      if (logical != null) logical.id,
+      ...?logical?.profiles.map((profile) => profile.id),
+    });
     await saved.forget(device);
   }
 
@@ -414,8 +422,12 @@ class ConnectionController implements RemotePanelSession {
             true) {
       return;
     }
-    await disconnect();
-    selected.value = null;
+    final disconnecting = disconnect();
+    final generation = _generation;
+    await disconnecting;
+    if (_isCurrent(generation)) {
+      selected.value = null;
+    }
   }
 
   Future<void> lifecycle(AppLifecycleState lifecycle) async {

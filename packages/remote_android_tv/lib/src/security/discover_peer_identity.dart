@@ -6,6 +6,7 @@ import 'pairing_proof.dart';
 /// or sending any pairing messages. A saved pin is still required to reconnect.
 Future<String?> discoverPeerIdentity(
   String address, {
+  int port = 6467,
   Duration timeout = const Duration(milliseconds: 900),
   bool reportNetworkFailure = false,
 }) async {
@@ -13,7 +14,7 @@ Future<String?> discoverPeerIdentity(
   try {
     final socket = await SecureSocket.connect(
       address,
-      6467,
+      port,
       context: SecurityContext(withTrustedRoots: false),
       timeout: timeout,
       onBadCertificate: (certificate) {

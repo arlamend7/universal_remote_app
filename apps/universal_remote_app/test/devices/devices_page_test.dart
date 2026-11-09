@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_ui/remote_ui.dart';
+import 'package:universal_remote_app/presentation/views/devices/widgets/swipe_device_tile.dart';
+import 'package:universal_remote_app/presentation/views/devices/widgets/device_category_badge.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
@@ -70,6 +73,21 @@ void main() {
 
     expect(find.text('CONFIGURED DISPLAYS (2)'), findsOneWidget);
     expect(find.text('0 Connected'), findsOneWidget);
+    final badges = find.byType(DeviceCategoryBadge);
+    expect(
+      tester
+          .widgetList<DeviceCategoryBadge>(badges)
+          .every((badge) => !badge.connected && !badge.possiblyAwake),
+      isTrue,
+    );
+    app.discovery.recentDevices.value = [bedroom];
+    await tester.pump();
+    expect(
+      tester
+          .widgetList<DeviceCategoryBadge>(badges)
+          .where((badge) => badge.possiblyAwake),
+      hasLength(1),
+    );
     expect(find.byTooltip('Wake device'), findsOneWidget);
     expect(find.byTooltip('Open remote'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -86,15 +104,54 @@ void main() {
     expect(find.byTooltip('Open remote'), findsOneWidget);
     expect(find.byTooltip('Wake device'), findsNothing);
 
-    await tester.tap(find.byTooltip('Bedroom TV options'));
+    await tester.tap(find.byTooltip('Bedroom TV info'));
     await tester.pumpAndSettle();
-    expect(find.text('View details'), findsOneWidget);
+    expect(find.text('Device info'), findsOneWidget);
     expect(find.text('Customize remote'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     final disconnecting = app.connection.disconnect();
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await disconnecting;
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('swipe reveals edit and confirmed delete clears saved data', (
+    tester,
+  ) async {
+    final storage = MemoryStorage();
+    final app = await AppBootstrap.initialize(storage: storage);
+    await app.savedDevices.save(tv);
+    await app.grids.save(tv, GridLayout([]));
+    await app.savedDevices.credentials.write(tv.id, 'pairing-key');
+    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+
+    final row = find.byType(SwipeDeviceTile);
+    expect(find.text('192.168.1.20'), findsNothing);
+    await tester.drag(row, const Offset(-180, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit').hitTestable(), findsOneWidget);
+    await tester.tap(find.text('Edit').hitTestable());
+    await tester.pumpAndSettle();
+    expect(find.text('Connection settings'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    await tester.drag(row, const Offset(-180, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').hitTestable());
+    await tester.pumpAndSettle();
+    expect(find.text('Delete Living room?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(app.savedDevices.devices.value, isEmpty);
+    expect(app.grids.forDevice(tv), isNull);
+    expect(await app.savedDevices.credentials.read(tv.id), isNull);
+    expect(storage.values['saved-devices.v2'], isNot(contains(tv.id)));
+    expect(storage.values['dashboards.v2'], isNot(contains(tv.id)));
+    expect(row, findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
