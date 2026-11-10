@@ -45,6 +45,10 @@ final class AndroidTvController extends TVRemoteBase
       if (session.supportsKeys) ...[
         _known(RemoteCapability.navigation),
         _known(RemoteCapability.media),
+        _known(RemoteCapability.numericKeys),
+        _known(RemoteCapability.tvSettings),
+        _known(RemoteCapability.inputPicker),
+        _known(RemoteCapability.mute),
         const CapabilityEvidence(
           RemoteCapability.channels,
           CapabilitySource.driver,
@@ -53,6 +57,13 @@ final class AndroidTvController extends TVRemoteBase
         ),
       ],
       if (session.supportsVolumeKeys) _known(RemoteCapability.volume),
+      if (session.supportsIme) ...[
+        _known(RemoteCapability.textInput),
+        _known(RemoteCapability.currentContent),
+      ],
+      if (session.supportsAppLinks) _known(RemoteCapability.appShortcuts),
+      if (session.supportsAbsoluteVolume)
+        _known(RemoteCapability.absoluteVolume),
       if (session.supportsPower) _known(RemoteCapability.power),
       if (session.volume != null)
         const CapabilityEvidence(
@@ -97,10 +108,19 @@ final class AndroidTvController extends TVRemoteBase
     final session = _session = AndroidRemoteSession(host, identity);
     await session.connect(() => unawaited(disconnect()));
     _ensureCurrent(attempt);
-    var feedbackAvailable = session.volume != null;
+    var audio = (
+      session.volume != null,
+      session.supportsAbsoluteVolume,
+      session.supportsMute,
+    );
     _volumeSubscription = session.volumes.listen((_) {
-      if (!feedbackAvailable && identical(_session, session)) {
-        feedbackAvailable = true;
+      final next = (
+        session.volume != null,
+        session.supportsAbsoluteVolume,
+        session.supportsMute,
+      );
+      if (audio != next && identical(_session, session)) {
+        audio = next;
         _capabilities.add(null);
       }
     });
@@ -218,9 +238,13 @@ final class AndroidTvController extends TVRemoteBase
   });
 
   @override
-  Future<void> setVolume(int volume) => _unsupported();
+  Future<void> setVolume(int volume) async =>
+      await (_session?.setVolume(volume) ?? _unsupported());
   @override
-  Future<void> setMuted(bool muted) => _unsupported();
+  Future<void> toggleMute() => sendKey(RemoteKey.mute);
+  @override
+  Future<void> setMuted(bool muted) async =>
+      await (_session?.setMuted(muted) ?? _unsupported());
   @override
   Future<VolumeState> readVolume() async =>
       _session?.volume ?? await _unsupported();
@@ -242,23 +266,62 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Future<void> click() => _unsupported();
   @override
-  Future<void> sendKey(RemoteKey key) => _unsupported();
+  Future<void> sendKey(RemoteKey key) {
+    final digit = int.tryParse(key.wireName);
+    if (digit != null) {
+      return _key(7 + digit);
+    }
+    return switch (key) {
+      RemoteKey.enter => _key(23),
+      RemoteKey.settings => _key(AndroidRemoteSession.settingsKey),
+      RemoteKey.source => _key(178),
+      RemoteKey.mute => _key(164),
+      _ => _unsupported(),
+    };
+  }
+
   @override
-  Future<void> sendText(String text) => _unsupported();
+  Future<void> sendText(String text) async =>
+      await (_session?.text(text) ?? _unsupported());
   @override
-  Future<void> sendEnter() => _unsupported();
+  Future<void> sendEnter() async =>
+      await (_session?.submit() ?? _unsupported());
   @override
   Future<List<DeviceInput>> inputs() => _unsupported();
   @override
   Future<void> selectInput(String id) => _unsupported();
   @override
   Future<List<DeviceApplication>> applications() => _unsupported();
+
   @override
   Future<void> launchApplication(String id) => _unsupported();
+
   @override
-  Future<String?> currentApplication() => _unsupported();
+  Future<void> launchShortcut(String target) async {
+    final uri = Uri.tryParse(target);
+    final safe =
+        target == 'vnd.youtube://' ||
+        (uri != null &&
+            uri.scheme == 'https' &&
+            uri.host.isNotEmpty &&
+            uri.userInfo.isEmpty);
+    if (!safe ||
+        target.length > 512 ||
+        !supports(RemoteCapability.appShortcuts)) {
+      throw const RemoteException(
+        'appLink',
+        'Enter a supported app link, such as vnd.youtube:// or an HTTPS link.',
+      );
+    }
+    await _session!.launchLink(target);
+  }
+
   @override
-  Future<CurrentContent> currentContent() => _unsupported();
+  Future<String?> currentApplication() async => _session?.content?.appId;
   @override
-  Stream<CurrentContent> watchCurrentContent() => const Stream.empty();
+  Future<CurrentContent> currentContent() async =>
+      _session?.content ?? await _unsupported();
+  @override
+  Stream<CurrentContent> watchCurrentContent() =>
+      _session?.contents ?? const Stream.empty();
 }

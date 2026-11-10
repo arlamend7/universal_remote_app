@@ -63,7 +63,11 @@ final class CurrentContentObserver {
     if (old?.appId == content.appId &&
         old?.appName == content.appName &&
         old?.channelName == content.channelName &&
-        old?.channelNumber == content.channelNumber) {
+        old?.channelNumber == content.channelNumber &&
+        old?.liveTv == content.liveTv &&
+        old?.programTitle == content.programTitle &&
+        old?.position == content.position &&
+        old?.duration == content.duration) {
       return;
     }
     value.value = content;

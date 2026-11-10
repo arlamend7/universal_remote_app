@@ -139,7 +139,9 @@ final class GridRemoteViewModel implements TvRemoteDevice {
 
   @override
   Future<List<DeviceChannel>> installedChannels() {
-    final channels = tv(RemoteCapability.channelSelection);
+    final channels =
+        tv(RemoteCapability.channelSelection) ??
+        tv(RemoteCapability.channelCatalog);
     if (channels == null) {
       throw const RemoteException(
         'channels',
@@ -195,6 +197,11 @@ final class GridRemoteViewModel implements TvRemoteDevice {
             ?.contains(id) ==
         false;
   }
+
+  @override
+  Future<void> launchShortcut(String target) => execute(() async {
+    await tv(RemoteCapability.appShortcuts)?.launchShortcut(target);
+  });
 
   @override
   Future<void> launchApp(DeviceApplication app) => execute(() async {
@@ -287,7 +294,11 @@ final class GridRemoteViewModel implements TvRemoteDevice {
 
   @override
   Future<void> media(MediaAction action) => execute(() async {
-    final controller = tv(RemoteCapability.media);
+    final controller =
+        tv(RemoteCapability.media) ??
+        (action == MediaAction.rewind || action == MediaAction.fastForward
+            ? tv(RemoteCapability.playbackScan)
+            : null);
     if (controller == null) {
       return;
     }
@@ -301,9 +312,39 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     }
   });
   @override
-  Future<void> key(RemoteKey key) => execute(() async {
-    await tv(RemoteCapability.pointer)?.sendKey(key);
-  });
+  Future<void> key(RemoteKey key) {
+    if (key == RemoteKey.settings) {
+      return remote.connection.openTvSettings();
+    }
+    return execute(() async {
+      final capability = switch (key) {
+        RemoteKey.source => RemoteCapability.inputPicker,
+        RemoteKey.settings => RemoteCapability.tvSettings,
+        RemoteKey.replay => RemoteCapability.instantReplay,
+        RemoteKey.menu ||
+        RemoteKey.info ||
+        RemoteKey.guide ||
+        RemoteKey.exit ||
+        RemoteKey.red ||
+        RemoteKey.green ||
+        RemoteKey.yellow ||
+        RemoteKey.blue =>
+          remote.supports(RemoteCapability.specialKeys)
+              ? RemoteCapability.specialKeys
+              : RemoteCapability.pointer,
+        _ =>
+          remote.supports(RemoteCapability.numericKeys)
+              ? RemoteCapability.numericKeys
+              : RemoteCapability.pointer,
+      };
+      final controller = tv(capability);
+      if (controller == null) {
+        return;
+      }
+      await controller.sendKey(key);
+    });
+  }
+
   @override
   Future<void> move(double x, double y, {bool scroll = false}) async {
     final pointer = tv(RemoteCapability.pointer);
@@ -328,17 +369,15 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     await tv(RemoteCapability.pointer)?.click();
   });
   @override
-  Future<void> mute(bool? value) {
-    final muted = remote.volume?.muted;
-    final target = value ?? (muted == null ? null : !muted);
-    if (target == null) {
-      return Future.value();
-    }
-    return _changeVolume(
-      (tv) => tv.setMuted(target),
-      capability: RemoteCapability.mute,
-    );
-  }
+  Future<void> mute(bool? value) => value == null
+      ? _changeVolume(
+          (tv) => tv.toggleMute(),
+          capability: RemoteCapability.mute,
+        )
+      : _changeVolume(
+          (tv) => tv.setMuted(value),
+          capability: RemoteCapability.mute,
+        );
 
   @override
   Future<List<BluetoothAccessory>> bluetoothAccessories() async {
@@ -371,13 +410,24 @@ final class GridRemoteViewModel implements TvRemoteDevice {
         !identical(owner, remote.connection.controller)) {
       return;
     }
-    final id = await DeviceChoiceSheet.choose(context, title, [
-      for (final entry in choices)
-        (
-          collection.entryId(entry),
-          (collection.choiceName ?? collection.entryName)(entry),
-        ),
-    ], grid: collection.leading != null);
+    final id = await DeviceChoiceSheet.choose(
+      context,
+      title,
+      [
+        for (final entry in choices)
+          (
+            collection.entryId(entry),
+            (collection.choiceName ?? collection.entryName)(entry),
+          ),
+      ],
+      grid: collection.leading != null,
+      readOnly: collection.readOnly,
+      artwork: {
+        for (final entry in choices)
+          if (collection.artwork?.call(entry) case final uri?)
+            collection.entryId(entry): uri,
+      },
+    );
     if (id == null || !identical(owner, remote.connection.controller)) {
       return;
     }

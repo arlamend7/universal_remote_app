@@ -239,7 +239,7 @@ void main() {
 }
 
 Future<void> _removeInputs(WidgetTester tester) async {
-  final remove = find.byTooltip('Remove Input picker');
+  final remove = find.byTooltip('Remove Inputs');
   await tester.ensureVisible(remove);
   await tester.tap(remove);
   await tester.pumpAndSettle();

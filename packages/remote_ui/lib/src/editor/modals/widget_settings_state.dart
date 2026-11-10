@@ -46,7 +46,21 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     CollectionLayout(:final presentation) => presentation,
     _ => null,
   };
-  bool get _choosesTargets => _presentation?.choosesTargets ?? false;
+  bool get _hasTargetPicker => _presentation?.choosesTargets ?? false;
+  bool get _choosesTargets =>
+      _hasTargetPicker &&
+      _hasCapability(_definition.collectionAlternative?.primary);
+
+  bool _hasCapability(RemoteCapability? capability) {
+    if (capability == null) {
+      return true;
+    }
+    final connection = widget.dependencies.live.connection;
+    return connection.selected.value?.id == widget.model.device.id &&
+            connection.state.value == DeviceConnectionState.connected
+        ? connection.supports(capability)
+        : widget.model.device.capabilities.contains(capability);
+  }
 
   @override
   void dispose() {
@@ -88,7 +102,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
       'showLabel': '$showLabel',
       'showIcon': '$showIcon',
       if (_holdable) 'hold': '$hold',
-      if (_choosesTargets) 'targets': encodeWidgetTargets(targets),
+      if (_hasTargetPicker) 'targets': encodeWidgetTargets(targets),
     };
   }
 
@@ -133,7 +147,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
         onChanged: (next) => setState(() => style = next),
       ),
       if (_pressable.isNotEmpty) _largerIcons(),
-      for (final setting in _definition.settings) _setting(setting),
+      for (final setting in _definition.settings)
+        if (_showSetting(setting)) _setting(setting),
       if (_choosesTargets) _targets(),
       if (_isGroup)
         TextButton.icon(
@@ -228,18 +243,28 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     height = definition.height;
   });
 
+  bool _showSetting(RemoteSetting setting) {
+    final alternate = _definition.collectionAlternative;
+    return alternate == null ||
+        setting.key != alternate.setting ||
+        _hasCapability(alternate.fallback);
+  }
+
   Widget _setting(RemoteSetting setting) => switch (setting.type) {
     RemoteSettingType.toggle => SwitchListTile(
       title: Text(setting.label),
       value: setting.isOn(settings),
       onChanged: (value) => setState(() => settings[setting.key] = '$value'),
     ),
-    RemoteSettingType.number => TextField(
+    RemoteSettingType.number || RemoteSettingType.text => TextField(
       controller: _numbers.putIfAbsent(
         setting.key,
         () => TextEditingController(text: setting.read(settings)),
       ),
-      keyboardType: TextInputType.number,
+      keyboardType: setting.type == RemoteSettingType.number
+          ? TextInputType.number
+          : TextInputType.url,
+      autocorrect: false,
       decoration: InputDecoration(labelText: setting.label),
     ),
     RemoteSettingType.slider => Column(

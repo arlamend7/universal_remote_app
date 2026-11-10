@@ -71,6 +71,10 @@ void main() {
       write.completeError(StateError('test transport write rejected'));
       await rejected;
       transports.single.launchWrite = null;
+      await remote.sendKey(RemoteKey.source);
+      await remote.sendKey(RemoteKey.mute);
+      await remote.sendKey(RemoteKey.digit3);
+      await remote.launchShortcut('456');
       await remote.launchApplication('123');
       await remote.powerOff();
       expect(
@@ -78,6 +82,10 @@ void main() {
         containsAllInOrder([
           containsPair('DataOfCmd', 'KEY_ENTER'),
           containsPair('DataOfCmd', 'KEY_VOLUP'),
+          containsPair('DataOfCmd', 'KEY_SOURCE'),
+          containsPair('DataOfCmd', 'KEY_MUTE'),
+          containsPair('DataOfCmd', 'KEY_3'),
+          containsPair('data', containsPair('appId', '456')),
           containsPair('event', 'ed.apps.launch'),
           containsPair('DataOfCmd', 'KEY_POWER'),
         ]),

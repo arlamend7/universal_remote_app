@@ -112,6 +112,9 @@ final class LgDeviceController extends TVRemoteBase
   Future<void> setMuted(bool muted) =>
       _use<LgVolumeController>(RemoteCapability.mute).setMuted(muted);
   @override
+  Future<void> toggleMute() =>
+      _use<LgVolumeController>(RemoteCapability.mute).toggleMute();
+  @override
   Future<VolumeState> readVolume() =>
       _use<LgVolumeController>(RemoteCapability.volumeFeedback).readVolume();
   @override

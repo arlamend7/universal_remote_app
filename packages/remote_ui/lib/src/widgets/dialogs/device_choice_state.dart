@@ -29,6 +29,8 @@ class DeviceChoiceState extends State<DeviceChoiceSheet> {
             .toList(),
         grid: widget.grid,
         selectedId: widget.selectedId,
+        artwork: widget.artwork,
+        readOnly: widget.readOnly,
       ),
     ],
   );

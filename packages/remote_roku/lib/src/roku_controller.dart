@@ -6,6 +6,7 @@ import 'package:xml/xml.dart';
 import 'roku_app_catalog.dart';
 import 'roku_ecp_client.dart';
 import 'roku_serial.dart';
+import 'roku_channel_data.dart';
 
 final class RokuController extends TVRemoteBase {
   RokuController(this._device, this.client);
@@ -21,6 +22,8 @@ final class RokuController extends TVRemoteBase {
   final _unavailable = <RemoteCapability>{};
   final _capabilities = <RemoteCapability>{};
   RokuAppCatalog? _catalog;
+  bool _isTv = false;
+  bool _hasTunerFeedback = false;
   String? _serial;
   int _generation = 0;
   bool _disposed = false;
@@ -90,6 +93,9 @@ final class RokuController extends TVRemoteBase {
     final isTv = info.getElement('is-tv')?.innerText == 'true';
     final catalogRequest = _loadCatalog();
     final content = await _probeContent();
+    final channelList = isTv
+        ? await _readChannelCatalog()
+        : const <DeviceChannel>[];
     final catalog = await catalogRequest;
     if (generation != _generation) {
       throw const RemoteException(
@@ -103,10 +109,18 @@ final class RokuController extends TVRemoteBase {
       category: isTv ? DeviceCategory.television : DeviceCategory.mediaPlayer,
     );
     _catalog = catalog;
+    _isTv = isTv;
+    _hasTunerFeedback = channelList.isNotEmpty;
     _capabilities.addAll({
       RemoteCapability.navigation,
       RemoteCapability.textInput,
       RemoteCapability.playbackToggle,
+      RemoteCapability.playbackScan,
+      RemoteCapability.instantReplay,
+      if (isTv) RemoteCapability.channels,
+      if (channelList.isNotEmpty) RemoteCapability.channelCatalog,
+      if (_supportsControl(info, 'supports-audio-volume-control', isTv))
+        RemoteCapability.mute,
       if (_supportsControl(info, 'supports-audio-volume-control', isTv))
         RemoteCapability.volume,
       if (_supportsControl(info, 'supports-tv-power-control', isTv))
@@ -136,7 +150,9 @@ final class RokuController extends TVRemoteBase {
   Future<RokuAppCatalog?> _loadCatalog() async {
     try {
       final root = await client.query('apps');
-      return root.name.local == 'apps' ? RokuAppCatalog(root) : null;
+      return root.name.local == 'apps'
+          ? RokuAppCatalog(root, client.endpoint)
+          : null;
     } on RemoteException {
       return null;
     }
@@ -179,6 +195,8 @@ final class RokuController extends TVRemoteBase {
     _capabilities.clear();
     _unavailable.clear();
     _catalog = null;
+    _isTv = false;
+    _hasTunerFeedback = false;
     _state(DeviceConnectionState.disconnected);
   }
 
@@ -276,19 +294,44 @@ final class RokuController extends TVRemoteBase {
   @override
   Future<void> setMuted(bool muted) => _unsupported();
   @override
+  Future<void> toggleMute() => sendKey(RemoteKey.mute);
+  @override
   Future<VolumeState> readVolume() => _unsupported();
   @override
   Stream<VolumeState> watchVolume() => const Stream.empty();
   @override
-  Future<void> channelUp() => _unsupported();
+  Future<void> channelUp() => _key(RemoteCapability.channels, 'ChannelUp');
   @override
-  Future<void> channelDown() => _unsupported();
+  Future<void> channelDown() => _key(RemoteCapability.channels, 'ChannelDown');
   @override
-  Future<List<DeviceChannel>> channels() => _unsupported();
+  Future<List<DeviceChannel>> channels() async {
+    if (!_isTv || !supports(RemoteCapability.channelCatalog)) {
+      return _unsupported();
+    }
+    return rokuChannels(await client.query('tv-channels'));
+  }
+
+  Future<List<DeviceChannel>> _readChannelCatalog() async {
+    final root = await _optionalQuery('tv-channels');
+    return root == null ? const [] : rokuChannels(root);
+  }
+
+  Future<XmlElement?> _optionalQuery(String name) async {
+    try {
+      return await client.query(name);
+    } on RemoteException {
+      return null;
+    }
+  }
+
   @override
   Future<void> selectChannel(String id) => _unsupported();
   @override
-  Future<void> sendMedia(MediaAction action) => _unsupported();
+  Future<void> sendMedia(MediaAction action) => switch (action) {
+    MediaAction.rewind => _key(RemoteCapability.playbackScan, 'Rev'),
+    MediaAction.fastForward => _key(RemoteCapability.playbackScan, 'Fwd'),
+    _ => _unsupported(),
+  };
   @override
   Future<void> movePointer(double dx, double dy) => _unsupported();
   @override
@@ -296,7 +339,11 @@ final class RokuController extends TVRemoteBase {
   @override
   Future<void> click() => _unsupported();
   @override
-  Future<void> sendKey(RemoteKey key) => _unsupported();
+  Future<void> sendKey(RemoteKey key) => switch (key) {
+    RemoteKey.mute => _key(RemoteCapability.mute, 'VolumeMute'),
+    RemoteKey.replay => _key(RemoteCapability.instantReplay, 'InstantReplay'),
+    _ => _unsupported(),
+  };
   @override
   Future<String?> currentApplication() async => (await currentContent()).appId;
   @override
@@ -310,9 +357,37 @@ final class RokuController extends TVRemoteBase {
         'Roku did not report the current app.',
       );
     }
+    return _readActivity(app?.getAttribute('id') ?? 'roku.home', name);
+  }
+
+  Future<CurrentContent> _readActivity(String appId, String name) async {
+    if (state != DeviceConnectionState.connected) {
+      return CurrentContent(appId: appId, appName: name);
+    }
+    final tuner = _hasTunerFeedback
+        ? await _optionalQuery('tv-active-channel')
+        : null;
+    final channel = tuner?.getElement('channel');
+    if (rokuField(channel, 'active-input') == 'true') {
+      return CurrentContent(
+        appId: appId,
+        appName: name,
+        liveTv: true,
+        channelNumber: rokuField(channel, 'number'),
+        channelName: rokuField(channel, 'name'),
+        programTitle: rokuField(channel, 'program-title'),
+      );
+    }
+    final player = await _optionalQuery('media-player');
+    final playerApp = player?.getElement('plugin')?.getAttribute('id');
+    if (player == null || player.name.local != 'player' || playerApp != appId) {
+      return CurrentContent(appId: appId, appName: name);
+    }
     return CurrentContent(
-      appId: app?.getAttribute('id') ?? 'roku.home',
+      appId: appId,
       appName: name,
+      position: rokuMediaTime(player, 'position'),
+      duration: rokuMediaTime(player, 'duration'),
     );
   }
 

@@ -27,3 +27,9 @@ extension AccessorySettings on RemotePanelSession {
     await tvWith(RemoteCapability.accessorySettings)?.openAccessorySettings();
   });
 }
+
+extension TvSettingsAction on RemotePanelSession {
+  Future<void> openTvSettings() => execute(() async {
+    await tvWith(RemoteCapability.tvSettings)?.sendKey(RemoteKey.settings);
+  });
+}

@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart' show Icon, Icons;
+import 'package:flutter/material.dart'
+    show Icon, IconData, Icons, ScaffoldMessenger, SnackBar, Text;
 import 'package:remote_core/remote_core.dart';
 
 import '../devices/tv_remote_device.dart';
 import '../elements/remote_action.dart';
 import '../elements/remote_collection.dart';
+import '../elements/remote_element_context.dart';
 import '../elements/remote_info.dart';
 import '../elements/remote_reading.dart';
 import '../elements/remote_input.dart';
@@ -352,6 +354,71 @@ abstract final class TvItems {
     keyDigit0,
     keyEnter,
   ];
+  static final configuredApp = RemoteAction<TvRemoteDevice>(
+    'configured_app',
+    builder: (context, remote) {
+      final target = context.settings['appTarget']?.trim() ?? '';
+      return (
+        icon: Icons.launch,
+        label: 'Launch app',
+        enabled: target.isNotEmpty,
+        execute: () => remote.launchShortcut(target),
+      );
+    },
+  );
+
+  static final inputPicker = _remoteKey(
+    'input_picker',
+    'Input picker',
+    Icons.input,
+    RemoteKey.source,
+  );
+  static final settings = _remoteKey(
+    'tv_settings',
+    'Open TV settings',
+    Icons.settings,
+    RemoteKey.settings,
+  );
+  static final replay = _remoteKey(
+    'instant_replay',
+    'Instant replay',
+    Icons.replay,
+    RemoteKey.replay,
+  );
+
+  static RemoteAction<TvRemoteDevice> _remoteKey(
+    String id,
+    String label,
+    IconData icon,
+    RemoteKey key,
+  ) => RemoteAction<TvRemoteDevice>(
+    id,
+    builder: (context, remote) => (
+      icon: icon,
+      label: label,
+      enabled: true,
+      execute: () async {
+        await remote.key(key);
+        if (key == RemoteKey.source || key == RemoteKey.settings) {
+          _confirmSent(context);
+        }
+      },
+    ),
+  );
+
+  /// These keys give no feedback on the TV's state, so say the command left.
+  static void _confirmSent(RemoteElementContext context) {
+    final screen = context.buildContext;
+    if (screen == null || !screen.mounted) {
+      return;
+    }
+    ScaffoldMessenger.maybeOf(screen)?.showSnackBar(
+      const SnackBar(
+        content: Text('Command sent. Check the TV for a response.'),
+      ),
+    );
+  }
+
   static final muteToggle = RemoteAction<TvRemoteDevice>(
     'mute_toggle',
     builder: (context, remote) {
@@ -361,8 +428,13 @@ abstract final class TvItems {
             ? Icons.volume_up_outlined
             : Icons.volume_off_outlined,
         label: muted == true ? 'Unmute' : 'Mute',
-        enabled: muted != null,
-        execute: () => remote.mute(null),
+        enabled: context.remote.supports(RemoteCapability.mute),
+        execute: () async {
+          await remote.mute(null);
+          if (muted == null) {
+            _confirmSent(context);
+          }
+        },
       );
     },
   );
@@ -463,7 +535,7 @@ abstract final class TvItems {
     builder: (context, remote) => (
       icon: Icons.add,
       label: 'Next channel',
-      enabled: context.remote.content?.isLiveTv == true,
+      enabled: true,
       execute: remote.channelUp,
     ),
   );
@@ -474,7 +546,7 @@ abstract final class TvItems {
     builder: (context, remote) => (
       icon: Icons.remove,
       label: 'Previous channel',
-      enabled: context.remote.content?.isLiveTv == true,
+      enabled: true,
       execute: remote.channelDown,
     ),
   );
@@ -573,6 +645,18 @@ abstract final class TvItems {
     sample: (data) => data.channels,
     onSelected: (remote, channel) => remote.channel(channel.id),
   );
+  static final channelCatalog = RemoteCollection<TvRemoteDevice, DeviceChannel>(
+    'channel_catalog',
+    title: 'Reported channels',
+    icon: (_) => Icons.live_tv,
+    load: (remote) => remote.installedChannels(),
+    entryId: (channel) => channel.id,
+    entryName: (channel) => '${channel.number} ${channel.name}'.trim(),
+    fromOption: (id, name) => DeviceChannel(id, name, ''),
+    sample: (data) => data.channels,
+    onSelected: (_, _) async {},
+    readOnly: true,
+  );
   static final volume = RemoteInfo<TvRemoteDevice>(
     'current_volume',
     icon: (_) => Icons.volume_up_outlined,
@@ -615,6 +699,7 @@ abstract final class TvItems {
         title: 'Apps',
         icon: (_) => Icons.apps,
         trackedByDevice: true,
+        artwork: (app) => app.artwork,
         leading: (id, name) => TvAppIcon(appId: id, name: name),
         load: (remote) => remote.installedApps(),
         entryId: (app) => app.id,

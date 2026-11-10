@@ -30,6 +30,13 @@ final class RemoteSetting {
   }) : type = RemoteSettingType.slider,
        fallback = '$initial';
 
+  const RemoteSetting.text(this.key, this.label)
+    : type = RemoteSettingType.text,
+      fallback = '',
+      minimum = 0,
+      maximum = 512,
+      divisions = null;
+
   final String key;
   final String label;
   final RemoteSettingType type;
@@ -53,6 +60,9 @@ final class RemoteSetting {
 
   /// A message when [value] cannot be saved, otherwise null.
   String? problem(String value) {
+    if (type == RemoteSettingType.text) {
+      return value.trim().length > maximum ? 'Use up to 512 characters.' : null;
+    }
     if (type != RemoteSettingType.number) {
       return null;
     }

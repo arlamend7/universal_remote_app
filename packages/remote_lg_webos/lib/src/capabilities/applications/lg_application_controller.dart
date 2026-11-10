@@ -4,7 +4,8 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_lg_webos/src/commands/services/lg_command_channel.dart';
 
 final class LgApplicationController {
-  LgApplicationController(this.channel);
+  LgApplicationController(this.channel, {this.endpoint});
+  final Uri? endpoint;
   final LgCommandChannel channel;
   static const _settingsAppId = 'com.palm.app.settings';
   bool hasSettings = false;
@@ -36,10 +37,33 @@ final class LgApplicationController {
           title.trim().isEmpty) {
         continue;
       }
-      apps.putIfAbsent(id, () => DeviceApplication(id, title.trim()));
+      apps.putIfAbsent(
+        id,
+        () => DeviceApplication(
+          id,
+          title.trim(),
+          artwork: _artwork(item['icon']),
+        ),
+      );
     }
     _reported = Set.unmodifiable(apps.keys);
     return apps.values.toList();
+  }
+
+  Uri? _artwork(Object? value) {
+    final host = endpoint?.host;
+    if (value is! String || value.length > 1024 || host == null) {
+      return null;
+    }
+    final uri = Uri.tryParse(value);
+    if (uri == null ||
+        uri.host != host ||
+        uri.userInfo.isNotEmpty ||
+        uri.hasFragment ||
+        !{'http', 'https'}.contains(uri.scheme)) {
+      return null;
+    }
+    return uri;
   }
 
   Future<void> launch(String id) async {

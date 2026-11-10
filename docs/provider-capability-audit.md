@@ -24,25 +24,28 @@ implementation from confirmed protocol restrictions where evidence is available.
 | --- | --- | --- | --- | --- |
 | `press` | T/C · SSAP requests a pointer channel and the driver sends navigation frames | T/C · Remote v2 key injection (field 10), negotiated key bit; fixture covers Enter | T/C · `ms.remote.control`, fixture covers Enter | T · ECP keypress, fixture covers Select |
 | `volumeUp`, `volumeDown` | T · `audio/volumeUp` and `audio/volumeDown` | T/C · keys 24/25, requires key support; fixture covers 24 | T/C · `KEY_VOLUP` and `KEY_VOLDOWN`; fixture covers up | T/C · VolumeUp/Down on TVs or devices with positive audio-control evidence; explicit false takes precedence |
-| `setVolume` | T/C · `audio/setVolume`, disabled on explicit rejection | U · inbound level feedback does not authorize an absolute setter | U | U |
-| `setMuted` | T/C · `audio/setMute`, disabled on explicit rejection | U · mute feedback does not establish a reliable set operation | U · mute toggle does not satisfy a requested mute state | U · ECP VolumeMute is a toggle |
+| `setVolume` | T/C · `audio/setVolume`, disabled on explicit rejection | T/C · absolute output mode and output ID required | U | U |
+| `setMuted` | T/C · `audio/setMute`, disabled on explicit rejection | T/C · explicit mute uses the latest report and sends a toggle when needed | U · mute toggle does not satisfy a requested mute state | U · ECP VolumeMute is a toggle |
 | `readVolume`, `watchVolume` | C · SSAP getVolume and subscription; valid read verifies feedback | T/C · field 50 reports max, level and muted; valid report verifies feedback | U | U |
-| `channelUp`, `channelDown` | K/C · SSAP TV channel commands | T/C · sends channel keys 166/167; depends on the active input or app | K/C · `KEY_CHUP` and `KEY_CHDOWN` | I · device and source dependent |
-| `channels`, `selectChannel` | C · webOS channel list and tune commands | U | U | U |
-| `sendMedia` | K/C · SSAP media.controls actions | K/C · Remote v2 key injection with negotiated key support; app may ignore a key | K/C · discrete Samsung media keys; app may ignore a key | U · individual Play/Pause are not exposed by this driver |
+| `channelUp`, `channelDown` | K/C · SSAP TV channel commands | T/C · sends channel keys 166/167; depends on the active input or app | K/C · `KEY_CHUP` and `KEY_CHDOWN` | T/C · Roku TV channel keys, tuner-dependent |
+| `channels`, `selectChannel` | C · webOS channel list and tune commands | U | U | C · read-only tuner list, direct tune U |
+| `sendMedia` | K/C · SSAP media.controls actions | K/C · Remote v2 key injection with negotiated key support; app may ignore a key | K/C · discrete Samsung media keys; app may ignore a key | T/C · Rewind and Fast Forward only; Play/Pause is a separate toggle |
 | `togglePlayback` | U · discrete actions available | U · discrete actions available | U · discrete actions available | T · ECP Play key toggles playback |
 | `movePointer`, `scroll`, `click` | C · established webOS pointer channel | U | I · no supported pointer session in this integration | U |
-| `sendKey` | C · pointer-channel keys | U | K/C · key mapping in driver, dash unsupported; no generic keypad exposed without appropriate item evidence | U |
-| `sendText`, `sendEnter` | C · SSAP IME, focused field and app must accept input | I · IME negotiation and edit counters are unimplemented | Text U; Enter delegates to navigation | T/C · ECP Lit characters and Enter, requires keyboard context |
+| `sendKey` | C · pointer-channel keys | C · digits, settings, input picker and mute | T/C · numeric and special keys, source picker and mute; dash unsupported | T/C · instant replay and mute where supported |
+| `sendText`, `sendEnter` | C · SSAP IME, focused field and app must accept input | T/C · negotiated IME, focused field and reported submit action | Text U; Enter delegates to navigation | T/C · ECP Lit characters and Enter, requires keyboard context |
 | `inputs`, `selectInput` | T/C · nonempty external input list and SSAP input selection | U | I · input keys do not supply a discoverable catalog | T/C · TV input IDs from ECP catalog with corresponding keys |
 | `currentInput`, `currentInputChanges` | U | U | U | U |
-| `applications`, `launchApplication`, `reportedApplicationIds` | T/C · nonempty SSAP list and launcher; firmware can reject particular launches | I · app-link launch does not provide an installed catalog | T/C · nonempty `ed.installedApp.get`; `ed.apps.launch` awaits the write, which does not confirm the TV opened the app | T/C · ECP list and launch; empty or denied list hides the catalog |
-| `currentApplication`, `currentContent`, `watchCurrentContent` | C · foreground query/subscription and optional live-channel data | I · app/IME status signals need independent validation | U | T/C · verified active-app read; live subscription U |
+| `applications`, `launchApplication`, `reportedApplicationIds` | T/C · nonempty SSAP list and launcher; firmware can reject particular launches | C · configurable app-link shortcut only; installed catalog U | T/C · nonempty `ed.installedApp.get`; `ed.apps.launch` awaits the write, which does not confirm the TV opened the app | T/C · ECP list and launch; empty or denied list hides the catalog |
+| `currentApplication`, `currentContent`, `watchCurrentContent` | C · foreground query/subscription and optional live-channel data | T/C · foreground app package from IME reports | U | T/C · verified active-app read, optional tuner program and media feedback; live subscription U |
 | `powerOff` | T/C · `system/turnOff`; never probed during discovery | C · key 223 requires negotiated key and power support | T/C · `KEY_POWER` on connected remote channel | C · PowerOff, explicit device flag or older TV fallback |
 | `canWake`, `wake` | C · Wake-on-LAN, configured or learned MAC | U · no established standby-wake path for this integration | C · Wake-on-LAN, configured or learned MAC and compatible standby settings | U |
 | `bluetoothAccessories`, `toggleBluetoothAccessory` | C · compatible webOS accessory service, pairing managed by TV | U | U | U |
-| `openAccessorySettings` | C · TV-reported settings app, opens sound settings | U · generic Android Settings key does not establish an accessory settings route | U | U |
+| `openAccessorySettings` | C · TV-reported settings app, opens sound settings | U · use the separate Open TV settings action | U | U |
 | `startVoiceControl`, `toggleGameMode`, `syncWatchCompanion` | U | U | U | U |
+
+The [implementation progress audit](provider-capability-roadmap.md#implementation-progress)
+describes setup, firmware checks, and the remaining research for the operations above.
 
 ## Identity, pairing and session behavior
 

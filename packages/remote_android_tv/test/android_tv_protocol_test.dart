@@ -74,14 +74,21 @@ void main() {
       final commands = serveRemote(remoteServer);
       final lost = Completer<void>();
       await remote.connect(lost.complete);
-      expect(remote.features, 99);
+      expect(remote.features, 615);
       final reading = remote.volume ?? await remote.volumes.first;
       expect(reading.volume, 40);
+      expect(remote.supportsAbsoluteVolume, isTrue);
+      expect(remote.content?.appId, 'com.example.tv');
       expect(reading.muted, isTrue);
       await remote.key(23);
       await remote.key(24);
       await remote.key(AndroidRemoteSession.channelUpKey);
       await remote.key(AndroidRemoteSession.channelDownKey);
+      await remote.setVolume(60);
+      await remote.setMuted(false);
+      await remote.text('abc');
+      await remote.submit();
+      await remote.launchLink('vnd.youtube://');
       await commands;
       await lost.future.timeout(const Duration(seconds: 3));
     },
@@ -162,25 +169,27 @@ Future<void> serveRemote(SecureServerSocket server) async {
   final channel = FramedSocket(await server.first);
   try {
     channel.send({
-      1: WireMessage.encode({1: 35 | 64}),
+      1: WireMessage.encode({1: 35 | 64 | 4 | 512}),
     });
     final configure = await channel.next();
-    expect(WireMessage.decode(configure![1] as List<int>)[1], 99);
+    expect(WireMessage.decode(configure![1] as List<int>)[1], 615);
     channel.send({
-      50: WireMessage.encode({6: 25, 7: 10, 8: 1}),
+      50: WireMessage.encode({1: 3, 4: 2, 6: 25, 7: 10, 8: 1}),
+    });
+    channel.send({
+      20: WireMessage.encode({
+        1: WireMessage.encode({1: 9, 2: 1, 6: 3, 12: 'com.example.tv'}),
+        2: WireMessage.encode({1: 4, 3: 2, 4: 5}),
+      }),
     });
     channel.send({2: <int>[]});
     final active = await channel.next();
-    expect(WireMessage.decode(active![2] as List<int>)[1], 99);
+    expect(WireMessage.decode(active![2] as List<int>)[1], 615);
     channel.send({
       8: WireMessage.encode({1: 42}),
     });
     final messages = [
-      await channel.next(),
-      await channel.next(),
-      await channel.next(),
-      await channel.next(),
-      await channel.next(),
+      for (var index = 0; index < 10; index++) await channel.next(),
     ];
     final pong = messages.singleWhere(
       (message) => message?.containsKey(9) == true,
@@ -195,6 +204,28 @@ Future<void> serveRemote(SecureServerSocket server) async {
       {1: 166, 2: 3},
       {1: 167, 2: 3},
     ]);
+    List<Map<int, Object>> payloads(int field) => [
+      for (final message in messages)
+        if (message?[field] case final List<int> payload)
+          WireMessage.decode(payload),
+    ];
+    expect(payloads(50), [
+      {1: 3, 2: 15, 3: 1},
+    ]);
+    expect(payloads(51), [
+      {1: 3, 2: 2},
+    ]);
+    expect(payloads(90).single[1], utf8.encode('vnd.youtube://'));
+    final edits = payloads(21);
+    expect(edits.map((edit) => (edit[1], edit[2])), [(9, 4), (9, 4)]);
+    final replacement = WireMessage.decode(edits.first[3] as List<int>);
+    expect(WireMessage.decode(replacement[2] as List<int>), {
+      1: 2,
+      2: 5,
+      3: utf8.encode('abc'),
+    });
+    final submit = WireMessage.decode(edits.last[3] as List<int>);
+    expect(WireMessage.decode(submit[5] as List<int>), {1: 3});
   } finally {
     channel.close();
   }

@@ -115,7 +115,7 @@ final class LgCapabilityResolver {
   }
 
   Future<void> _applications() async {
-    final controller = LgApplicationController(commands);
+    final controller = LgApplicationController(commands, endpoint: endpoint);
     await _probe(
       RemoteCapability.applications,
       controller,

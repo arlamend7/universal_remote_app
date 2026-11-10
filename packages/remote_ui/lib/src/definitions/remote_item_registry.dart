@@ -18,7 +18,10 @@ abstract final class RemoteItemRegistry {
 
   static final _entries = {for (final item in definitions) item.id: item};
 
-  static bool isRegistered(String id) => _entries.containsKey(id);
+  static const _aliases = {'inputPicker': 'inputs', 'appLinks': 'appShortcut'};
+
+  static bool isRegistered(String id) =>
+      _entries.containsKey(_aliases[id] ?? id);
 
   /// The alternative looks of the control [id] belongs to, including itself.
   /// Only categories of alternatives offer any; other controls stand alone.
@@ -58,7 +61,7 @@ abstract final class RemoteItemRegistry {
   /// example from a newer version) resolves to the unavailable placeholder
   /// and keeps its own id, so saving the dashboard does not lose it.
   static RemoteItemDefinition<Object> resolve(String id) =>
-      _entries[id] ?? _entries['unknown']!;
+      _entries[_aliases[id] ?? id] ?? _entries['unknown']!;
 }
 
 extension RegisteredGridItem on GridItem {

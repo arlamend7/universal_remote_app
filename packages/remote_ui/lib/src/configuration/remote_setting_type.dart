@@ -1,1 +1,1 @@
-enum RemoteSettingType { toggle, number, slider }
+enum RemoteSettingType { toggle, number, slider, text }

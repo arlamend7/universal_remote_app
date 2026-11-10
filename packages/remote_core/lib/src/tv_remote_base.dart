@@ -9,6 +9,10 @@ abstract class TVRemoteBase extends RemoteBase {
   Future<void> volumeDown();
   Future<void> setVolume(int volume);
   Future<void> setMuted(bool muted);
+
+  /// Flips mute. Providers that only have a mute key send it; the state may be
+  /// unknown ([VolumeState.muted] null).
+  Future<void> toggleMute() => _unsupported('Mute');
   Future<VolumeState> readVolume();
   Stream<VolumeState> watchVolume();
 
@@ -37,6 +41,7 @@ abstract class TVRemoteBase extends RemoteBase {
 
   Future<List<DeviceApplication>> applications();
   Future<void> launchApplication(String id);
+  Future<void> launchShortcut(String target) => _unsupported('App shortcut');
   Future<String?> currentApplication();
 
   /// Ids from the latest successful app-list response, or null when unknown.
@@ -63,9 +68,10 @@ Future<Never> _unsupported(String feature) => Future.error(
 );
 
 final class DeviceApplication {
-  const DeviceApplication(this.id, this.name);
+  const DeviceApplication(this.id, this.name, {this.artwork});
   final String id;
   final String name;
+  final Uri? artwork;
 }
 
 final class DeviceChannel {
@@ -80,12 +86,20 @@ final class CurrentContent {
     this.appName,
     this.channelName,
     this.channelNumber,
+    this.liveTv = false,
+    this.programTitle,
+    this.position,
+    this.duration,
   });
   final String appId;
   final String? appName;
   final String? channelName;
   final String? channelNumber;
-  bool get isLiveTv => appId == 'com.webos.app.livetv';
+  final bool liveTv;
+  final String? programTitle;
+  final Duration? position;
+  final Duration? duration;
+  bool get isLiveTv => liveTv || appId == 'com.webos.app.livetv';
 }
 
 final class DeviceInput {
@@ -118,7 +132,11 @@ enum RemoteKey {
   red('RED'),
   green('GREEN'),
   yellow('YELLOW'),
-  blue('BLUE');
+  blue('BLUE'),
+  source('SOURCE'),
+  settings('MENU'),
+  mute('MUTE'),
+  replay('REPLAY');
 
   const RemoteKey(this.wireName);
   final String wireName;

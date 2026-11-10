@@ -54,6 +54,11 @@ class RemoteHeader extends StatelessWidget {
     onSelected: (choice) => model.menu(context, choice),
     itemBuilder: (_) => [
       const PopupMenuItem(value: 'layout', child: Text('Customize remote')),
+      if (model.canOpenTvSettings)
+        const PopupMenuItem(
+          value: 'tv-settings',
+          child: Text('Open TV settings'),
+        ),
       if (model.canOpenAccessorySettings)
         const PopupMenuItem(
           value: 'accessories',

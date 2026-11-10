@@ -2,12 +2,18 @@ import 'package:remote_core/remote_core.dart';
 import 'package:xml/xml.dart';
 
 final class RokuAppCatalog {
-  RokuAppCatalog(XmlElement root)
+  RokuAppCatalog(XmlElement root, Uri endpoint)
     : apps = [
         for (final app in root.findElements('app'))
           if (RegExp(r'^[0-9]+$').hasMatch(app.getAttribute('id') ?? '') &&
               app.innerText.trim().isNotEmpty)
-            DeviceApplication(app.getAttribute('id')!, app.innerText.trim()),
+            DeviceApplication(
+              app.getAttribute('id')!,
+              app.innerText.trim(),
+              artwork: endpoint.replace(
+                pathSegments: ['query', 'icon', app.getAttribute('id')!],
+              ),
+            ),
       ],
       inputs = [
         for (final app in root.findElements('app'))

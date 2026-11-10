@@ -9,6 +9,8 @@ final class MutedRemotePanel implements RemotePanel {
   @override
   RemoteDevice? get device => null;
   @override
+  bool supports(RemoteCapability capability) => true;
+  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnsupportedError(
     '${invocation.memberName} is not part of this fake',
   );

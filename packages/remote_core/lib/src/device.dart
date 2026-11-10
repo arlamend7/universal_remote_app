@@ -162,4 +162,12 @@ enum RemoteCapability {
   accessorySettings,
   bluetoothAccessories,
   playbackToggle,
+  numericKeys,
+  specialKeys,
+  inputPicker,
+  tvSettings,
+  playbackScan,
+  instantReplay,
+  channelCatalog,
+  appShortcuts,
 }

@@ -31,6 +31,8 @@ final class LgVolumeController {
 
   Future<void> setMuted(bool muted) =>
       _send(RemoteCapability.mute, 'audio/setMute', {'mute': muted});
+  Future<void> toggleMute() async =>
+      setMuted(!((await readVolume()).muted ?? false));
   Future<VolumeState> readVolume() async => _reader.read();
   Stream<VolumeState> watchVolume() {
     return channel

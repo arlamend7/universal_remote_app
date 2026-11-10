@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
@@ -30,6 +31,15 @@ class CollectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final alternative = definition.collectionAlternative;
+    if (alternative != null &&
+        _usesAlternative(
+          alternative.primary,
+          alternative.fallback,
+          alternative.setting,
+        )) {
+      return _alternative(context, alternative.action);
+    }
     if (_layout == CollectionPresentation.chooser) {
       return _chooser(context);
     }
@@ -46,6 +56,37 @@ class CollectionView extends StatelessWidget {
       CollectionPresentation.grid => _grid(targets),
       _ => _strip(targets),
     };
+  }
+
+  bool _usesAlternative(
+    RemoteCapability primary,
+    RemoteCapability fallback,
+    String? setting,
+  ) {
+    final configured =
+        setting != null && (item.config[setting]?.trim().isNotEmpty ?? false);
+    if (model.previewData != null) {
+      return configured;
+    }
+    return model.remote.supports(fallback) &&
+        (configured || !model.remote.supports(primary));
+  }
+
+  Widget _alternative(BuildContext context, RemoteAction<Object> action) {
+    final resolved = model.resolve(
+      action,
+      model.elementContext(item, buildContext: context),
+    );
+    return ActionButton(
+      appearance: item.config,
+      label: item.config['label'] ?? resolved?.label ?? definition.name,
+      icon: resolved?.icon ?? Icons.launch,
+      elementStyle: item.elementStyles[action.id],
+      onPressed:
+          definition.isAvailableOn(model.remote) && resolved?.enabled == true
+          ? resolved?.execute
+          : null,
+    );
   }
 
   List<(String, String)> get _targets =>

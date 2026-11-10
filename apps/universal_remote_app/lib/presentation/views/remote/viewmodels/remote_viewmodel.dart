@@ -94,18 +94,30 @@ class RemoteViewModel implements RemotePanel {
       return 'Not reported by this TV';
     }
     if (!current.isLiveTv) {
-      return 'Open on TV';
+      return current.position == null
+          ? 'Open on TV'
+          : _playbackTime(current.position!, current.duration);
     }
     final channel = [
       current.channelNumber,
       current.channelName,
+      current.programTitle,
     ].whereType<String>().join(' · ');
     return channel.isEmpty ? 'Channel not reported' : channel;
+  }
+
+  String _playbackTime(Duration position, Duration? duration) {
+    String format(Duration value) =>
+        '${value.inMinutes}:${(value.inSeconds % 60).toString().padLeft(2, '0')}';
+    return duration == null
+        ? format(position)
+        : '${format(position)} / ${format(duration)}';
   }
 
   @override
   DeviceInput? get currentInput =>
       connection.tvWith(RemoteCapability.currentInput)?.currentInput;
+  bool get canOpenTvSettings => ready && supports(RemoteCapability.tvSettings);
   bool get canOpenAccessorySettings =>
       ready && supports(RemoteCapability.accessorySettings);
 
@@ -117,6 +129,8 @@ class RemoteViewModel implements RemotePanel {
     switch (choice) {
       case 'layout':
         await openRemoteEditor(context, dependencies, current);
+      case 'tv-settings':
+        await connection.openTvSettings();
       case 'accessories':
         await connection.openAccessorySettings();
       case 'details':

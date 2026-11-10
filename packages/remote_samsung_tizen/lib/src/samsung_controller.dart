@@ -41,6 +41,11 @@ final class SamsungController extends TVRemoteBase {
     if (state == DeviceConnectionState.connected)
       for (final capability in [
         RemoteCapability.navigation,
+        RemoteCapability.numericKeys,
+        RemoteCapability.specialKeys,
+        RemoteCapability.inputPicker,
+        RemoteCapability.mute,
+        RemoteCapability.appShortcuts,
         RemoteCapability.volume,
         RemoteCapability.channels,
         RemoteCapability.media,
@@ -225,7 +230,7 @@ final class SamsungController extends TVRemoteBase {
 
   @override
   Future<void> sendKey(RemoteKey key) => switch (key) {
-    RemoteKey.dash => _unsupported(),
+    RemoteKey.dash || RemoteKey.replay => _unsupported(),
     RemoteKey.guide => _key('KEY_GUIDE'),
     _ => _key('KEY_${key.wireName}'),
   };
@@ -249,6 +254,14 @@ final class SamsungController extends TVRemoteBase {
     await _active.launch(id);
   }
 
+  @override
+  Future<void> launchShortcut(String target) async {
+    if (!RegExp(r'^[a-zA-Z0-9._-]{1,128}$').hasMatch(target)) {
+      throw const RemoteException('appId', 'Enter a valid Samsung app ID.');
+    }
+    await _active.launch(target);
+  }
+
   Future<Never> _unsupported() => Future.error(
     const RemoteException(
       'unsupported',
@@ -260,6 +273,8 @@ final class SamsungController extends TVRemoteBase {
   Future<void> setVolume(int volume) => _unsupported();
   @override
   Future<void> setMuted(bool muted) => _unsupported();
+  @override
+  Future<void> toggleMute() => sendKey(RemoteKey.mute);
   @override
   Future<VolumeState> readVolume() => _unsupported();
   @override
