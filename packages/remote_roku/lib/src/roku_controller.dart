@@ -16,6 +16,8 @@ final class RokuController extends TVRemoteBase {
   RemoteDevice _device;
   final RokuEcpClient client;
   final _states = StreamController<DeviceConnectionState>.broadcast();
+  final _inputChanges = StreamController<DeviceInput?>.broadcast();
+  DeviceInput? _currentInput;
   final _changes = StreamController<void>.broadcast();
   @override
   Stream<void> get capabilityChanges => _changes.stream;
@@ -127,7 +129,10 @@ final class RokuController extends TVRemoteBase {
         RemoteCapability.power,
       if (catalog?.apps.isNotEmpty == true) RemoteCapability.applications,
       if (content != null) RemoteCapability.currentContent,
-      if (isTv && catalog?.inputs.isNotEmpty == true) RemoteCapability.inputs,
+      if (isTv && catalog?.inputs.isNotEmpty == true) ...[
+        RemoteCapability.inputs,
+        RemoteCapability.currentInput,
+      ],
     });
     _state(DeviceConnectionState.connected);
   }
@@ -209,6 +214,7 @@ final class RokuController extends TVRemoteBase {
     await disconnect();
     await _states.close();
     await _changes.close();
+    await _inputChanges.close();
   }
 
   @override
@@ -286,9 +292,9 @@ final class RokuController extends TVRemoteBase {
   );
 
   @override
-  bool get canWake => false;
+  bool get canWake => supports(RemoteCapability.power);
   @override
-  Future<void> wake() => _unsupported();
+  Future<void> wake() => _key(RemoteCapability.power, 'PowerOn');
   @override
   Future<void> setVolume(int volume) => _unsupported();
   @override
@@ -364,6 +370,7 @@ final class RokuController extends TVRemoteBase {
     if (state != DeviceConnectionState.connected) {
       return CurrentContent(appId: appId, appName: name);
     }
+    _rememberInput(appId);
     final tuner = _hasTunerFeedback
         ? await _optionalQuery('tv-active-channel')
         : null;
@@ -391,6 +398,21 @@ final class RokuController extends TVRemoteBase {
     );
   }
 
+  void _rememberInput(String appId) {
+    final input = _catalog?.inputs
+        .where((candidate) => candidate.id == appId)
+        .firstOrNull;
+    if (input?.id == _currentInput?.id) {
+      return;
+    }
+    _currentInput = input;
+    _inputChanges.add(input);
+  }
+
+  @override
+  DeviceInput? get currentInput => _currentInput;
+  @override
+  Stream<DeviceInput?> get currentInputChanges => _inputChanges.stream;
   @override
   Stream<CurrentContent> watchCurrentContent() => const Stream.empty();
 }

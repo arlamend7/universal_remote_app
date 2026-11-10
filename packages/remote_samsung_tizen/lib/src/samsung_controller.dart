@@ -43,6 +43,7 @@ final class SamsungController extends TVRemoteBase {
         RemoteCapability.navigation,
         RemoteCapability.numericKeys,
         RemoteCapability.specialKeys,
+        RemoteCapability.tvSettings,
         RemoteCapability.inputs,
         RemoteCapability.mute,
         RemoteCapability.applications,
@@ -219,18 +220,20 @@ final class SamsungController extends TVRemoteBase {
   });
 
   @override
-  Future<void> sendMedia(MediaAction action) => _key(switch (action) {
-    MediaAction.play => 'KEY_PLAY',
-    MediaAction.pause => 'KEY_PAUSE',
-    MediaAction.stop => 'KEY_STOP',
-    MediaAction.rewind => 'KEY_REWIND',
-    MediaAction.fastForward => 'KEY_FF',
-  });
+  Future<void> sendMedia(MediaAction action) => switch (action) {
+    MediaAction.play => _key('KEY_PLAY'),
+    MediaAction.pause => _key('KEY_PAUSE'),
+    MediaAction.stop => _key('KEY_STOP'),
+    MediaAction.rewind => _key('KEY_REWIND'),
+    MediaAction.fastForward => _key('KEY_FF'),
+    MediaAction.previous || MediaAction.next => _unsupported(),
+  };
 
   @override
   Future<void> sendKey(RemoteKey key) => switch (key) {
     RemoteKey.dash || RemoteKey.replay => _unsupported(),
     RemoteKey.guide => _key('KEY_GUIDE'),
+    RemoteKey.settings => _key('KEY_MENU'),
     _ => _key('KEY_${key.wireName}'),
   };
 

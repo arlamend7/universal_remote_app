@@ -7,7 +7,7 @@ import 'roku_ecp_client.dart';
 import 'roku_endpoint.dart';
 import 'roku_identifier.dart';
 
-final class RokuProvider implements ManualDeviceProvider {
+final class RokuProvider implements ManualDeviceProvider, DeviceWakeProvider {
   const RokuProvider();
 
   String get id => RokuIdentifier.providerId;
@@ -17,6 +17,7 @@ final class RokuProvider implements ManualDeviceProvider {
     identifier: const RokuIdentifier(),
     createController: createController,
     manualSetup: this,
+    wake: this,
   );
 
   RokuController createController(RemoteDevice device) {
@@ -31,6 +32,24 @@ final class RokuProvider implements ManualDeviceProvider {
       );
     }
     return RokuController(device, RokuEcpClient(endpoint));
+  }
+
+  /// A Roku TV that reports power control can be woken with the documented
+  /// PowerOn key while it is in network standby. Streaming players cannot.
+  @override
+  bool canWakeDevice(RemoteDevice device) =>
+      supports(device) && device.capabilities.contains(RemoteCapability.power);
+
+  @override
+  Future<void> wakeDevice(RemoteDevice device) async {
+    final endpoint = device.endpoints.singleOrNull;
+    if (!canWakeDevice(device) || endpoint == null) {
+      throw const RemoteException(
+        'wakeUnavailable',
+        'This Roku has not reported TV power control.',
+      );
+    }
+    await RokuEcpClient(endpoint).key('PowerOn');
   }
 
   @override

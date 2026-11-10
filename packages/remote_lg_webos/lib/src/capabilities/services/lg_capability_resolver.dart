@@ -43,11 +43,13 @@ final class LgCapabilityResolver {
     if (!isCurrent()) {
       return;
     }
-    registry.enable(
+    final content = LgCurrentContentController(commands);
+    for (final capability in [
       RemoteCapability.currentContent,
-      LgCurrentContentController(commands),
-      CapabilityAvailability.known,
-    );
+      RemoteCapability.currentInput,
+    ]) {
+      registry.enable(capability, content, CapabilityAvailability.known);
+    }
     registry.enable(
       RemoteCapability.channels,
       commands,

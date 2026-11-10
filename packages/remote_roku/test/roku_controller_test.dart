@@ -11,6 +11,7 @@ void main() {
     final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     addTearDown(() => server.close(force: true));
     final calls = <String>[];
+    var activeApp = '<app id="12">Netflix</app>';
     server.listen((request) {
       calls.add('${request.method} ${request.uri}');
       final body = switch (request.uri.path) {
@@ -18,8 +19,7 @@ void main() {
         '/query/apps' => '<apps><app id="12">Netflix &amp; more</app><app id="tvinput.hdmi1">HDMI 1</app></apps>',
         '/query/tv-channels' => '<tv-channels><channel><number>7.1</number><name>Local</name></channel></tv-channels>',
         '/query/tv-active-channel' => '<tv-channel><channel><active-input>true</active-input><number>7.1</number><program-title>News</program-title></channel></tv-channel>',
-        '/query/active-app' =>
-          '<active-app><app id="12">Netflix</app></active-app>',
+        '/query/active-app' => '<active-app>$activeApp</active-app>',
         _ => '',
       };
       if (request.uri.path == '/keypress/VolumeUp') {
@@ -45,6 +45,18 @@ void main() {
     final activity = await controller.currentContent();
     expect(activity.channelNumber, '7.1');
     expect(activity.programTitle, 'News');
+    expect(controller.supports(RemoteCapability.currentInput), isTrue);
+    expect(controller.currentInput, isNull);
+    final changes = <DeviceInput?>[];
+    final subscription = controller.currentInputChanges.listen(changes.add);
+    addTearDown(subscription.cancel);
+    activeApp = '<app id="tvinput.hdmi1">HDMI 1</app>';
+    await controller.currentContent();
+    expect(controller.currentInput?.id, 'tvinput.hdmi1');
+    activeApp = '<app id="12">Netflix</app>';
+    await controller.currentContent();
+    expect(controller.currentInput, isNull);
+    expect(changes.map((input) => input?.name), ['HDMI 1', null]);
     expect((await controller.channels()).single.number, '7.1');
     expect(
       (await controller.applications()).single.artwork?.path,

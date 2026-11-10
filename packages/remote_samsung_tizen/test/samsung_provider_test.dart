@@ -52,6 +52,7 @@ void main() {
       expect(requests.single.port, 8002);
       expect(requests.single.queryParameters, isNot(contains('token')));
       expect(remote.supports(RemoteCapability.applications), isTrue);
+      expect(remote.supports(RemoteCapability.tvSettings), isTrue);
       expect((await remote.applications()).single.name, 'Example');
 
       await remote.press(NavigationKey.enter);
@@ -72,6 +73,7 @@ void main() {
       await rejected;
       transports.single.launchWrite = null;
       await remote.sendKey(RemoteKey.source);
+      await remote.sendKey(RemoteKey.settings);
       await remote.sendKey(RemoteKey.mute);
       await remote.sendKey(RemoteKey.digit3);
       await remote.launchApplication('456');
@@ -83,6 +85,7 @@ void main() {
           containsPair('DataOfCmd', 'KEY_ENTER'),
           containsPair('DataOfCmd', 'KEY_VOLUP'),
           containsPair('DataOfCmd', 'KEY_SOURCE'),
+          containsPair('DataOfCmd', 'KEY_MENU'),
           containsPair('DataOfCmd', 'KEY_MUTE'),
           containsPair('DataOfCmd', 'KEY_3'),
           containsPair('data', containsPair('appId', '456')),

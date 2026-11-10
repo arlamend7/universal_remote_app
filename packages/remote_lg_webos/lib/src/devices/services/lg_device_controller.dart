@@ -138,6 +138,12 @@ final class LgDeviceController extends TVRemoteBase
   Future<void> selectChannel(String id) => _channelList.selectChannel(id);
   @override
   Future<void> sendMedia(MediaAction action) async {
+    if (action == MediaAction.previous || action == MediaAction.next) {
+      throw const RemoteException(
+        'unsupported',
+        'LG webOS has no previous or next track command.',
+      );
+    }
     await _media.send(RemoteCapability.media, 'media.controls/${action.name}');
   }
 
@@ -183,6 +189,16 @@ final class LgDeviceController extends TVRemoteBase
   Set<String>? get reportedApplicationIds => _capabilities
       .controller<LgApplicationController>(RemoteCapability.applications)
       ?.reportedApplicationIds;
+  @override
+  DeviceInput? get currentInput => _capabilities
+      .controller<LgCurrentContentController>(RemoteCapability.currentInput)
+      ?.currentInput;
+  @override
+  Stream<DeviceInput?> get currentInputChanges =>
+      _capabilities
+          .controller<LgCurrentContentController>(RemoteCapability.currentInput)
+          ?.inputChanges ??
+      const Stream.empty();
   @override
   Future<CurrentContent> currentContent() => _content.currentContent();
   @override

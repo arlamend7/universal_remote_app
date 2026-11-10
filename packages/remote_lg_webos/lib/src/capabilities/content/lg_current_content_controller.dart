@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:remote_core/remote_core.dart';
 
 import '../../commands/services/lg_command_channel.dart';
@@ -7,6 +9,12 @@ final class LgCurrentContentController {
   LgCurrentContentController(this.channel);
   final LgCommandChannel channel;
   final _titles = <String, String>{};
+  final _inputChanges = StreamController<DeviceInput?>.broadcast();
+
+  /// The HDMI input implied by the latest foreground app, when it is one.
+  DeviceInput? currentInput;
+  Stream<DeviceInput?> get inputChanges => _inputChanges.stream;
+  static final _hdmi = RegExp(r'^com\.webos\.app\.hdmi(\d+)$');
   bool _loadedTitles = false;
   static const _foreground =
       'com.webos.applicationManager/getForegroundAppInfo';
@@ -23,6 +31,7 @@ final class LgCurrentContentController {
         'The TV did not report its current app.',
       );
     }
+    _rememberInput(id);
     await _loadTitles();
     final name =
         _text(response['appName']) ?? _text(response['title']) ?? _titles[id];
@@ -30,6 +39,18 @@ final class LgCurrentContentController {
       return CurrentContent(appId: id, appName: name);
     }
     return _liveChannel(id, name);
+  }
+
+  void _rememberInput(String appId) {
+    final number = _hdmi.firstMatch(appId)?.group(1);
+    final input = number == null
+        ? null
+        : DeviceInput('HDMI_$number', 'HDMI $number');
+    if (input?.id == currentInput?.id) {
+      return;
+    }
+    currentInput = input;
+    _inputChanges.add(input);
   }
 
   Future<CurrentContent> _liveChannel(String id, String? name) async {

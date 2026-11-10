@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_network/remote_network.dart';
 
 import 'android_tv_controller.dart';
 import 'discovery/android_tv_identifier.dart';
 
-final class AndroidTvProvider implements ManualDeviceProvider {
+final class AndroidTvProvider
+    implements ManualDeviceProvider, DeviceWakeProvider {
   const AndroidTvProvider({required this.credentials});
 
   final CredentialStore credentials;
@@ -17,10 +19,38 @@ final class AndroidTvProvider implements ManualDeviceProvider {
     identifier: const AndroidTvIdentifier(),
     createController: createController,
     manualSetup: this,
+    wake: this,
   );
 
   AndroidTvController createController(RemoteDevice device) =>
-      AndroidTvController(device, credentials);
+      AndroidTvController(
+        device,
+        credentials,
+        () => wakeDevice(device),
+        canWakeDevice(device),
+      );
+
+  /// Needs the TV's MAC address (learned after a connection) and network
+  /// wake enabled on the TV.
+  @override
+  bool canWakeDevice(RemoteDevice device) =>
+      supports(device) &&
+      normalizeMacAddress(device.metadata['macAddress']) != null;
+
+  @override
+  Future<void> wakeDevice(RemoteDevice device) async {
+    final mac = normalizeMacAddress(device.metadata['macAddress']);
+    if (!supports(device) || mac == null) {
+      throw const RemoteException(
+        'wakeUnavailable',
+        'The TV’s MAC address is not known yet. Connect once so it can be learned.',
+      );
+    }
+    await sendWakeOnLan(
+      mac,
+      broadcast: device.metadata['broadcastAddress'] ?? '255.255.255.255',
+    );
+  }
 
   @override
   String get manualSetupLabel => 'Google TV / Android TV';

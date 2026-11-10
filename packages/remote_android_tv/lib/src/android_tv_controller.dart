@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
 
+import 'protocol/android_key_codes.dart';
 import 'protocol/android_pairing.dart';
 import 'protocol/android_remote_session.dart';
 import 'security/client_identity.dart';
@@ -9,11 +10,12 @@ import 'security/paired_identity.dart';
 
 final class AndroidTvController extends TVRemoteBase
     implements PairingCodeReceiver {
-  AndroidTvController(this.device, this.credentials);
+  AndroidTvController(this.device, this.credentials, this._wake, this.canWake);
 
   @override
   final RemoteDevice device;
   final CredentialStore credentials;
+  final Future<void> Function() _wake;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   AndroidPairing? _pairing;
   AndroidRemoteSession? _session;
@@ -47,6 +49,9 @@ final class AndroidTvController extends TVRemoteBase
         _known(RemoteCapability.media),
         _known(RemoteCapability.numericKeys),
         _known(RemoteCapability.tvSettings),
+        _known(RemoteCapability.specialKeys),
+        _known(RemoteCapability.trackNavigation),
+        _known(RemoteCapability.voice),
         _known(RemoteCapability.inputs),
         _known(RemoteCapability.mute),
         const CapabilityEvidence(
@@ -204,9 +209,9 @@ final class AndroidTvController extends TVRemoteBase
   );
 
   @override
-  bool get canWake => false;
+  final bool canWake;
   @override
-  Future<void> wake() => _unsupported();
+  Future<void> wake() => _wake();
   @override
   Future<void> powerOff() =>
       supports(RemoteCapability.power) ? _key(223) : _unsupported();
@@ -229,19 +234,15 @@ final class AndroidTvController extends TVRemoteBase
     NavigationKey.home => 3,
   });
   @override
-  Future<void> sendMedia(MediaAction action) => _key(switch (action) {
-    MediaAction.play => 126,
-    MediaAction.pause => 127,
-    MediaAction.stop => 86,
-    MediaAction.rewind => 89,
-    MediaAction.fastForward => 90,
-  });
+  Future<void> sendMedia(MediaAction action) => _key(androidMediaCode(action));
 
   @override
   Future<void> setVolume(int volume) async =>
       await (_session?.setVolume(volume) ?? _unsupported());
   @override
   Future<void> toggleMute() => sendKey(RemoteKey.mute);
+  @override
+  Future<void> startVoiceControl() => _key(231);
   @override
   Future<void> setMuted(bool muted) async =>
       await (_session?.setMuted(muted) ?? _unsupported());
@@ -267,17 +268,8 @@ final class AndroidTvController extends TVRemoteBase
   Future<void> click() => _unsupported();
   @override
   Future<void> sendKey(RemoteKey key) {
-    final digit = int.tryParse(key.wireName);
-    if (digit != null) {
-      return _key(7 + digit);
-    }
-    return switch (key) {
-      RemoteKey.enter => _key(23),
-      RemoteKey.settings => _key(AndroidRemoteSession.settingsKey),
-      RemoteKey.source => _key(178),
-      RemoteKey.mute => _key(164),
-      _ => _unsupported(),
-    };
+    final code = androidKeyCode(key);
+    return code == null ? _unsupported() : _key(code);
   }
 
   @override

@@ -648,15 +648,15 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'previous',
     'Previous',
     RemoteItemCategory.media,
-    layout: UnavailableLayout(),
     requires: const {RemoteCapability.trackNavigation},
+    elements: [TvItems.previous],
   ),
   RemoteItemDefinition(
     'next',
     'Next',
     RemoteItemCategory.media,
-    layout: UnavailableLayout(),
     requires: const {RemoteCapability.trackNavigation},
+    elements: [TvItems.next],
   ),
   RemoteItemDefinition(
     'seek',

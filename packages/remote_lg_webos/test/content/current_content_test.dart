@@ -67,4 +67,32 @@ void main() {
     expect(unavailable, isEmpty);
     await client.close();
   });
+
+  test('a foreground HDMI app is the current input', () async {
+    final transport = FakeTransport();
+    final client = SsapClient(transport);
+    final channel = LgCommandChannel(onUnavailable: (_) {})..attach(client);
+    var app = 'com.webos.app.hdmi2';
+    transport.respond = (request) => transport.reply(
+      request,
+      request['uri'] ==
+              'ssap://com.webos.applicationManager/getForegroundAppInfo'
+          ? {'appId': app}
+          : {'returnValue': true},
+    );
+    final content = LgCurrentContentController(channel);
+    final changes = <DeviceInput?>[];
+    final subscription = content.inputChanges.listen(changes.add);
+    addTearDown(subscription.cancel);
+    expect(content.currentInput, isNull);
+    await content.currentContent();
+    expect(content.currentInput?.id, 'HDMI_2');
+    expect(content.currentInput?.name, 'HDMI 2');
+    app = 'com.netflix.app';
+    await content.currentContent();
+    expect(content.currentInput, isNull);
+    await Future<void>.delayed(Duration.zero);
+    expect(changes.map((input) => input?.id), ['HDMI_2', null]);
+    await client.close();
+  });
 }

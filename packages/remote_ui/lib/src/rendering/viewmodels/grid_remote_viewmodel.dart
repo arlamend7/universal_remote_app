@@ -299,11 +299,13 @@ final class GridRemoteViewModel implements TvRemoteDevice {
 
   @override
   Future<void> media(MediaAction action) => execute(() async {
-    final controller =
-        tv(RemoteCapability.media) ??
-        (action == MediaAction.rewind || action == MediaAction.fastForward
-            ? tv(RemoteCapability.playbackScan)
-            : null);
+    final controller = switch (action) {
+      MediaAction.previous ||
+      MediaAction.next => tv(RemoteCapability.trackNavigation),
+      MediaAction.rewind || MediaAction.fastForward =>
+        tv(RemoteCapability.media) ?? tv(RemoteCapability.playbackScan),
+      _ => tv(RemoteCapability.media),
+    };
     if (controller == null) {
       return;
     }

@@ -114,7 +114,7 @@ final class DeviceInput {
   final String name;
 }
 
-enum MediaAction { play, pause, stop, rewind, fastForward }
+enum MediaAction { play, pause, stop, rewind, fastForward, previous, next }
 
 enum NavigationKey { up, down, left, right, enter, back, home }
 

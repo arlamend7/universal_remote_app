@@ -141,6 +141,24 @@ abstract final class TvItems {
       execute: () => remote.media(MediaAction.stop),
     ),
   );
+  static final previous = RemoteAction<TvRemoteDevice>(
+    'previous',
+    builder: (context, remote) => (
+      icon: Icons.skip_previous,
+      label: 'Previous',
+      enabled: true,
+      execute: () => remote.media(MediaAction.previous),
+    ),
+  );
+  static final next = RemoteAction<TvRemoteDevice>(
+    'next',
+    builder: (context, remote) => (
+      icon: Icons.skip_next,
+      label: 'Next',
+      enabled: true,
+      execute: () => remote.media(MediaAction.next),
+    ),
+  );
   static final rewind = RemoteAction<TvRemoteDevice>(
     'rewind',
     builder: (context, remote) => (

@@ -1914,7 +1914,7 @@
       }
     },
     {
-      "name": "remote_lg_webos",
+      "name": "remote_samsung_tizen",
       "version": "0.1.0",
       "kind": "root",
       "source": "root",
@@ -1960,75 +1960,6 @@
       }
     },
     {
-      "name": "universal_remote_workspace",
-      "version": "0.0.0",
-      "kind": "root",
-      "source": "root",
-      "dependencies": [
-        "test",
-        "remote_core",
-        "remote_lg_webos",
-        "remote_android_tv",
-        "remote_network"
-      ],
-      "directDependencies": [],
-      "devDependencies": [
-        "test",
-        "remote_core",
-        "remote_lg_webos",
-        "remote_android_tv",
-        "remote_network"
-      ],
-      "dependencyConstraints": {
-        "test": "^1.31.1",
-        "remote_core": "^0.1.0",
-        "remote_lg_webos": "^0.1.0",
-        "remote_android_tv": "^0.1.0",
-        "remote_network": "^0.1.0"
-      }
-    },
-    {
-      "name": "remote_android_tv",
-      "version": "0.1.0",
-      "kind": "root",
-      "source": "root",
-      "dependencies": [
-        "remote_core",
-        "pointycastle",
-        "test"
-      ],
-      "directDependencies": [
-        "remote_core",
-        "pointycastle"
-      ],
-      "devDependencies": [
-        "test"
-      ],
-      "dependencyConstraints": {
-        "remote_core": "^0.1.0",
-        "pointycastle": "4.0.0",
-        "test": "^1.31.1"
-      }
-    },
-    {
-      "name": "pointycastle",
-      "version": "4.0.0",
-      "kind": "transitive",
-      "source": "hosted",
-      "dependencies": [
-        "collection",
-        "convert"
-      ],
-      "directDependencies": [
-        "collection",
-        "convert"
-      ],
-      "dependencyConstraints": {
-        "collection": "^1.15.0",
-        "convert": "^3.0.0"
-      }
-    },
-    {
       "name": "multicast_dns",
       "version": "0.3.3+1",
       "kind": "transitive",
@@ -2070,29 +2001,6 @@
       }
     },
     {
-      "name": "remote_samsung_tizen",
-      "version": "0.1.0",
-      "kind": "root",
-      "source": "root",
-      "dependencies": [
-        "remote_core",
-        "remote_network",
-        "test"
-      ],
-      "directDependencies": [
-        "remote_core",
-        "remote_network"
-      ],
-      "devDependencies": [
-        "test"
-      ],
-      "dependencyConstraints": {
-        "remote_core": "^0.1.0",
-        "remote_network": "^0.1.0",
-        "test": "^1.31.1"
-      }
-    },
-    {
       "name": "xml",
       "version": "6.6.1",
       "kind": "transitive",
@@ -2129,6 +2037,101 @@
       "dependencyConstraints": {
         "meta": "^1.19.0",
         "collection": "^1.19.1"
+      }
+    },
+    {
+      "name": "remote_android_tv",
+      "version": "0.1.0",
+      "kind": "root",
+      "source": "root",
+      "dependencies": [
+        "remote_core",
+        "remote_network",
+        "pointycastle",
+        "test"
+      ],
+      "directDependencies": [
+        "remote_core",
+        "remote_network",
+        "pointycastle"
+      ],
+      "devDependencies": [
+        "test"
+      ],
+      "dependencyConstraints": {
+        "remote_core": "^0.1.0",
+        "remote_network": "^0.1.0",
+        "pointycastle": "4.0.0",
+        "test": "^1.31.1"
+      }
+    },
+    {
+      "name": "pointycastle",
+      "version": "4.0.0",
+      "kind": "transitive",
+      "source": "hosted",
+      "dependencies": [
+        "collection",
+        "convert"
+      ],
+      "directDependencies": [
+        "collection",
+        "convert"
+      ],
+      "dependencyConstraints": {
+        "collection": "^1.15.0",
+        "convert": "^3.0.0"
+      }
+    },
+    {
+      "name": "remote_lg_webos",
+      "version": "0.1.0",
+      "kind": "root",
+      "source": "root",
+      "dependencies": [
+        "remote_core",
+        "remote_network",
+        "test"
+      ],
+      "directDependencies": [
+        "remote_core",
+        "remote_network"
+      ],
+      "devDependencies": [
+        "test"
+      ],
+      "dependencyConstraints": {
+        "remote_core": "^0.1.0",
+        "remote_network": "^0.1.0",
+        "test": "^1.31.1"
+      }
+    },
+    {
+      "name": "universal_remote_workspace",
+      "version": "0.0.0",
+      "kind": "root",
+      "source": "root",
+      "dependencies": [
+        "test",
+        "remote_core",
+        "remote_lg_webos",
+        "remote_android_tv",
+        "remote_network"
+      ],
+      "directDependencies": [],
+      "devDependencies": [
+        "test",
+        "remote_core",
+        "remote_lg_webos",
+        "remote_android_tv",
+        "remote_network"
+      ],
+      "dependencyConstraints": {
+        "test": "^1.31.1",
+        "remote_core": "^0.1.0",
+        "remote_lg_webos": "^0.1.0",
+        "remote_android_tv": "^0.1.0",
+        "remote_network": "^0.1.0"
       }
     }
   ],
