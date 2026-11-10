@@ -1,22 +1,35 @@
 import '../layout/models/grid_item.dart';
 import '../layout/models/grid_layout.dart';
 
-/// One starter dashboard, used by both the remote and the editor.
+/// Default remote layout inspired by the reference image.
+/// 4 columns, with the directional pad centered.
 GridLayout defaultRemoteGrid() => GridLayout([
-  _item('currentActivity', 0, 0, 2, 1),
-  _item('navigationStrip', 2, 0, 2, 1),
-  _item('directionPad', 0, 1, 2, 3),
-  _item('keyboard', 2, 1, 1, 1),
-  _item('mute', 3, 1, 1, 1),
-  _item('volumeRocker', 2, 2, 2, 1),
-  _item('channelRocker', 2, 3, 2, 1),
-  _item('apps', 0, 4, 2, 1),
-  _item('inputs', 2, 4, 2, 1),
-  _item('volumeSlider', 0, 5, 4, 1),
+  // Top-right control
+  _item('currentActivity', 0, 0, 3, 1),
+  
+  _item('mute', 3, 0, 1, 1),
+
+  // Main controls
+  _item('volumeRocker', 0, 1, 1, 3),
+  _item('directionPad', 1, 1, 2, 3),
+  _item('channelRocker', 3, 1, 1, 3),
+
+  // Bottom shortcuts
+  _item('apps', 0, 4, 1, 1),
+  _item('navigationStrip', 1, 4, 2, 1),
+  _item('inputs', 3, 4, 1, 1),
+
+  // Reserved area for optional shortcuts
 ], configuredRows: 6);
 
-GridItem _item(String definitionId, int x, int y, int w, int h) => GridItem(
-  id: 'default-${definitionId}',
+GridItem _item(
+  String definitionId,
+  int x,
+  int y,
+  int w,
+  int h,
+) => GridItem(
+  id: 'default-$definitionId',
   definitionId: definitionId,
   x: x,
   y: y,

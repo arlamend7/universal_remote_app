@@ -105,25 +105,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
       TvItems.right,
       TvItems.down,
       TvItems.left,
-      TvItems.ok,
-      TvItems.home,
-      TvItems.back,
-    ],
-  ),
-  RemoteItemDefinition(
-    'crossPad',
-    'Cross pad',
-    RemoteItemCategory.directionPad,
-    layout: DirectionPadLayout(PadShape.square, size: RemoteItemSize(3, 3)),
-    requires: const {RemoteCapability.navigation},
-    elements: [
-      TvItems.up,
-      TvItems.right,
-      TvItems.down,
-      TvItems.left,
-      TvItems.ok,
-      TvItems.home,
-      TvItems.back,
+      TvItems.ok
     ],
   ),
   RemoteItemDefinition(
