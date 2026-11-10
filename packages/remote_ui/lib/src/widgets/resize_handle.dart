@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart' show DragStartBehavior;
+import 'package:flutter/gestures.dart';
 
 import 'nine_dots_painter.dart';
 
@@ -17,42 +17,53 @@ class ResizeHandle extends StatelessWidget {
 
   final String label;
   final bool enabled;
-  final GestureDragStartCallback onStart;
-  final GestureDragUpdateCallback onUpdate;
-  final GestureDragEndCallback onEnd;
-  final VoidCallback onCancel;
+  final PointerDownEventListener onStart;
+  final PointerMoveEventListener onUpdate;
+  final PointerUpEventListener onEnd;
+  final PointerCancelEventListener onCancel;
 
-  static const double _hitSize = 36;
+  static const double _hitSize = 32;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Tooltip(
       message: 'Resize $label',
-      child: GestureDetector(
+      child: RawGestureDetector(
         behavior: HitTestBehavior.opaque,
-        dragStartBehavior: DragStartBehavior.down,
-        onPanStart: enabled ? onStart : null,
-        onPanUpdate: enabled ? onUpdate : null,
-        onPanEnd: enabled ? onEnd : null,
-        onPanCancel: onCancel,
-        child: SizedBox(
-          width: _hitSize,
-          height: _hitSize,
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: CustomPaint(
-                size: const Size.square(14),
-                painter: NineDotsPainter(
-                  enabled ? colors.onSurfaceVariant : colors.outline,
+        gestures: {
+          if (enabled)
+            EagerGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<EagerGestureRecognizer>(
+                  () => EagerGestureRecognizer(),
+                  (_) {},
                 ),
-              ),
+        },
+        child: _listener(colors),
+      ),
+    );
+  }
+
+  Widget _listener(ColorScheme colors) => Listener(
+    onPointerDown: enabled ? onStart : null,
+    onPointerMove: enabled ? onUpdate : null,
+    onPointerUp: enabled ? onEnd : null,
+    onPointerCancel: enabled ? onCancel : null,
+    child: SizedBox(
+      width: _hitSize,
+      height: _hitSize,
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: CustomPaint(
+            size: const Size.square(14),
+            painter: NineDotsPainter(
+              enabled ? colors.onSurfaceVariant : colors.outline,
             ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }

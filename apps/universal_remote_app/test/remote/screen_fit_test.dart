@@ -61,7 +61,7 @@ void main() {
     (const Size(320, 640), 1.6),
   ]) {
     testWidgets(
-      'starter and customized grid controls fit ${configuration.$1} at text scale ${configuration.$2} without page scrolling',
+      'starter and customized grid controls fit ${configuration.$1} at text scale ${configuration.$2} with position-preserving overflow',
       (tester) async {
         tester.view.physicalSize = configuration.$1;
         tester.view.devicePixelRatio = 1;
@@ -87,20 +87,17 @@ void main() {
         await tester.tap(find.text('Living room'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        expect(
-          find.descendant(
-            of: find.byType(RemoteViewport),
-            matching: find.byType(Scrollable),
-          ),
-          findsNothing,
-        );
-        final starterBounds = tester.getRect(find.byType(RemoteViewport));
-        final slider = tester.getRect(find.byType(Slider));
-        expect(slider.bottom, lessThanOrEqualTo(starterBounds.bottom));
-        expect(
-          tester.getRect(find.text('Inputs')).bottom,
-          lessThanOrEqualTo(starterBounds.bottom),
-        );
+        if (configuration == (const Size(390, 844), 1.0)) {
+          expect(
+            find.descendant(
+              of: find.byType(GridRemoteCanvas),
+              matching: find.byType(Scrollable),
+            ),
+            findsNothing,
+          );
+        }
+        final starter = tester.getRect(find.byType(Slider));
+        expect(starter.width, greaterThan(66));
         if (configuration == (const Size(390, 844), 1.0)) {
           await captureDesign(tester, capture, '39-phone-starter');
         }
@@ -123,7 +120,11 @@ void main() {
           expect(rect.top, greaterThanOrEqualTo(bounds.top));
           expect(rect.left, greaterThanOrEqualTo(bounds.left));
           expect(rect.right, lessThanOrEqualTo(bounds.right + .1));
-          expect(rect.bottom, lessThanOrEqualTo(bounds.bottom + .1));
+          expect(
+            rect.top - tester.getTopLeft(find.byType(GridRemoteCanvas)).dy,
+            closeTo(item.y * 74.8, .1),
+          );
+          expect(rect.height, closeTo(item.h * 74.8 - 8, .1));
         }
         final header = tester.getRect(find.byType(RemoteHeader));
         final first = tester.getRect(
@@ -145,6 +146,111 @@ void main() {
       },
     );
   }
+  testWidgets(
+    'explicit pages and distant cells survive viewport changes and reload',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final storage = MemoryStorage();
+      final provider = FakeProvider(enabledControls: true);
+      final app = await AppBootstrap.initialize(
+        storage: storage,
+        registry: ProviderRegistry()..registerDefinition(provider.definition),
+      );
+      await app.savedDevices.save(tv);
+      final layout = GridLayout(
+        [
+          GridItem(
+            id: 'first',
+            definitionId: 'volumeUp',
+            config: {'hold': 'true'},
+            x: 0,
+            y: 0,
+            w: 1,
+            h: 1,
+          ),
+          GridItem(
+            id: 'page-start',
+            definitionId: 'connection',
+            x: 4,
+            y: 0,
+            w: 1,
+            h: 1,
+          ),
+          GridItem(
+            id: 'distant',
+            definitionId: 'currentActivity',
+            x: 6,
+            y: 12,
+            w: 4,
+            h: 1,
+          ),
+        ],
+        columns: 10,
+        configuredRows: 14,
+        pageStarts: [0, 4],
+      );
+      await app.grids.save(tv, layout);
+      await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+      await tester.tap(find.text('Living room'));
+      await tester.pumpAndSettle();
+      final louder = find.byTooltip('Louder');
+      await tester.tap(louder);
+      await tester.pumpAndSettle();
+      expect(provider.last!.volumeControl.level, 21);
+      final hold = await tester.startGesture(tester.getCenter(louder));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(provider.last!.volumeControl.level, greaterThan(22));
+      await hold.up();
+      await tester.pumpAndSettle();
+      final distant = find.byWidgetPredicate(
+        (widget) => widget is GridRemoteItem && widget.item.id == 'distant',
+      );
+      expect(distant, findsNothing);
+      final pageTwo = find.byTooltip('Page 2 of 2');
+      final canvas = find.byType(GridRemoteCanvas);
+      await tester.dragFrom(
+        tester.getTopLeft(canvas) + const Offset(240, 95),
+        const Offset(-170, 0),
+      );
+      await tester.pumpAndSettle();
+      expect(distant, findsOneWidget);
+      final initial = tester.getSize(distant);
+      await tester.ensureVisible(distant);
+      await tester.pumpAndSettle();
+      final narrow = tester.getRect(find.byType(GridRemoteCanvas));
+      final shown = tester.getRect(distant);
+      expect(shown.left, greaterThanOrEqualTo(narrow.left));
+      expect(shown.right, lessThanOrEqualTo(narrow.right + .1));
+      tester.view.physicalSize = const Size(800, 980);
+      await tester.pumpAndSettle();
+      expect(tester.getSize(distant), initial);
+      expect(pageTwo, findsOneWidget);
+      final grid = tester.getRect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is GridRemoteItem && widget.item.id == 'page-start',
+        ),
+      );
+      final control = tester.getRect(distant);
+      expect(control.left - grid.left, closeTo(149.6, .1));
+      expect(control.top - grid.top, closeTo(897.6, .1));
+      tester.view.physicalSize = const Size(320, 640);
+      await tester.pumpAndSettle();
+      expect(tester.getSize(distant), initial);
+      expect(app.grids.forDevice(tv)!.encode(), layout.encode());
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      final reloaded = await AppBootstrap.initialize(storage: storage);
+      expect(reloaded.grids.forDevice(tv)!.encode(), layout.encode());
+      await reloaded.dispose();
+    },
+  );
+
   testWidgets(
     'View mode fills information with sample data without scrolling, sending commands or saving it',
     (tester) async {
@@ -175,9 +281,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Customize remote'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('View'));
+      await tester.tap(find.text('View Mode'));
       await tester.pumpAndSettle();
-      expect(find.text('Sample data · preview only'), findsOneWidget);
       expect(find.text('35'), findsOneWidget);
       expect(find.text('Live TV'), findsOneWidget);
       expect(find.text('National Geographic HD'), findsOneWidget);

@@ -1,4 +1,6 @@
 import '../grid_editor_page.dart';
+import '../../layout/models/square_grid_metrics.dart';
+import '../modals/grid_settings_sheet.dart';
 
 import 'package:flutter/material.dart';
 import 'package:remote_ui/src/widgets/sheets/show_app_sheet.dart';
@@ -18,6 +20,7 @@ final class GridEditorActions {
     model.select(item.id);
     await showAppModal<void>(
       context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (_) => WidgetSettingsSheet(
         item: item,
         model: model,
@@ -38,7 +41,7 @@ final class GridEditorActions {
           ),
         ),
       );
-  Future<void> library(BuildContext context) async {
+  Future<void> library(BuildContext context, {({int x, int y})? at}) async {
     final definitionId = await showAppModal<String>(
       context,
       builder: (_) => WidgetLibrarySheet(
@@ -50,7 +53,7 @@ final class GridEditorActions {
     if (definitionId == null || !context.mounted) {
       return;
     }
-    final item = model.add(definitionId);
+    final item = model.add(definitionId, at: at);
     if (item == null) {
       return;
     }
@@ -72,12 +75,52 @@ final class GridEditorActions {
     }
   }
 
-  void option(String action) {
-    if (action == 'rows') {
-      model.extend();
-      return;
+  Future<void> gridSettings(
+    BuildContext context,
+    SquareGridMetrics metrics,
+  ) async {
+    final page = model.draft.pageIndexAt(model.pageStart);
+    final result =
+        await showAppModal<({int columns, int rows, double cellSize})>(
+          context,
+          builder: (_) => GridSettingsSheet(
+            layout: model.draft.pageLayout(page),
+            metrics: metrics,
+            pageNumber: page + 1,
+          ),
+        );
+    if (result != null &&
+        context.mounted &&
+        model.draft.pageIndexAt(model.pageStart) == page) {
+      model.setDimensions(
+        result.columns,
+        result.rows,
+        cellSize: result.cellSize,
+      );
     }
-    if (action == 'reset') {
+  }
+
+  Future<void> reset(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(group == null ? 'Reset layout?' : 'Clear group?'),
+        content: const Text(
+          'This changes your draft. You can undo it before saving.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
       model.reset();
     }
   }

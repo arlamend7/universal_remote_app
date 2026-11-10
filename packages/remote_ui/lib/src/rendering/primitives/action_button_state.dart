@@ -93,7 +93,9 @@ class ActionButtonState extends State<ActionButton> {
   }
 
   Widget _button(BuildContext context) => InkWell(
-    borderRadius: BorderRadius.circular(12),
+    borderRadius: BorderRadius.circular(
+      widget.elementStyle?.cornerRadius ?? 12,
+    ),
     onTap: widget.onPressed == null ? null : _press,
     onLongPress: widget.repeat && widget.onPressed != null ? _start : null,
     child: ConstrainedBox(
@@ -123,13 +125,17 @@ class ActionButtonState extends State<ActionButton> {
   static const _inset = 4.0;
   static const _gap = 4.0;
 
+  bool get _showIcon =>
+      !widget.showLabel ||
+      widget.appearance['showLabel'] == 'false' ||
+      (widget.elementStyle?.showIcon ??
+          (widget.appearance['showIcon'] != 'false'));
+
   Widget _label() => Column(
     mainAxisSize: MainAxisSize.min,
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
-      if (!widget.showLabel ||
-          widget.appearance['showLabel'] == 'false' ||
-          widget.appearance['showIcon'] != 'false')
+      if (_showIcon)
         widget.iconWidget ??
             Icon(
               widget.icon,

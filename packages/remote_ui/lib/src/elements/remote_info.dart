@@ -11,6 +11,9 @@ final class RemoteInfo<TDevice> extends RemoteElement<TDevice> {
     super.id, {
     super.slots,
     super.icon,
+    this.defaultLabel,
+    this.showLabelByDefault = true,
+    this.supportsOfflineIndicator = false,
     this.hiddenWhenOffline = false,
     this.watch,
     required this.read,
@@ -18,6 +21,9 @@ final class RemoteInfo<TDevice> extends RemoteElement<TDevice> {
 
   /// Draws nothing while the device is disconnected.
   final bool hiddenWhenOffline;
+  final String? defaultLabel;
+  final bool showLabelByDefault;
+  final bool supportsOfflineIndicator;
 
   /// Readings pushed by the device between panel updates, when it streams them.
   final Stream<RemoteReading>? Function(RemoteElementContext context)? watch;

@@ -46,16 +46,17 @@ class StyledItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(style.cornerRadius),
           border: style.showBorder ? _border(context) : null,
         ),
-        child: content,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(style.cornerRadius),
+          child: content,
+        ),
       ),
     );
   }
 
   Border _border(BuildContext context) => Border.all(
     width: style.borderWidth,
-    color: style.borderColor == null
-        ? Theme.of(context).colorScheme.outline
-        : Color(style.borderColor!),
+    color: Theme.of(context).colorScheme.primary,
   );
 
   Widget _foreground(Widget child, Color color) => IconTheme.merge(

@@ -28,14 +28,22 @@ final class DeviceGridsController {
     }
     try {
       final layout = GridLayout.decode(raw);
-      return GridGeometry.valid(layout.items) ? layout : null;
+      return _valid(layout) ? layout : null;
     } catch (_) {
       return null;
     }
   }
 
+  bool _valid(GridLayout layout) =>
+      layout.hasValidCanvas &&
+      GridGeometry.valid(
+        layout.items,
+        columns: layout.canvasColumns,
+        rows: layout.rows,
+      );
+
   Future<void> save(RemoteDevice device, GridLayout layout) async {
-    if (!GridGeometry.valid(layout.items)) {
+    if (!_valid(layout)) {
       throw const RemoteException(
         'grid',
         'The layout contains overlapping or invalid controls.',

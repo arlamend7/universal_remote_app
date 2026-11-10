@@ -25,11 +25,13 @@ Future<T?> showAppModal<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   double maxWidth = 600,
+  Color? backgroundColor,
   bool isDismissible = true,
   bool enableDrag = true,
 }) => showModalBottomSheet<T>(
   context: context,
   isScrollControlled: true,
+  backgroundColor: backgroundColor,
   useSafeArea: true,
   constraints: BoxConstraints(maxWidth: maxWidth),
   isDismissible: isDismissible,

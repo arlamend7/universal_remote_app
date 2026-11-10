@@ -10,9 +10,13 @@ import 'remote_layout_visitor.dart';
 /// the definition's own axis). Its elements are declared top to bottom and run
 /// in reverse when horizontal, so "less" sits on the left of a rocker.
 final class LinearLayout extends RemoteItemLayout {
-  const LinearLayout({this.size, this.adaptive = false});
+  const LinearLayout({
+    this.size,
+    this.adaptive = false,
+    this.reverseWhenHorizontal = true,
+  });
 
-  final bool adaptive;
+  final bool adaptive, reverseWhenHorizontal;
 
   @override
   final RemoteItemSize? size;

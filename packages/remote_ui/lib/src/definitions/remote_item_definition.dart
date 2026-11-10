@@ -1,6 +1,7 @@
 import 'package:remote_core/remote_core.dart';
 
 import '../host/remote_panel.dart';
+import '../layout/models/grid_layout.dart';
 
 import '../configuration/remote_setting.dart';
 import '../elements/remote_element.dart';
@@ -70,7 +71,10 @@ final class RemoteItemDefinition<TDevice> {
   String get searchText => '$name ${category.label} ${description ?? ''}';
   bool accepts(int w, int h) {
     final inRange =
-        w >= minimumWidth && w <= 4 && h >= minimumHeight && h <= 16;
+        w >= minimumWidth &&
+        w <= GridLayout.maxColumns &&
+        h >= minimumHeight &&
+        h <= 16;
     if (!_adaptive) {
       return inRange;
     }

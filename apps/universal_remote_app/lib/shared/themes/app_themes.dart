@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_ui/remote_ui.dart' show RemoteTabsTheme;
 
 import 'app_palette.dart';
 import 'accent_slider_thumb.dart';
@@ -101,6 +102,7 @@ abstract final class AppThemes {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
+      extensions: [_tabs(scheme)],
       scaffoldBackgroundColor: scheme.surface,
       iconTheme: IconThemeData(color: scheme.primary),
       dividerColor: palette.border.withValues(alpha: .6),
@@ -159,8 +161,8 @@ abstract final class AppThemes {
           shape: shape,
           side: BorderSide.none,
           backgroundColor: scheme.surface,
-          selectedBackgroundColor: scheme.surfaceContainerHighest,
-          selectedForegroundColor: scheme.primary,
+          selectedBackgroundColor: scheme.primary,
+          selectedForegroundColor: scheme.onPrimary,
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -197,6 +199,29 @@ abstract final class AppThemes {
       sliderTheme: const SliderThemeData(
         trackHeight: 4,
         thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7),
+      ),
+    );
+  }
+
+  static RemoteTabsTheme _tabs(ColorScheme colors) {
+    final button = TextButton.styleFrom(
+      minimumSize: const Size(0, 40),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    );
+    return RemoteTabsTheme(
+      track: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      selected: button.copyWith(
+        backgroundColor: WidgetStatePropertyAll(colors.primary),
+        foregroundColor: WidgetStatePropertyAll(colors.onPrimary),
+      ),
+      unselected: button.copyWith(
+        foregroundColor: WidgetStatePropertyAll(colors.onSurfaceVariant),
       ),
     );
   }

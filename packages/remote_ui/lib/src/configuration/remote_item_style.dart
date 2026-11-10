@@ -1,4 +1,5 @@
 import 'style_json.dart';
+import 'enums/remote_border_shape.dart';
 
 /// A dashboard item's visual overrides, stored independently of its elements.
 final class RemoteItemStyle {
@@ -27,6 +28,8 @@ final class RemoteItemStyle {
       padding == 0 &&
       opacity == 1 &&
       !showBorder &&
+      borderColor == null &&
+      borderWidth == 1 &&
       cornerRadius == defaultCornerRadius;
 
   RemoteItemStyle copyWith({
@@ -72,7 +75,7 @@ final class RemoteItemStyle {
       cornerRadius: parseStyleNumber(
         value['radius'],
         0,
-        28,
+        RemoteBorderShape.circle.radius,
         defaultCornerRadius,
       ),
     );
@@ -84,8 +87,8 @@ final class RemoteItemStyle {
     if (padding != 0) 'padding': padding,
     if (opacity != 1) 'opacity': opacity,
     if (showBorder) 'border': true,
-    if (showBorder && borderColor != null) 'borderColor': borderColor,
-    if (showBorder && borderWidth != 1) 'borderWidth': borderWidth,
+    if (borderColor != null) 'borderColor': borderColor,
+    if (borderWidth != 1) 'borderWidth': borderWidth,
     if (cornerRadius != defaultCornerRadius) 'radius': cornerRadius,
   };
 }

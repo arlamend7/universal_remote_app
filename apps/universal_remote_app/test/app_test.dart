@@ -103,7 +103,7 @@ void main() {
       await tester.tap(find.byTooltip('OK'));
       await tester.pumpAndSettle();
       expect(provider.last!.navigationControl.last, NavigationKey.enter);
-      expect(find.byType(Scrollable), findsNothing);
+      await tester.ensureVisible(find.byTooltip('Louder'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Louder'));
       await tester.pumpAndSettle();

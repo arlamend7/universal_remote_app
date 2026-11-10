@@ -50,6 +50,8 @@ final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
   /// the device no longer has is shown as unavailable.
   final bool trackedByDevice;
 
+  String entryStyleKey(String entry) => '$id:entry:$entry';
+
   Future<void> select(TDevice device, String id, String name) =>
       onSelected(device, fromOption(id, name));
 

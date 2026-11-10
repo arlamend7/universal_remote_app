@@ -16,11 +16,12 @@ class GridItemPreview extends StatelessWidget {
     this.dependencies,
     this.device,
     this.sample = false,
+    this.sampleAppTargets = true,
   });
   final GridItem item;
   final RemoteEditorHost? dependencies;
   final RemoteDevice? device;
-  final bool sample;
+  final bool sample, sampleAppTargets;
   @override
   Widget build(BuildContext context) {
     if (dependencies == null || device == null) {
@@ -30,6 +31,7 @@ class GridItemPreview extends StatelessWidget {
     final model = GridRemoteViewModel(
       remote,
       previewData: sample ? RemotePreviewData.example : null,
+      sampleAppTargets: sampleAppTargets,
     );
     return ExcludeSemantics(
       child: ExcludeFocus(

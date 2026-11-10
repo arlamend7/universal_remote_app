@@ -80,6 +80,14 @@ void main() {
             config: {'targets': '[{"id":"test.youtube","name":"YouTube"}]'},
           ),
           GridItem(
+            id: 'empty-apps',
+            definitionId: 'appStrip',
+            x: 2,
+            y: 0,
+            w: 2,
+            h: 1,
+          ),
+          GridItem(
             id: 'group',
             definitionId: 'group',
             x: 0,
@@ -131,18 +139,56 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Customize remote'));
       await tester.pumpAndSettle();
+      final emptyApps = find.byWidgetPredicate(
+        (widget) => widget is GridEditTile && widget.item.id == 'empty-apps',
+      );
+      expect(
+        find.descendant(of: emptyApps, matching: find.text('Choose shortcuts')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: emptyApps, matching: find.byType(TvAppIcon)),
+        findsNothing,
+      );
       await tester.tap(
         find.byWidgetPredicate(
           (widget) => widget is GridEditTile && widget.item.id == 'launch',
         ),
       );
       await tester.pumpAndSettle();
+      expect(find.text('Item Configuration'), findsNothing);
+      final remove = find.byTooltip('Remove YouTube');
+      await tester.ensureVisible(remove);
+      await tester.pumpAndSettle();
+      await tester.tap(remove);
+      await tester.pumpAndSettle();
+      final sheet = find.byWidgetPredicate(
+        (widget) => widget is AppSheet && widget.title == 'Edit Control',
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.text('Choose shortcuts')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.text('Netflix')),
+        findsNothing,
+      );
       final choose = find.text('Choose apps');
       await tester.ensureVisible(choose);
+      await tester.pumpAndSettle();
       await tester.tap(choose);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Music'));
       await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: sheet, matching: find.text('Choose shortcuts')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: sheet, matching: find.text('Music')),
+        findsWidgets,
+      );
+
       await tester.ensureVisible(find.text('Done').last);
       await tester.tap(find.text('Done').last);
       await tester.pumpAndSettle();
@@ -156,6 +202,127 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+  testWidgets('carousel styles are saved independently for each pinned app', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final app = await AppBootstrap.initialize(
+      storage: MemoryStorage(),
+      registry: ProviderRegistry()
+        ..registerDefinition(FakeProvider(enabledControls: true).definition),
+    );
+    await app.savedDevices.save(tv);
+    await app.grids.save(
+      tv,
+      GridLayout([
+        GridItem(
+          id: 'carousel',
+          definitionId: 'appStrip',
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 1,
+          config: {
+            'targets': '[{"id":"test.youtube","name":"YouTube"},{"id":"test.music","name":"Music"}]',
+          },
+        ),
+      ]),
+    );
+    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+    await tester.tap(find.text('Living room'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Remote options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Customize remote'));
+    await tester.pumpAndSettle();
+    final tile = find.byType(GridEditTile);
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Item Configuration'));
+    await tester.pumpAndSettle();
+    final youtube = find.byWidgetPredicate(
+      (widget) =>
+          widget is ExpansionTile &&
+          widget.title is Text &&
+          (widget.title as Text).data == 'YouTube',
+    );
+    await tester.ensureVisible(youtube);
+    await tester.tap(youtube);
+    await tester.pumpAndSettle();
+    final label = find.descendant(
+      of: youtube,
+      matching: find.text('Show label'),
+    );
+    await tester.ensureVisible(label);
+    await tester.pumpAndSettle();
+    await tester.tap(label);
+    await tester.pumpAndSettle();
+    final width = find
+        .descendant(
+          of: youtube,
+          matching: find.byType(DropdownButtonFormField<double>),
+        )
+        .first;
+    await tester.ensureVisible(width);
+    await tester.pumpAndSettle();
+    await tester.tap(width);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bold').last);
+    await tester.pumpAndSettle();
+    final shape = find
+        .descendant(
+          of: youtube,
+          matching: find.byType(DropdownButtonFormField<double>),
+        )
+        .last;
+    await tester.ensureVisible(shape);
+    await tester.pumpAndSettle();
+    await tester.tap(shape);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Circle border').last);
+    await tester.pumpAndSettle();
+
+    final music = find.byWidgetPredicate(
+      (widget) =>
+          widget is ExpansionTile &&
+          widget.title is Text &&
+          (widget.title as Text).data == 'Music',
+    );
+    await tester.ensureVisible(music);
+    await tester.pumpAndSettle();
+    await tester.tap(music);
+    await tester.pumpAndSettle();
+    final icon = find.descendant(of: music, matching: find.text('Show icon'));
+    await tester.ensureVisible(icon);
+    await tester.pumpAndSettle();
+    await tester.tap(icon);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Done'));
+    await tester.pumpAndSettle();
+    final styles = app.grids.forDevice(tv)!.items.single.elementStyles;
+    final youtubeStyle = styles.entries
+        .singleWhere((entry) => entry.key.endsWith(':test.youtube'))
+        .value;
+    final musicStyle = styles.entries
+        .singleWhere((entry) => entry.key.endsWith(':test.music'))
+        .value;
+    expect(youtubeStyle.showLabel, isFalse);
+    expect(youtubeStyle.borderWidth, 4);
+    expect(youtubeStyle.cornerRadius, greaterThan(12));
+    expect(musicStyle.showIcon, isFalse);
+    expect(musicStyle.borderWidth, 0);
+    expect(find.text('YouTube'), findsNothing);
+    expect(find.text('Music'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+  });
+
   testWidgets(
     'group drafts apply inside the parent only and save as a borderless controller',
     (tester) async {

@@ -31,11 +31,14 @@ class GridEditTile extends StatelessWidget {
       onEdit?.call(item);
     },
     onRemove: () => model.remove(item.id),
+    canResize: (w, h) => model.canReplace(item.copy(w: w, h: h)),
     onResize: (w, h) => model.resize(item, w, h),
     child: GridItemPreview(
       item: item.unrotated,
       dependencies: dependencies,
       device: model.device,
+      sample: true,
+      sampleAppTargets: false,
     ),
   );
 }

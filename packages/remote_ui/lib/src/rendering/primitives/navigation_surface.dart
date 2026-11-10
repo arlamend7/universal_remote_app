@@ -77,7 +77,10 @@ class NavigationSurface extends StatelessWidget {
 
   Widget _place(Alignment alignment, RemoteElement<Object> element) => Align(
     alignment: alignment,
-    child: SizedBox.square(dimension: _key, child: _view(element)),
+    child: SizedBox.square(
+      dimension: DirectionPadLayout.directionTarget,
+      child: _view(element),
+    ),
   );
 
   Widget _view(RemoteElement<Object> element) => ElementView(

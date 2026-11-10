@@ -7,6 +7,54 @@ import '../support/memory_storage.dart';
 import '../support/test_device.dart';
 
 void main() {
+  test(
+    'page settings and deletion preserve other pages and round trip',
+    () async {
+      final app = await AppBootstrap.initialize(storage: MemoryStorage());
+      final editor = GridEditorViewModel(
+        app.grids,
+        tv,
+        initial: GridLayout(
+          [
+            GridItem(id: 'first', definitionId: 'mute', x: 0, y: 0, w: 1, h: 1),
+            GridItem(
+              id: 'second',
+              definitionId: 'mute',
+              x: 5,
+              y: 1,
+              w: 1,
+              h: 1,
+            ),
+            GridItem(id: 'third', definitionId: 'mute', x: 9, y: 2, w: 1, h: 1),
+          ],
+          columns: 12,
+          configuredRows: 8,
+          pageStarts: [0, 4, 8],
+        ),
+      );
+      editor.selectPage(4);
+      editor.setDimensions(5, 10, cellSize: 72);
+      final layout = GridLayout.decode(editor.draft.encode());
+      expect(layout.pageStarts, [0, 4, 9]);
+      expect(layout.pageColumns(1), 5);
+      expect(layout.pageRows(1), 10);
+      expect(layout.pageCellSize(1), 72);
+      expect(layout.pageRows(0), 8);
+      expect(layout.pageRows(2), 8);
+      expect(layout.pageCellSize(2), 66.8);
+      expect(layout.pageLayout(2).items.single.x, 1);
+      editor.deletePage();
+      expect(editor.draft.items.map((item) => item.id), ['first', 'third']);
+      expect(editor.draft.pageLayout(1).items.single.x, 1);
+      editor.deletePage();
+      expect(editor.draft.pageStarts, [0, 4]);
+      editor.undo();
+      expect(editor.draft.encode(), layout.encode());
+      editor.dispose();
+      await app.dispose();
+    },
+  );
+
   test('quarter turns persist with their rotated collision footprint', () {
     final rocker = GridItem(
       id: 'rocker',
@@ -51,7 +99,7 @@ void main() {
       editor.update(second.copy(x: first.x, y: first.y));
       expect(editor.error, isNotNull);
       expect(editor.draft.items.last.x, second.x);
-      editor.update(second.copy(w: 4));
+      editor.update(second.copy(x: 0, w: 4));
       expect(editor.error, isNotNull);
       editor.remove(first.id);
       editor.undo();

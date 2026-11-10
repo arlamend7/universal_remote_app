@@ -10,10 +10,12 @@ class GridEditorCanvas extends StatefulWidget {
     required this.model,
     this.dependencies,
     this.onEdit,
+    this.onAdd,
   });
   final GridEditorViewModel model;
   final RemoteEditorHost? dependencies;
   final ValueChanged<GridItem>? onEdit;
+  final ValueChanged<({int x, int y})>? onAdd;
   @override
   State<GridEditorCanvas> createState() => GridEditorCanvasState();
 }

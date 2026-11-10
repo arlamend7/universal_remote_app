@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/src/ui_model.dart';
 
 import '../viewmodels/grid_remote_viewmodel.dart';
+import '../../layout/models/square_grid_metrics.dart';
 import 'element_view.dart';
 
 /// Draws every element an item definition registers, in order, as a row,
@@ -27,6 +28,7 @@ class ElementStrip extends StatelessWidget {
   List<RemoteElement<Object>> get _elements =>
       definition.layout is LinearLayout &&
           (definition.layout as LinearLayout).adaptive &&
+          (definition.layout as LinearLayout).reverseWhenHorizontal &&
           _axis == Axis.horizontal
       ? definition.elements.reversed.toList()
       : definition.elements;
@@ -34,20 +36,31 @@ class ElementStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final layout = definition.layout;
+    const gap = SquareGridMetrics.gap;
+    final padding = _elements.length > 1
+        ? const EdgeInsets.all(gap / 2)
+        : EdgeInsets.zero;
     if (layout is ElementGridLayout) {
       return GridView.count(
+        padding: padding,
         crossAxisCount: layout.columns,
+        crossAxisSpacing: gap,
+        mainAxisSpacing: gap,
         physics: const NeverScrollableScrollPhysics(),
         childAspectRatio: ElementGridLayout.aspectRatio,
         children: [for (final element in _elements) _view(element)],
       );
     }
-    return Flex(
-      direction: _axis,
-      children: [
-        for (final element in _elements)
-          Expanded(flex: element.slots, child: _view(element)),
-      ],
+    return Padding(
+      padding: padding,
+      child: Flex(
+        direction: _axis,
+        spacing: gap,
+        children: [
+          for (final element in _elements)
+            Expanded(flex: element.slots, child: _view(element)),
+        ],
+      ),
     );
   }
 

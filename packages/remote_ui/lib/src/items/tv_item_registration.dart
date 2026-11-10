@@ -188,7 +188,11 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'navigationStrip',
     'Home and Back',
     RemoteItemCategory.keys,
-    layout: LinearLayout(size: RemoteItemSize(2, 1)),
+    layout: LinearLayout(
+      size: RemoteItemSize(2, 1, minimumWidth: 1),
+      adaptive: true,
+      reverseWhenHorizontal: false,
+    ),
     requires: const {RemoteCapability.navigation},
     elements: [TvItems.home, TvItems.back],
   ),

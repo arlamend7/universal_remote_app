@@ -15,6 +15,7 @@ class UniversalRemoteItem extends StatefulWidget {
     required this.onEdit,
     required this.onRemove,
     required this.onResize,
+    this.canResize,
     this.quarterTurns = 0,
     this.style = const RemoteItemStyle(),
     this.enabled = true,
@@ -27,6 +28,7 @@ class UniversalRemoteItem extends StatefulWidget {
   final RemoteItemStyle style;
   final VoidCallback onEdit, onRemove;
   final void Function(int width, int height) onResize;
+  final bool Function(int width, int height)? canResize;
   final bool enabled, selected;
   @override
   State<UniversalRemoteItem> createState() => UniversalRemoteItemState();

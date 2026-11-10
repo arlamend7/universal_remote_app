@@ -601,6 +601,8 @@ abstract final class TvItems {
       );
   static final activity = RemoteInfo<TvRemoteDevice>(
     'current_activity',
+    defaultLabel: 'Activity',
+    showLabelByDefault: false,
     hiddenWhenOffline: true,
     icon: (_) => Icons.live_tv,
     read: (context) {
@@ -623,6 +625,7 @@ abstract final class TvItems {
   );
   static final app = RemoteInfo<TvRemoteDevice>(
     'current_app',
+    defaultLabel: 'App',
     hiddenWhenOffline: true,
     icon: (_) => Icons.live_tv,
     read: (context) {
@@ -635,12 +638,15 @@ abstract final class TvItems {
 
   static final channelNumber = RemoteInfo<TvRemoteDevice>(
     'channel_number',
+    defaultLabel: 'CH',
+    supportsOfflineIndicator: true,
     icon: (_) => Icons.live_tv,
     read: (context) =>
         RemoteReading(context.remote.content?.channelNumber ?? '—'),
   );
   static final channelName = RemoteInfo<TvRemoteDevice>(
     'channel_name',
+    defaultLabel: 'Channel',
     icon: (_) => Icons.live_tv,
     read: (context) => RemoteReading(
       context.remote.content?.channelName ?? 'Channel unavailable',
@@ -648,6 +654,7 @@ abstract final class TvItems {
   );
   static final currentInput = RemoteInfo<TvRemoteDevice>(
     'current_input',
+    defaultLabel: 'Input',
     slots: 2,
     icon: (_) => Icons.input,
     watch: (context) => context.remote.connection
@@ -693,6 +700,8 @@ abstract final class TvItems {
   );
   static final volume = RemoteInfo<TvRemoteDevice>(
     'current_volume',
+    defaultLabel: 'VOL',
+    supportsOfflineIndicator: true,
     icon: (_) => Icons.volume_up_outlined,
     read: (context) {
       final level = context.remote.volume?.volume;

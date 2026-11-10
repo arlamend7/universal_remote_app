@@ -10,9 +10,9 @@ class AppSheet extends StatelessWidget {
     this.onClose,
     this.closeLabel = 'Close',
     this.scrollable = true,
+    this.heightFactor = .88,
+    this.horizontalInset = 24,
   });
-
-  static const _horizontalInset = 24.0;
 
   final String title;
   final String? subtitle;
@@ -21,6 +21,8 @@ class AppSheet extends StatelessWidget {
   final VoidCallback? onClose;
   final String closeLabel;
   final bool scrollable;
+  final double heightFactor;
+  final double horizontalInset;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -32,7 +34,7 @@ class AppSheet extends StatelessWidget {
 
   Widget _surface(BuildContext context) => ConstrainedBox(
     constraints: BoxConstraints(
-      maxHeight: MediaQuery.sizeOf(context).height * .88,
+      maxHeight: MediaQuery.sizeOf(context).height * heightFactor,
       maxWidth: 600,
     ),
     child: LayoutBuilder(builder: _layout),
@@ -78,10 +80,10 @@ class AppSheet extends StatelessWidget {
   );
 
   Widget _headingRow(BuildContext context) => Padding(
-    padding: const EdgeInsetsDirectional.fromSTEB(
-      _horizontalInset,
+    padding: EdgeInsetsDirectional.fromSTEB(
+      horizontalInset,
       4,
-      _horizontalInset,
+      horizontalInset,
       8,
     ),
     child: Row(
@@ -118,21 +120,16 @@ class AppSheet extends StatelessWidget {
 
   Widget _body() => Padding(
     padding: EdgeInsets.fromLTRB(
-      _horizontalInset,
+      horizontalInset,
       8,
-      _horizontalInset,
+      horizontalInset,
       footer == null ? 24 : 14,
     ),
     child: child,
   );
 
   Widget _footer() => Padding(
-    padding: const EdgeInsets.fromLTRB(
-      _horizontalInset,
-      0,
-      _horizontalInset,
-      16,
-    ),
+    padding: EdgeInsets.fromLTRB(horizontalInset, 0, horizontalInset, 16),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,

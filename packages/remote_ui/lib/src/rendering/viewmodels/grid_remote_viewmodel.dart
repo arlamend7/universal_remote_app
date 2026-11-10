@@ -10,7 +10,12 @@ import '../../widgets/dialogs/device_choice_sheet.dart';
 import '../../widgets/dialogs/show_command_sent.dart';
 
 final class GridRemoteViewModel implements TvRemoteDevice {
-  GridRemoteViewModel(this.remote, {this.previewData});
+  GridRemoteViewModel(
+    this.remote, {
+    this.previewData,
+    this.sampleAppTargets = true,
+  });
+  final bool sampleAppTargets;
   final RemotePreviewData? previewData;
   final RemotePanel remote;
   RemoteElementContext elementContext(
@@ -262,7 +267,10 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     }
     final configured = widgetTargets(item.config['targets']);
     final preview = previewData;
-    if (configured.isNotEmpty || preview == null) {
+    if (configured.isNotEmpty ||
+        preview == null ||
+        (!sampleAppTargets &&
+            item.definition.category == RemoteItemCategory.pinnedApps)) {
       return configured;
     }
     return collection.sample(preview);

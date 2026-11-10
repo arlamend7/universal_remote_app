@@ -6,6 +6,7 @@ import 'package:remote_ui/src/ui_model.dart';
 
 import 'dial_input.dart';
 import 'info_display.dart';
+import 'styled_element.dart';
 
 class DialInputState extends State<DialInput> {
   double? _pending;
@@ -86,10 +87,13 @@ class DialInputState extends State<DialInput> {
         alignment: Alignment.center,
         children: [
           SizedBox.expand(
-            child: CircularProgressIndicator(
-              value: progress.isFinite ? progress.clamp(0, 1) : 0,
-              strokeWidth: 5,
-              backgroundColor: Theme.of(context).dividerColor,
+            child: StyledElement(
+              style: widget.item.elementStyles[_input.id],
+              child: CircularProgressIndicator(
+                value: progress.isFinite ? progress.clamp(0, 1) : 0,
+                strokeWidth: 5,
+                backgroundColor: Theme.of(context).dividerColor,
+              ),
             ),
           ),
           InfoDisplay(info: _reading, item: widget.item, model: widget.model),

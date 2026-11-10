@@ -25,7 +25,11 @@ final class PreviewRemotePanel implements RemotePanel {
       ? live.content
       : null;
   @override
-  DeviceInput? get currentInput => null;
+  DeviceInput? get currentInput => sample
+      ? const DeviceInput('sample.hdmi1', 'HDMI 1')
+      : _ownsSession
+      ? live.currentInput
+      : null;
   @override
   VolumeState? get volume => sample
       ? RemotePreviewData.example.volume

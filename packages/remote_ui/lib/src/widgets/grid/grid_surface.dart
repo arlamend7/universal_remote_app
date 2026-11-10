@@ -14,6 +14,7 @@ class GridSurface extends StatelessWidget {
     this.rows,
     this.cellHeight,
     this.gap = 8,
+    this.columnOffset = 0,
   });
   final GridLayout layout;
   final Widget Function(GridItem) itemBuilder;
@@ -21,6 +22,7 @@ class GridSurface extends StatelessWidget {
   final int? rows;
   final double? cellHeight;
   final double gap;
+  final int columnOffset;
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: _build);
   Widget _build(BuildContext context, BoxConstraints constraints) {
@@ -45,7 +47,7 @@ class GridSurface extends StatelessWidget {
 
   Widget _position(GridItem item, double width, double height) => Positioned(
     key: ValueKey(item.id),
-    left: item.x * (width + gap),
+    left: (item.x - columnOffset) * (width + gap),
     top: item.y * (height + gap),
     width: item.w * (width + gap) - gap,
     height: item.h * (height + gap) - gap,

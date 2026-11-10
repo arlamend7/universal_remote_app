@@ -42,11 +42,15 @@ void main() {
     expect(display.accepts(1, 3), isTrue);
   });
 
-  test('fixed layouts keep their own minimums', () {
-    final strip = RemoteItemRegistry.resolve('navigationStrip');
-    expect(strip.accepts(2, 1), isTrue);
-    expect(strip.accepts(1, 2), isFalse);
-  });
+  test(
+    'Home and Back supports either orientation but still needs two cells',
+    () {
+      final strip = RemoteItemRegistry.resolve('navigationStrip');
+      expect(strip.accepts(2, 1), isTrue);
+      expect(strip.accepts(1, 2), isTrue);
+      expect(strip.accepts(1, 1), isFalse);
+    },
+  );
 
   testWidgets('horizontal rockers put "less" on the left', (tester) async {
     Future<void> pump(int w, int h) => tester.pumpWidget(

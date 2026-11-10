@@ -7,6 +7,7 @@ import 'action_button.dart';
 import 'info_display.dart';
 import 'slider_input.dart';
 import 'text_entry_button.dart';
+import 'styled_element.dart';
 
 /// Draws one registered element by its type: a press-only action becomes a
 /// button, information becomes text, a numeric input becomes a slider.
@@ -26,7 +27,14 @@ class ElementView extends StatelessWidget {
   final Axis axis;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => StyledElement(
+    style: element is RemoteInfo<Object>
+        ? null
+        : item.elementStyles[element.id],
+    child: _content(context),
+  );
+
+  Widget _content(BuildContext context) {
     final element = this.element;
     if (element is RemoteAction<Object>) {
       return _button(context, element);
@@ -69,6 +77,7 @@ class ElementView extends StatelessWidget {
     final enabled =
         resolved.enabled &&
         (action.usableOffline || definition.isAvailableOn(model.remote));
+    final style = item.elementStyles[action.id];
     return ActionButton(
       key: action.holdable
           ? ObjectKey(model.remote.connection.controller)
@@ -80,9 +89,13 @@ class ElementView extends StatelessWidget {
           ? item.config['label'] ?? resolved.label
           : resolved.label,
       icon: resolved.icon ?? Icons.circle,
-      elementStyle: item.elementStyles[action.id],
-      showLabel: action.showLabel && item.config['showLabel'] != 'false',
-      repeat: action.holdable && item.config['hold'] == 'true',
+      elementStyle: style,
+      showLabel:
+          action.showLabel &&
+          style?.showLabel != false &&
+          item.config['showLabel'] != 'false',
+      repeat:
+          action.holdable && (style?.repeat ?? (item.config['hold'] == 'true')),
       onPressed: enabled ? resolved.execute : null,
     );
   }

@@ -22,6 +22,43 @@ void main() {
     expect(restored.isDefault, isFalse);
   });
 
+  test(
+    'child overrides preserve saved icon styles and reset labels independently',
+    () {
+      final old = RemoteElementStyle.fromJson({
+        'iconSize': 30,
+        'foreground': 0xff336699,
+      });
+      final styled = old.copyWith(
+        label: 'Sound level',
+        visible: false,
+        showLabel: false,
+        showOfflineIndicator: true,
+        borderWidth: 2,
+        cornerRadius: 10,
+      );
+      final restored = RemoteElementStyle.fromJson(styled.toJson());
+      expect(restored.label, 'Sound level');
+      expect(restored.visible, isFalse);
+      expect(restored.showLabel, isFalse);
+      expect(restored.showOfflineIndicator, isTrue);
+      expect(restored.borderWidth, 2);
+      expect(restored.cornerRadius, 10);
+      expect(restored.iconSize, 30);
+      expect(restored.foreground, 0xff336699);
+      expect(restored.copyWith(label: '').toJson(), isNot(contains('label')));
+      expect(old.visible, isTrue);
+    },
+  );
+
+  test('label visibility can inherit the definition or explicitly opt in', () {
+    final inherited = RemoteElementStyle.fromJson({'radius': 8});
+    expect(inherited.showLabel, isNull);
+    expect(inherited.toJson(), isNot(contains('showLabel')));
+    final shown = inherited.copyWith(showLabel: true);
+    expect(RemoteElementStyle.fromJson(shown.toJson()).showLabel, isTrue);
+  });
+
   test('clearing a color through copyWith removes it', () {
     final style = const RemoteItemStyle(background: 1)
         .copyWith(background: null);

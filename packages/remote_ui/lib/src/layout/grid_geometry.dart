@@ -28,9 +28,10 @@ abstract final class GridGeometry {
     int columns = 4,
     int rows = 128,
     int startRow = 0,
+    bool Function(GridItem)? accepts,
   }) {
     for (var y = startRow; y <= rows - item.h; y++) {
-      final placed = _row(item, items, y, columns, rows);
+      final placed = _row(item, items, y, columns, rows, accepts);
       if (placed != null) {
         return placed;
       }
@@ -44,10 +45,12 @@ abstract final class GridGeometry {
     int y,
     int columns,
     int rows,
+    bool Function(GridItem)? accepts,
   ) {
     for (var x = 0; x <= columns - item.w; x++) {
       final placed = item.copy(x: x, y: y);
-      if (fits(placed, items, columns: columns, rows: rows)) {
+      if ((accepts?.call(placed) ?? true) &&
+          fits(placed, items, columns: columns, rows: rows)) {
         return placed;
       }
     }

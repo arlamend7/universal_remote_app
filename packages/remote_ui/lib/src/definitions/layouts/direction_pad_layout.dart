@@ -8,7 +8,8 @@ final class DirectionPadLayout extends RemoteItemLayout {
   const DirectionPadLayout(this.shape, {required this.size});
 
   /// Smallest side that keeps the four direction keys accessible.
-  static const minimumSide = 144.0;
+  static const directionTarget = 46.0;
+  static const minimumSide = directionTarget * 3;
 
   /// Height of the optional Home / Back shortcut row.
   static const shortcutRow = 48.0;

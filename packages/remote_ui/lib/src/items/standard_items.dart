@@ -114,12 +114,14 @@ final deviceSwitchAction = RemoteAction<RemotePanel>(
 
 final connectionInfo = RemoteInfo<RemotePanel>(
   'connection',
+  defaultLabel: 'Connection',
   icon: (_) => Icons.link,
   read: (context) => RemoteReading(context.remote.status),
 );
 
 final deviceNameInfo = RemoteInfo<RemotePanel>(
   'device_name',
+  defaultLabel: 'Device',
   icon: (_) => Icons.devices,
   read: (context) => RemoteReading(context.remote.displayName),
 );
@@ -127,6 +129,7 @@ final deviceNameInfo = RemoteInfo<RemotePanel>(
 /// Reads the address straight from the stored device profile.
 final deviceAddressInfo = RemoteInfo<RemotePanel>(
   'device_address',
+  defaultLabel: 'Address',
   icon: (_) => Icons.lan_outlined,
   read: (context) => RemoteReading(
     context.device?.endpoints.firstOrNull?.host ?? 'No address saved',

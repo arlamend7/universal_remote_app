@@ -77,6 +77,7 @@ abstract final class AcItems {
       value == null ? '—' : '${value.toStringAsFixed(1)}°C';
   static final temperature = RemoteInfo<ACRemoteBase>(
     'target_temperature_reading',
+    defaultLabel: 'TEMP',
     icon: (_) => Icons.thermostat,
     watch: (context) =>
         _device(context)?.targetTemperatureChanges

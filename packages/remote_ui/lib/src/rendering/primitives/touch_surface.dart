@@ -4,6 +4,7 @@ import 'package:remote_ui/src/ui_model.dart';
 
 import '../viewmodels/grid_remote_viewmodel.dart';
 import 'unavailable_notice.dart';
+import 'styled_element.dart';
 
 typedef _Motion = ({double x, double y, bool scroll});
 
@@ -26,7 +27,12 @@ class TouchSurface extends StatelessWidget {
   RemoteItemDefinition<Object> get _definition => item.definition;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => StyledElement(
+    style: item.elementStyles[_motion.id],
+    child: _surface(context),
+  );
+
+  Widget _surface(BuildContext context) {
     if (!item.definition.isSupportedBy(model.remote)) {
       return const UnavailableNotice(
         title: 'Touchpad unavailable',
@@ -37,7 +43,9 @@ class TouchSurface extends StatelessWidget {
       label: 'TV touchpad. Tap to select; drag to move; use two fingers to scroll.',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: model.ready ? () => _tap(context) : null,
+        onTap: model.ready && item.elementStyles[_click.id]?.visible != false
+            ? () => _tap(context)
+            : null,
         onScaleUpdate: model.ready ? _move : null,
         child: const Center(child: Icon(Icons.touch_app_outlined)),
       ),

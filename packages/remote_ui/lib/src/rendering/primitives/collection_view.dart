@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/src/ui_model.dart';
 
 import '../viewmodels/grid_remote_viewmodel.dart';
+import '../../layout/models/square_grid_metrics.dart';
 import 'action_button.dart';
 import 'unavailable_notice.dart';
+import 'styled_element.dart';
 
 /// Draws any [RemoteCollection] item: a picker button, pinned shortcuts or a
 /// row/grid of entries. The definition chooses the collection and layout; this
@@ -19,7 +21,7 @@ class CollectionView extends StatelessWidget {
   final RemoteItemDefinition<Object> definition;
   final GridItem item;
   final GridRemoteViewModel model;
-  static const _gap = 4.0;
+  static const _gap = SquareGridMetrics.gap;
 
   RemoteCollection<TvRemoteDevice, Object> get _collection => definition
       .elements
@@ -29,7 +31,12 @@ class CollectionView extends StatelessWidget {
       (definition.layout as CollectionLayout).presentation;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => StyledElement(
+    style: item.elementStyles[_collection.id],
+    child: _content(context),
+  );
+
+  Widget _content(BuildContext context) {
     if (_layout == CollectionPresentation.chooser) {
       return _chooser(context);
     }
@@ -63,7 +70,7 @@ class CollectionView extends StatelessWidget {
   );
 
   Widget _grid(List<(String, String)> targets) => GridView.count(
-    padding: EdgeInsets.zero,
+    padding: const EdgeInsets.all(_gap / 2),
     crossAxisCount: item.w.clamp(1, 4),
     crossAxisSpacing: _gap,
     mainAxisSpacing: _gap,
@@ -71,7 +78,7 @@ class CollectionView extends StatelessWidget {
   );
 
   Widget _strip(List<(String, String)> targets) => ListView.separated(
-    padding: EdgeInsets.zero,
+    padding: const EdgeInsets.all(_gap / 2),
     scrollDirection: Axis.horizontal,
     itemCount: targets.length,
     separatorBuilder: (_, _) => const SizedBox(width: _gap),
@@ -82,14 +89,33 @@ class CollectionView extends StatelessWidget {
   Widget _button((String, String) target) {
     final (id, name) = target;
     final missing = _collection.trackedByDevice && model.isAppMissing(id);
+    final style =
+        item.elementStyles[_layout.isSingle
+            ? _collection.id
+            : _collection.entryStyleKey(id)];
+    return StyledElement(
+      style: _layout.isSingle ? null : style,
+      child: _shortcut(id, name, missing, style),
+    );
+  }
+
+  Widget _shortcut(
+    String id,
+    String name,
+    bool missing,
+    RemoteElementStyle? style,
+  ) {
+    final showLabel = style?.showLabel;
     return ActionButton(
-      appearance: item.config,
+      appearance: {
+        ...item.config,
+        if (showLabel != null) 'showLabel': '$showLabel',
+      },
+      elementStyle: style,
       label: _layout.isSingle ? item.config['label'] ?? name : name,
       icon: _collection.icon!(model.elementContext(item)),
       iconWidget: _collection.leading?.call(id, name),
-      showLabel:
-          _layout != CollectionPresentation.icon &&
-          item.config['showLabel'] != 'false',
+      showLabel: showLabel ?? (_layout != CollectionPresentation.icon),
       onPressed: definition.isAvailableOn(model.remote) && !missing
           ? () => _collection.select(model, id, name)
           : null,
