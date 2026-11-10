@@ -231,7 +231,10 @@ final class SamsungController extends TVRemoteBase {
 
   @override
   Future<void> sendKey(RemoteKey key) => switch (key) {
-    RemoteKey.dash || RemoteKey.replay => _unsupported(),
+    RemoteKey.dash ||
+    RemoteKey.replay ||
+    RemoteKey.liveTv ||
+    RemoteKey.captions => _unsupported(),
     RemoteKey.guide => _key('KEY_GUIDE'),
     RemoteKey.settings => _key('KEY_MENU'),
     _ => _key('KEY_${key.wireName}'),

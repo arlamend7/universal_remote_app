@@ -94,6 +94,19 @@ void main() {
     expect(resolve().label, 'Play');
     expect(device.sent, [MediaAction.play, MediaAction.pause]);
   });
+
+  test('play and stop toggle alternates play and stop', () async {
+    final device = _MediaDevice();
+    final context = RemoteElementContext(
+      remote: MutedRemotePanel(muted: false),
+    );
+    ResolvedAction resolve() => TvItems.playStop.builder(context, device);
+    expect(resolve().label, 'Play');
+    await resolve().execute();
+    expect(resolve().label, 'Stop');
+    await resolve().execute();
+    expect(device.sent, [MediaAction.play, MediaAction.stop]);
+  });
 }
 
 final class _MediaDevice implements TvRemoteDevice {

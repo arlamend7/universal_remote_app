@@ -43,6 +43,11 @@ final class LgCapabilityResolver {
     if (!isCurrent()) {
       return;
     }
+    registry.enable(
+      RemoteCapability.screenPower,
+      commands,
+      CapabilityAvailability.known,
+    );
     final content = LgCurrentContentController(commands);
     for (final capability in [
       RemoteCapability.currentContent,

@@ -111,8 +111,10 @@ abstract final class TvItems {
   static final playbackToggle = RemoteAction<TvRemoteDevice>(
     'playback_toggle',
     builder: (_, remote) => (
-      icon: Icons.play_circle_outline,
-      label: 'Play / Pause',
+      icon: remote.mediaPlaying
+          ? Icons.pause_circle_outline
+          : Icons.play_circle_outline,
+      label: remote.mediaPlaying ? 'Pause' : 'Play',
       enabled: true,
       execute: remote.togglePlayback,
     ),
@@ -128,6 +130,20 @@ abstract final class TvItems {
         enabled: true,
         execute: () =>
             remote.media(playing ? MediaAction.pause : MediaAction.play),
+      );
+    },
+  );
+
+  static final playStop = RemoteAction<TvRemoteDevice>(
+    'play_stop',
+    builder: (context, remote) {
+      final playing = remote.mediaPlaying;
+      return (
+        icon: playing ? Icons.stop : Icons.play_arrow,
+        label: playing ? 'Stop' : 'Play',
+        enabled: true,
+        execute: () =>
+            remote.media(playing ? MediaAction.stop : MediaAction.play),
       );
     },
   );
@@ -382,6 +398,38 @@ abstract final class TvItems {
     'Instant replay',
     Icons.replay,
     RemoteKey.replay,
+  );
+
+  static final liveTv = _remoteKey(
+    'live_tv_key',
+    'Live TV',
+    Icons.live_tv,
+    RemoteKey.liveTv,
+  );
+  static final captions = _remoteKey(
+    'captions_key',
+    'Captions',
+    Icons.closed_caption_outlined,
+    RemoteKey.captions,
+  );
+
+  static final screenOff = RemoteAction<TvRemoteDevice>(
+    'screen_off',
+    builder: (context, remote) => (
+      icon: Icons.tv_off_outlined,
+      label: 'Screen off',
+      enabled: true,
+      execute: remote.turnOffScreen,
+    ),
+  );
+  static final screenOn = RemoteAction<TvRemoteDevice>(
+    'screen_on',
+    builder: (context, remote) => (
+      icon: Icons.tv_outlined,
+      label: 'Screen on',
+      enabled: true,
+      execute: remote.turnOnScreen,
+    ),
   );
 
   static RemoteAction<TvRemoteDevice> _remoteKey(

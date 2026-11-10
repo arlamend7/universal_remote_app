@@ -26,6 +26,14 @@ abstract class TVRemoteBase extends RemoteBase {
   Future<void> sendMedia(MediaAction action);
   Future<void> togglePlayback() => _unsupported('Play/Pause');
 
+  /// Whether the device reports media as playing (true), paused (false) or
+  /// does not say (null).
+  Future<bool?> playbackState() async => null;
+
+  /// Turns the picture off while the TV keeps running, and back on.
+  Future<void> turnOffScreen() => _unsupported('Screen off');
+  Future<void> turnOnScreen() => _unsupported('Screen on');
+
   Future<void> movePointer(double dx, double dy);
   Future<void> scroll(double dx, double dy);
   Future<void> click();
@@ -142,7 +150,9 @@ enum RemoteKey {
   source('SOURCE'),
   settings('MENU'),
   mute('MUTE'),
-  replay('REPLAY');
+  replay('REPLAY'),
+  liveTv('LIVE_TV'),
+  captions('CAPTIONS');
 
   const RemoteKey(this.wireName);
   final String wireName;

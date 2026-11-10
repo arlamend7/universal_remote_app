@@ -1,3 +1,4 @@
+import 'package:remote_android_tv/src/protocol/android_app_links.dart';
 import 'package:remote_android_tv/src/protocol/android_key_codes.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:test/test.dart';
@@ -34,5 +35,36 @@ void main() {
     expect(androidMediaCode(MediaAction.previous), 88);
     expect(androidMediaCode(MediaAction.next), 87);
     expect(androidMediaCode(MediaAction.play), 126);
+  });
+
+  test('Live TV and Captions have key codes', () {
+    expect(androidKeyCode(RemoteKey.liveTv), 170);
+    expect(androidKeyCode(RemoteKey.captions), 175);
+  });
+
+  test('a package id launches through a market link', () {
+    expect(
+      androidAppLink('com.google.android.youtube.tv'),
+      'market://launch?id=com.google.android.youtube.tv',
+    );
+    expect(androidAppLink('vnd.youtube://'), 'vnd.youtube://');
+    expect(
+      androidAppLink('https://www.netflix.com/title/1'),
+      'https://www.netflix.com/title/1',
+    );
+  });
+
+  test('unsafe or malformed app targets are refused', () {
+    for (final target in [
+      '',
+      'notapackage',
+      'com.example;rm',
+      'http://example.com',
+      'https://user:pw@example.com',
+      'javascript:alert(1)',
+      'x' * 600,
+    ]) {
+      expect(androidAppLink(target), isNull, reason: target);
+    }
   });
 }

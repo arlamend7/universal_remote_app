@@ -205,6 +205,16 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   });
 
   @override
+  Future<void> turnOffScreen() => execute(() async {
+    await tv(RemoteCapability.screenPower)?.turnOffScreen();
+  });
+
+  @override
+  Future<void> turnOnScreen() => execute(() async {
+    await tv(RemoteCapability.screenPower)?.turnOnScreen();
+  });
+
+  @override
   Future<void> launchApp(DeviceApplication app) => execute(() async {
     final (id, name) = (app.id, app.name);
     final apps = tv(RemoteCapability.applications);
@@ -289,13 +299,15 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   bool get mediaPlaying => playbackChanges?.value ?? false;
 
   @override
-  Future<void> togglePlayback() {
+  Future<void> togglePlayback() => execute(() async {
     final device = tv(RemoteCapability.playbackToggle);
-    if (device != null) {
-      return execute(device.togglePlayback);
+    if (device == null) {
+      return;
     }
-    return Future.value();
-  }
+    final playing = await device.playbackState() ?? mediaPlaying;
+    await device.togglePlayback();
+    playbackChanges?.value = !playing;
+  });
 
   @override
   Future<void> media(MediaAction action) => execute(() async {
@@ -327,6 +339,8 @@ final class GridRemoteViewModel implements TvRemoteDevice {
       final capability = switch (key) {
         RemoteKey.settings => RemoteCapability.tvSettings,
         RemoteKey.replay => RemoteCapability.instantReplay,
+        RemoteKey.liveTv => RemoteCapability.liveTvKey,
+        RemoteKey.captions => RemoteCapability.captionsKey,
         RemoteKey.menu ||
         RemoteKey.info ||
         RemoteKey.guide ||

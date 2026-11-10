@@ -66,15 +66,58 @@ final class LgApplicationController {
     return uri;
   }
 
-  Future<void> launch(String id) async {
-    if (id.trim().isEmpty) {
+  /// Launches an app by id. `id?contentId=…` opens content inside the app, and
+  /// an http(s) address is opened by the TV's launcher.
+  Future<void> launch(String target) async {
+    if (target.trim().isEmpty) {
       throw ArgumentError('Application ID is required.');
+    }
+    final uri = Uri.tryParse(target);
+    if (uri != null && {'http', 'https'}.contains(uri.scheme)) {
+      return _open(uri);
+    }
+    final split = target.indexOf('?');
+    final id = split < 0 ? target : target.substring(0, split);
+    final contentId = split < 0
+        ? null
+        : _contentId(target.substring(split + 1));
+    if (id.isEmpty || (split >= 0 && contentId == null)) {
+      throw const RemoteException(
+        'appLink',
+        'Enter an app id, optionally followed by ?contentId=…, or a web address.',
+      );
     }
     await channel.send(
       RemoteCapability.applications,
       'system.launcher/launch',
-      payload: {'id': id},
+      payload: {'id': id, 'contentId': ?contentId},
     );
+  }
+
+  Future<void> _open(Uri uri) async {
+    if (uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.toString().length > 1024) {
+      throw const RemoteException('appLink', 'Enter a valid web address.');
+    }
+    await channel.send(
+      RemoteCapability.applications,
+      'system.launcher/open',
+      payload: {'target': uri.toString()},
+    );
+  }
+
+  String? _contentId(String query) {
+    final Map<String, String> values;
+    try {
+      values = Uri.splitQueryString(query);
+    } on FormatException {
+      return null;
+    }
+    final id = values['contentId'];
+    return values.length == 1 && id != null && id.isNotEmpty && id.length < 255
+        ? id
+        : null;
   }
 
   Future<void> openAccessorySettings() async {

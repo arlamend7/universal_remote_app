@@ -45,13 +45,14 @@ final class RokuEcpClient {
     await _request('POST', ['keypress', name]);
   }
 
-  Future<void> launch(String id) async {
-    await _request('POST', ['launch', id]);
+  Future<void> launch(String id, {Map<String, String>? parameters}) async {
+    await _request('POST', ['launch', id], query: parameters);
   }
 
   Future<String> _request(
     String method,
     List<String> path, {
+    Map<String, String>? query,
     DiscoveryCancellation? cancellation,
   }) async {
     final client = HttpClient()
@@ -63,7 +64,7 @@ final class RokuEcpClient {
       );
     }
     try {
-      return await _exchange(client, method, path).timeout(_timeout);
+      return await _exchange(client, method, path, query).timeout(_timeout);
     } on TimeoutException {
       throw const RemoteException(
         'timeout',
@@ -83,10 +84,11 @@ final class RokuEcpClient {
     HttpClient client,
     String method,
     List<String> path,
+    Map<String, String>? query,
   ) async {
     final request = await client.openUrl(
       method,
-      endpoint.replace(pathSegments: path),
+      endpoint.replace(pathSegments: path, queryParameters: query),
     );
     request.followRedirects = false;
     if (method == 'POST') {

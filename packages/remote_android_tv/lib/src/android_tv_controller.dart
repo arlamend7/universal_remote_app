@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
 
+import 'protocol/android_app_links.dart';
 import 'protocol/android_key_codes.dart';
 import 'protocol/android_pairing.dart';
 import 'protocol/android_remote_session.dart';
@@ -51,7 +52,8 @@ final class AndroidTvController extends TVRemoteBase
         _known(RemoteCapability.tvSettings),
         _known(RemoteCapability.specialKeys),
         _known(RemoteCapability.trackNavigation),
-        _known(RemoteCapability.voice),
+        _known(RemoteCapability.liveTvKey),
+        _known(RemoteCapability.captionsKey),
         _known(RemoteCapability.inputs),
         _known(RemoteCapability.mute),
         const CapabilityEvidence(
@@ -242,8 +244,6 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Future<void> toggleMute() => sendKey(RemoteKey.mute);
   @override
-  Future<void> startVoiceControl() => _key(231);
-  @override
   Future<void> setMuted(bool muted) async =>
       await (_session?.setMuted(muted) ?? _unsupported());
   @override
@@ -287,25 +287,18 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Future<List<DeviceApplication>> applications() async => const [];
 
-  /// Launches a supported app link, such as vnd.youtube:// or an HTTPS link.
+  /// Launches an app by Android package id (sent as a market launch link) or
+  /// by a supported app link, such as vnd.youtube:// or an HTTPS link.
   @override
   Future<void> launchApplication(String target) async {
-    final uri = Uri.tryParse(target);
-    final safe =
-        target == 'vnd.youtube://' ||
-        (uri != null &&
-            uri.scheme == 'https' &&
-            uri.host.isNotEmpty &&
-            uri.userInfo.isEmpty);
-    if (!safe ||
-        target.length > 512 ||
-        !supports(RemoteCapability.applications)) {
+    final link = androidAppLink(target);
+    if (link == null || !supports(RemoteCapability.applications)) {
       throw const RemoteException(
         'appLink',
-        'Enter a supported app link, such as vnd.youtube:// or an HTTPS link.',
+        'Enter an Android package id, such as com.example.tv, or a supported app link such as vnd.youtube:// or an HTTPS link.',
       );
     }
-    await _session!.launchLink(target);
+    await _session!.launchLink(link);
   }
 
   @override

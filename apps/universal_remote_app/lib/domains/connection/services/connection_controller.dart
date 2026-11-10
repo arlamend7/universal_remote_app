@@ -258,9 +258,13 @@ class ConnectionController implements RemotePanelSession {
         device,
         capabilities: resolvedCapabilities(session.controller),
         category: session.controller.device.category,
+        model: session.controller.device.model,
         metadata: {
           ...device.metadata,
           ...?latest?.metadata,
+          if (session.controller.device.metadata['softwareVersion']
+              case final version?)
+            'softwareVersion': version,
           if (identity != null) 'verifiedPeerIdentity': identity,
           if (discoveryIdentity != null) 'discoveryIdentity': discoveryIdentity,
           'lastConnectedAt': DateTime.now().toUtc().toIso8601String(),

@@ -36,13 +36,14 @@ implementation from confirmed protocol restrictions where evidence is available.
 | `sendText`, `sendEnter` | C · SSAP IME, focused field and app must accept input | T/C · negotiated IME, focused field and reported submit action | Text U; Enter delegates to navigation | T/C · ECP Lit characters and Enter, requires keyboard context |
 | `inputs`, `selectInput`, `openInputPicker` | T/C · nonempty external input list and SSAP input selection; `openInputPicker` U | C · `inputs` returns an empty list and `openInputPicker` sends the Source key (K) | C · `inputs` returns an empty list and `openInputPicker` sends `KEY_SOURCE` (T) | T/C · TV input IDs from ECP catalog with corresponding keys; `openInputPicker` U |
 | `currentInput`, `currentInputChanges` | T/C · foreground HDMI app (`com.webos.app.hdmiN`) mapped to the input; changes follow content updates | U | U | T/C · active app matched against the TV input catalog; changes follow content reads |
-| `applications`, `launchApplication`, `reportedApplicationIds` | T/C · nonempty SSAP list and launcher; firmware can reject particular launches | C · `applications` is empty; `launchApplication` accepts a supported app link only, requires negotiated app links | T/C · `ed.installedApp.get` list when the TV reports it; any well-formed app ID can launch, and `ed.apps.launch` awaits the write, which does not confirm the TV opened the app | T/C · ECP list and launch; empty or denied list hides the catalog |
+| `applications`, `launchApplication`, `reportedApplicationIds` | T/C · nonempty SSAP list and launcher; `id?contentId=…` passes a content id and an http(s) address opens through `system.launcher/open`; firmware can reject particular launches | C · `applications` is empty; `launchApplication` accepts a supported app link only, requires negotiated app links | T/C · `ed.installedApp.get` list when the TV reports it; any well-formed app ID can launch, and `ed.apps.launch` awaits the write, which does not confirm the TV opened the app | T/C · ECP list and launch; empty or denied list hides the catalog |
 | `currentApplication`, `currentContent`, `watchCurrentContent` | C · foreground query/subscription and optional live-channel data | T/C · foreground app package from IME reports | U | T/C · verified active-app read, optional tuner program and media feedback; live subscription U |
 | `powerOff` | T/C · `system/turnOff`; never probed during discovery | C · key 223 requires negotiated key and power support | T/C · `KEY_POWER` on connected remote channel | C · PowerOff, explicit device flag or older TV fallback |
-| `canWake`, `wake` | C · Wake-on-LAN, configured or learned MAC | C · Wake-on-LAN with a MAC learned after a connection; needs network wake on the TV (eligibility tested, send untested on hardware) | C · Wake-on-LAN, configured or learned MAC and compatible standby settings | C · ECP PowerOn key on a Roku TV that reported power control, network standby required (fixture tested) |
+| `canWake`, `wake` | C · Wake-on-LAN, configured or learned MAC | C · Wake-on-LAN with a MAC learned after a connection; needs network wake on the TV (eligibility tested, send untested on hardware) | C · Wake-on-LAN, configured or learned MAC and compatible standby settings | I · ECP `PowerOn` on a Roku TV that reported power control; the key is absent from Roku's official list, so it may be ignored (fixture tested only) |
+| `turnOffScreen`, `turnOnScreen` | U/C · `com.webos.service.tvpower/power/turnOffScreen` and `turnOnScreen`; unverified on hardware | U | U | U |
 | `bluetoothAccessories`, `toggleBluetoothAccessory` | C · compatible webOS accessory service, pairing managed by TV | U | U | U |
 | `openAccessorySettings` | C · TV-reported settings app, opens sound settings | U · use the separate Open TV settings action | U | U |
-| `startVoiceControl` | U | K/C · assistant key (231); needs a TV that reacts to it | U | U |
+| `startVoiceControl` | U | U · the TV's voice session expects streamed audio, which this driver does not send | U | U |
 | `toggleGameMode`, `syncWatchCompanion` | U | U | U | U |
 
 `mute`, `inputs` and `applications` are single capabilities. A provider that can
@@ -58,7 +59,7 @@ describes setup, firmware checks, and the remaining research for the operations 
 ## Identity, pairing and session behavior
 
 - Wake: LG, Samsung and Android use Wake-on-LAN with a configured MAC or one
-  learned after a connection. Roku uses the ECP PowerOn key. Wake outcomes for
+  learned after a connection. Roku sends the `PowerOn` key, which Roku's official list does not include. Wake outcomes for
   Android and Roku have not been checked on hardware.
 
 - LG and Samsung accept their declared SSDP services. Samsung's secure remote

@@ -31,4 +31,6 @@ abstract interface class TvRemoteDevice {
   Future<List<DeviceApplication>> installedApps();
   Future<void> launchApp(DeviceApplication app);
   Future<void> openInputPicker();
+  Future<void> turnOffScreen();
+  Future<void> turnOnScreen();
 }

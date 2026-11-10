@@ -28,6 +28,8 @@ class DeviceDetailsContent extends StatelessWidget {
           model.device.model,
         ].whereType<String>().join(' · '),
       ),
+      if (model.device.metadata['softwareVersion'] case final version?)
+        _value('Software', version),
       if (model.currentApp != null) _value('Current app', model.currentApp!),
       const SizedBox(height: 16),
       FilledButton(

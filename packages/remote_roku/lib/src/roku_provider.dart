@@ -34,8 +34,9 @@ final class RokuProvider implements ManualDeviceProvider, DeviceWakeProvider {
     return RokuController(device, RokuEcpClient(endpoint));
   }
 
-  /// A Roku TV that reports power control can be woken with the documented
-  /// PowerOn key while it is in network standby. Streaming players cannot.
+  /// A Roku TV that reports power control is sent the PowerOn key while it is
+  /// in network standby. Roku's official key list has PowerOff but no PowerOn,
+  /// so this is unverified and may be ignored. Streaming players cannot wake.
   @override
   bool canWakeDevice(RemoteDevice device) =>
       supports(device) && device.capabilities.contains(RemoteCapability.power);

@@ -106,9 +106,15 @@ final class RokuController extends TVRemoteBase {
       );
     }
     _serial = serial;
+    final version = rokuField(info, 'software-version');
     _device = copyDevice(
       device,
       category: isTv ? DeviceCategory.television : DeviceCategory.mediaPlayer,
+      model: rokuField(info, 'model-name'),
+      metadata: {
+        ...device.metadata,
+        if (version != null) 'softwareVersion': version,
+      },
     );
     _catalog = catalog;
     _isTv = isTv;
@@ -230,6 +236,19 @@ final class RokuController extends TVRemoteBase {
       });
 
   @override
+  Future<bool?> playbackState() async {
+    final player = await _optionalQuery('media-player');
+    if (player == null || player.name.local != 'player') {
+      return null;
+    }
+    return switch (player.getAttribute('state')) {
+      'play' => true,
+      'pause' => false,
+      _ => null,
+    };
+  }
+
+  @override
   Future<void> togglePlayback() =>
       _key(RemoteCapability.playbackToggle, 'Play');
   @override
@@ -267,12 +286,54 @@ final class RokuController extends TVRemoteBase {
   @override
   Set<String>? get reportedApplicationIds =>
       _catalog?.apps.map((app) => app.id).toSet();
+
+  /// Launches an installed app, optionally with a deep link written as
+  /// `appId?contentId=…&mediaType=…` (the documented ECP launch parameters).
   @override
-  Future<void> launchApplication(String id) {
-    if (reportedApplicationIds?.contains(id) != true) {
+  Future<void> launchApplication(String target) {
+    final link = _launchLink(target);
+    if (link == null || reportedApplicationIds?.contains(link.id) != true) {
       return _unsupported();
     }
-    return _command(RemoteCapability.applications, () => client.launch(id));
+    return _command(
+      RemoteCapability.applications,
+      () => client.launch(link.id, parameters: link.parameters),
+    );
+  }
+
+  static const _mediaTypes = {
+    'series',
+    'season',
+    'episode',
+    'movie',
+    'shortFormVideo',
+    'tvSpecial',
+  };
+
+  ({String id, Map<String, String>? parameters})? _launchLink(String target) {
+    final split = target.indexOf('?');
+    final id = split < 0 ? target : target.substring(0, split);
+    if (id.isEmpty) {
+      return null;
+    }
+    if (split < 0) {
+      return (id: id, parameters: null);
+    }
+    final Map<String, String> query;
+    try {
+      query = Uri.splitQueryString(target.substring(split + 1));
+    } on FormatException {
+      return null;
+    }
+    final contentId = query['contentId'];
+    final mediaType = query['mediaType'];
+    final valid =
+        query.keys.every((key) => key == 'contentId' || key == 'mediaType') &&
+        contentId != null &&
+        contentId.isNotEmpty &&
+        contentId.length < 255 &&
+        (mediaType == null || _mediaTypes.contains(mediaType));
+    return valid ? (id: id, parameters: query) : null;
   }
 
   @override

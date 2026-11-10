@@ -80,6 +80,7 @@ final class DeviceWakeAddress {
 RemoteDevice copyDevice(
   RemoteDevice device, {
   String? name,
+  String? model,
   DeviceCategory? category,
   Set<RemoteCapability>? capabilities,
   List<Uri>? endpoints,
@@ -89,7 +90,7 @@ RemoteDevice copyDevice(
   name: name ?? device.name,
   providerId: device.providerId,
   manufacturer: device.manufacturer,
-  model: device.model,
+  model: model ?? device.model,
   category: category ?? device.category,
   stableIdentity: device.stableIdentity,
   endpoints: endpoints ?? device.endpoints,
@@ -166,6 +167,9 @@ enum RemoteCapability {
   specialKeys,
   tvSettings,
   playbackScan,
+  liveTvKey,
+  screenPower,
+  captionsKey,
   instantReplay,
   channelCatalog,
 }

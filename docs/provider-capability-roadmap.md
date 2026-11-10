@@ -26,11 +26,12 @@ required part of the interface still needs evidence.
   broadcast program information, rewind/fast-forward, replay, and mute where
   supported. Reported app icons and matching media playback feedback are optional.
 - Android TV also maps Menu, Info, Guide, Exit and the colour keys, next and
-  previous track, and the assistant (voice) key, and can use Wake-on-LAN once
+  previous track, and can use Wake-on-LAN once
   its MAC address has been learned. Samsung maps the settings control to its
   Menu key. LG reports the current HDMI input from the foreground app, and Roku
   reports it from the active input app. Roku TVs that report power control can
-  be woken with the documented PowerOn key while in network standby. These
+  be sent the PowerOn key while in network standby (the key is not in Roku's
+  official list, so this is unverified). These
   paths still need a trial on real TVs.
 - Source, settings, and mute dashboard keys report **Command sent** after
   transport acceptance. No hardware results are inferred from that message.

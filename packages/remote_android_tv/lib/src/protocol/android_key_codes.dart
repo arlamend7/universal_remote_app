@@ -22,6 +22,8 @@ int? androidKeyCode(RemoteKey key) {
     RemoteKey.green => 184,
     RemoteKey.yellow => 185,
     RemoteKey.blue => 186,
+    RemoteKey.liveTv => 170,
+    RemoteKey.captions => 175,
     _ => null,
   };
 }

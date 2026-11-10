@@ -24,16 +24,17 @@ import 'package:remote_network/remote_network.dart';
 final class LgDeviceController extends TVRemoteBase
     implements DeviceWakeAddressSource {
   LgDeviceController({
-    required this.device,
+    required RemoteDevice device,
     required this.credentials,
     required this.connector,
     this.options = const LgConnectionOptions(),
     this.registrationManifest = defaultLgManifest,
     this.pairingTimeout = const Duration(seconds: 45),
     this.requestTimeout = const Duration(seconds: 8),
-  });
+  }) : _device = device;
+  RemoteDevice _device;
   @override
-  final RemoteDevice device;
+  RemoteDevice get device => _device;
   final CredentialStore credentials;
   final TransportConnector connector;
   final LgConnectionOptions options;
@@ -114,6 +115,23 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Future<void> toggleMute() =>
       _use<LgVolumeController>(RemoteCapability.mute).toggleMute();
+  LgCommandChannel get _screen => _use(RemoteCapability.screenPower);
+  @override
+  Future<void> turnOffScreen() async {
+    await _screen.send(
+      RemoteCapability.screenPower,
+      'com.webos.service.tvpower/power/turnOffScreen',
+    );
+  }
+
+  @override
+  Future<void> turnOnScreen() async {
+    await _screen.send(
+      RemoteCapability.screenPower,
+      'com.webos.service.tvpower/power/turnOnScreen',
+    );
+  }
+
   @override
   Future<VolumeState> readVolume() =>
       _use<LgVolumeController>(RemoteCapability.volumeFeedback).readVolume();
@@ -333,6 +351,8 @@ final class LgDeviceController extends TVRemoteBase
   Future<void> _finishConnection(SsapClient client, int generation) async {
     await _resolve(client, generation);
     _requireCurrent(generation);
+    await _readDetails();
+    _requireCurrent(generation);
     if (client.isClosed) {
       throw const RemoteException(
         'disconnected',
@@ -403,6 +423,28 @@ final class LgDeviceController extends TVRemoteBase
       isCurrent: () => !_disposed && generation == _generation,
     );
     await resolver.resolve();
+  }
+
+  /// Model and software version are optional; failures never block connecting.
+  Future<void> _readDetails() async {
+    try {
+      final info = await _commands
+          .query('com.webos.service.update/getCurrentSWInformation')
+          .timeout(requestTimeout);
+      final model = info['model_name'];
+      final version = info['product_name'] ?? info['version'];
+      _device = copyDevice(
+        _device,
+        model: model is String && model.isNotEmpty ? model : null,
+        metadata: {
+          ..._device.metadata,
+          if (version is String && version.isNotEmpty)
+            'softwareVersion': version,
+        },
+      );
+    } on Object {
+      return;
+    }
   }
 
   void _pointerUnavailable() {
