@@ -18,11 +18,17 @@ class ConnectionController implements RemotePanelSession {
     this.wakeLearner,
     this.removeDashboards,
     this.autoReconnect,
+    this.pinFirstCertificate,
     this.wakeRetryDelay = const Duration(seconds: 2),
   });
   final DeviceWakeLearner? wakeLearner;
   final Future<void> Function(Iterable<String>)? removeDashboards;
   final bool Function()? autoReconnect;
+
+  /// Pins the certificate of a TV that has none yet and returns the updated
+  /// device. Returns null when the device is already pinned or not applicable.
+  final Future<RemoteDevice?> Function(RemoteDevice, String code)?
+  pinFirstCertificate;
   final Duration wakeRetryDelay;
 
   final ProviderRegistry registry;
@@ -87,6 +93,7 @@ class ConnectionController implements RemotePanelSession {
     RemoteDevice device, {
     bool waking = false,
     bool allowFallback = true,
+    bool allowPinning = true,
   }) async {
     if (_disposed ||
         (_sameTarget(device) &&
@@ -118,6 +125,13 @@ class ConnectionController implements RemotePanelSession {
         reset: _clear,
       );
     } catch (exception) {
+      final pinned = allowPinning && exception is RemoteException
+          ? await pinFirstCertificate?.call(device, exception.code)
+          : null;
+      if (pinned != null && _isCurrent(generation)) {
+        state.value = DeviceConnectionState.disconnected;
+        return _startConnection(pinned, allowPinning: false);
+      }
       if (allowFallback &&
           !waking &&
           await _tryFallback(device, exception, generation)) {

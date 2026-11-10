@@ -1,0 +1,89 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Universal Control",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "universal_remote_app",
+            "cwd": "apps/universal_remote_app",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "universal_remote_app (profile mode)",
+            "cwd": "apps/universal_remote_app",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "universal_remote_app (release mode)",
+            "cwd": "apps/universal_remote_app",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "remote_android_tv",
+            "cwd": "packages/remote_android_tv",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_core",
+            "cwd": "packages/remote_core",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_lg_webos",
+            "cwd": "packages/remote_lg_webos",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_network",
+            "cwd": "packages/remote_network",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_roku",
+            "cwd": "packages/remote_roku",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_samsung_tizen",
+            "cwd": "packages/remote_samsung_tizen",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_ui",
+            "cwd": "packages/remote_ui",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "remote_ui (profile mode)",
+            "cwd": "packages/remote_ui",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "remote_ui (release mode)",
+            "cwd": "packages/remote_ui",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

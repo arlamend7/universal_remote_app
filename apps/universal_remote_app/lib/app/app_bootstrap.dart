@@ -87,6 +87,29 @@ abstract final class AppBootstrap {
       logger,
       autoReconnect: () => settings.autoReconnect.value,
       removeDashboards: grids.removeForDevice,
+      pinFirstCertificate: (device, code) async {
+        final unpinned = providers
+            .networkConfiguration(device)
+            .certificate
+            .isEmpty;
+        if (!unpinned || !providers.canReviewCertificate(device, code)) {
+          return null;
+        }
+        try {
+          final certificate =
+              await (inspectCertificate ?? inspectTvCertificate)(
+                device.endpoints.first,
+              );
+          final trusted = providers.trustCertificate(
+            device,
+            certificate.derBase64,
+          );
+          await saved.save(trusted);
+          return trusted;
+        } on Object {
+          return null;
+        }
+      },
       wakeLearner: DeviceWakeLearner(
         lookup: saved.byId,
         update: saved.updateExisting,

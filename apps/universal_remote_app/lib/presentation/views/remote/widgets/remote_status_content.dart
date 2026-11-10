@@ -17,15 +17,14 @@ class RemoteStatusContent extends StatelessWidget {
   Widget _body(BuildContext context, Widget? child) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.stretch,
+    spacing: 12,
     children: [
       Text(model.status, style: Theme.of(context).textTheme.titleMedium),
-      const SizedBox(height: 12),
       Text(
         model.offline
             ? model.statusExplanation
             : model.error ?? 'The TV is connected.',
       ),
-      const SizedBox(height: 20),
       if (model.canReviewCertificate)
         FilledButton(
           onPressed: model.busy ? null : () => _review(context),

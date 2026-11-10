@@ -20,8 +20,8 @@ void main() {
     fingerprint: '01:02:03',
     subject: 'LG test TV',
   );
-  for (final scenario in ['cancel', 'approve', 'changed', 'no-feedback']) {
-    final approveTrust = scenario == 'approve' || scenario == 'no-feedback';
+  for (final scenario in ['automatic', 'changed', 'no-feedback']) {
+    final approveTrust = scenario != 'changed';
     final replacing = scenario == 'changed';
     testWidgets(
       'certificate review $scenario respects trust and on-TV approval',
@@ -68,25 +68,30 @@ void main() {
         await dependencies.savedDevices.save(tv);
         await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
         await tester.tap(find.text('LG TV'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Review TV certificate and pair'));
-        await tester.pumpAndSettle();
-        expect(
-          find.text(
-            replacing ? 'The TV certificate has changed' : 'Trust this TV?',
-          ),
-          findsOneWidget,
-        );
-        expect(find.textContaining('172.16.1.13'), findsWidgets);
-        expect(main.requests, isEmpty);
-        expect(opens, 1);
-        await tester.tap(find.text(approveTrust ? 'Trust and pair' : 'Cancel'));
+        if (!replacing) {
+          await tester.pump();
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 100)),
+          );
+          await tester.pump(const Duration(milliseconds: 400));
+        }
+        if (replacing) {
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Review TV certificate and pair'));
+          await tester.pumpAndSettle();
+          expect(find.text('The TV certificate has changed'), findsOneWidget);
+          expect(find.textContaining('172.16.1.13'), findsWidgets);
+          expect(main.requests, isEmpty);
+          expect(opens, 1);
+          await tester.tap(find.text('Cancel'));
+        }
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.runAsync(() => Future<void>.delayed(Duration.zero));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
         if (approveTrust) {
+          expect(opens, 2);
           expect(
             dependencies.connection.state.value,
             DeviceConnectionState.pairing,

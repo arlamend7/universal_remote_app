@@ -55,22 +55,17 @@ abstract final class AppThemes {
   static ThemeData build(Brightness brightness, int accentValue) {
     final dark = brightness == Brightness.dark;
     final accent = Color(accentValue);
-    final custom = accentValue != defaultAccent;
-    final palette = dark ? _dark(accent, custom) : _light();
-    final primary = dark
-        ? (custom
-              ? Color.lerp(accent, Colors.white, .4)!
-              : const Color(0xff69d4c9))
-        : accent;
+    final palette = dark ? _dark() : _light();
+    final primary = _accessible(accent, palette, dark);
     final scheme = ColorScheme(
       brightness: brightness,
       primary: primary,
       onPrimary: _on(primary),
-      primaryContainer: Color.lerp(palette.surface, accent, dark ? .32 : .18),
+      primaryContainer: Color.lerp(palette.surface, primary, .16),
       onPrimaryContainer: palette.text,
       secondary: primary,
       onSecondary: _on(primary),
-      secondaryContainer: Color.lerp(palette.surface, accent, dark ? .4 : .22),
+      secondaryContainer: Color.lerp(palette.surface, primary, .2),
       onSecondaryContainer: palette.text,
       error: dark ? const Color(0xffffb4ab) : const Color(0xffba1a1a),
       onError: dark ? const Color(0xff690005) : Colors.white,
@@ -216,33 +211,53 @@ abstract final class AppThemes {
     border: Color(0xffc1c8c3),
   );
 
-  static AppPalette _dark(Color accent, bool custom) {
-    if (!custom) {
-      return const AppPalette(
-        surface: Color(0xff121416),
-        low: Color(0xff17191b),
-        high: Color(0xff292c2f),
-        card: Color(0xff1d1f21),
-        text: Color(0xffe1e3e5),
-        muted: Color(0xffb8c4c3),
-        border: Color(0xff394143),
-      );
+  static AppPalette _dark() => const AppPalette(
+    surface: Color(0xff121416),
+    low: Color(0xff17191b),
+    high: Color(0xff292c2f),
+    card: Color(0xff1d1f21),
+    text: Color(0xffe1e3e5),
+    muted: Color(0xffb8c4c3),
+    border: Color(0xff394143),
+  );
+
+  /// Backgrounds never change with the accent. The accent is moved toward white
+  /// (dark) or black (light) only as far as needed for WCAG AA (4.5:1) against
+  /// every background it is drawn on, so icons, text and buttons stay legible.
+  static Color _accessible(Color accent, AppPalette palette, bool dark) {
+    final backgrounds = [
+      palette.surface,
+      palette.low,
+      palette.high,
+      palette.card,
+    ];
+    final target = dark ? Colors.white : Colors.black;
+    for (var step = 0; step <= 20; step++) {
+      final candidate = Color.lerp(accent, target, step / 20)!;
+      final tinted = [
+        ...backgrounds,
+        Color.lerp(palette.surface, candidate, .16)!,
+        Color.lerp(palette.surface, candidate, .2)!,
+      ];
+      if (tinted.every((b) => contrast(candidate, b) >= minimumContrast)) {
+        return candidate;
+      }
     }
-    Color tint(double amount, int base) =>
-        Color.lerp(Color(base), accent, amount)!;
-    return AppPalette(
-      surface: tint(.10, 0xff101014),
-      low: tint(.14, 0xff18181c),
-      high: tint(.18, 0xff29292e),
-      card: tint(.16, 0xff202025),
-      text: const Color(0xfff2f2f5),
-      muted: const Color(0xffc5c5cd),
-      border: tint(.20, 0xff666670),
-    );
+    return target;
+  }
+
+  static const minimumContrast = 4.5;
+
+  /// WCAG 2.x contrast ratio.
+  static double contrast(Color a, Color b) {
+    final light = a.computeLuminance(), other = b.computeLuminance();
+    final hi = light > other ? light : other;
+    final lo = light > other ? other : light;
+    return (hi + .05) / (lo + .05);
   }
 
   static Color _on(Color color) =>
-      ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+      contrast(color, Colors.white) >= contrast(color, const Color(0xff002218))
       ? Colors.white
       : const Color(0xff002218);
 }
