@@ -74,7 +74,7 @@ void main() {
       await remote.sendKey(RemoteKey.source);
       await remote.sendKey(RemoteKey.mute);
       await remote.sendKey(RemoteKey.digit3);
-      await remote.launchShortcut('456');
+      await remote.launchApplication('456');
       await remote.launchApplication('123');
       await remote.powerOff();
       expect(
@@ -91,7 +91,7 @@ void main() {
         ]),
       );
       await expectLater(
-        remote.launchApplication('unknown'),
+        remote.launchApplication('not a valid id!'),
         throwsA(isA<RemoteException>()),
       );
 
@@ -140,7 +140,8 @@ void main() {
       );
       addTearDown(remote.dispose);
       await remote.connect();
-      expect(remote.supports(RemoteCapability.applications), isFalse);
+      expect(await remote.applications(), isEmpty);
+      expect(remote.supports(RemoteCapability.applications), isTrue);
     },
   );
 

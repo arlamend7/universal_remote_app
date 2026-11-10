@@ -164,10 +164,8 @@ enum RemoteCapability {
   playbackToggle,
   numericKeys,
   specialKeys,
-  inputPicker,
   tvSettings,
   playbackScan,
   instantReplay,
   channelCatalog,
-  appShortcuts,
 }

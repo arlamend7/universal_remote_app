@@ -408,18 +408,9 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'App shortcut',
     RemoteItemCategory.pinnedApps,
     layout: CollectionLayout(CollectionPresentation.shortcut),
-    requiresAny: const [
-      {RemoteCapability.applications},
-      {RemoteCapability.appShortcuts},
-    ],
+    requires: const {RemoteCapability.applications},
     description: 'Choose an installed app or enter a supported app link or ID.',
     settings: const [RemoteSetting.text('appTarget', 'Manual app link or ID')],
-    collectionAlternative: (
-      primary: RemoteCapability.applications,
-      fallback: RemoteCapability.appShortcuts,
-      action: TvItems.configuredApp,
-      setting: 'appTarget',
-    ),
     elements: [TvItems.applications],
   ),
   RemoteItemDefinition(
@@ -496,16 +487,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
     'Inputs',
     RemoteItemCategory.keys,
     layout: CollectionLayout(CollectionPresentation.chooser),
-    requiresAny: const [
-      {RemoteCapability.inputs},
-      {RemoteCapability.inputPicker},
-    ],
-    collectionAlternative: (
-      primary: RemoteCapability.inputs,
-      fallback: RemoteCapability.inputPicker,
-      action: TvItems.inputPicker,
-      setting: null,
-    ),
+    requires: const {RemoteCapability.inputs},
     elements: [TvItems.inputs],
   ),
   RemoteItemDefinition(

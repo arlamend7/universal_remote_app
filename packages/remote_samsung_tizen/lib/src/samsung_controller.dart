@@ -43,14 +43,13 @@ final class SamsungController extends TVRemoteBase {
         RemoteCapability.navigation,
         RemoteCapability.numericKeys,
         RemoteCapability.specialKeys,
-        RemoteCapability.inputPicker,
+        RemoteCapability.inputs,
         RemoteCapability.mute,
-        RemoteCapability.appShortcuts,
+        RemoteCapability.applications,
         RemoteCapability.volume,
         RemoteCapability.channels,
         RemoteCapability.media,
         RemoteCapability.power,
-        if (_apps.isNotEmpty) RemoteCapability.applications,
       ])
         CapabilityEvidence(
           capability,
@@ -245,21 +244,10 @@ final class SamsungController extends TVRemoteBase {
 
   @override
   Future<void> launchApplication(String id) async {
-    if (!_apps.any((app) => app.id == id)) {
-      throw const RemoteException(
-        'unsupported',
-        'The Samsung TV did not report this app.',
-      );
-    }
-    await _active.launch(id);
-  }
-
-  @override
-  Future<void> launchShortcut(String target) async {
-    if (!RegExp(r'^[a-zA-Z0-9._-]{1,128}$').hasMatch(target)) {
+    if (!RegExp(r'^[a-zA-Z0-9._-]{1,128}$').hasMatch(id)) {
       throw const RemoteException('appId', 'Enter a valid Samsung app ID.');
     }
-    await _active.launch(target);
+    await _active.launch(id);
   }
 
   Future<Never> _unsupported() => Future.error(
@@ -292,9 +280,11 @@ final class SamsungController extends TVRemoteBase {
   @override
   Future<void> sendText(String text) => _unsupported();
   @override
-  Future<List<DeviceInput>> inputs() => _unsupported();
+  Future<List<DeviceInput>> inputs() async => const [];
   @override
   Future<void> selectInput(String id) => _unsupported();
+  @override
+  Future<void> openInputPicker() => sendKey(RemoteKey.source);
   @override
   Future<String?> currentApplication() => _unsupported();
   @override

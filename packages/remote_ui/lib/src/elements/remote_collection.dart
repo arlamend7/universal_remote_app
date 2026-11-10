@@ -19,6 +19,7 @@ final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
     this.choiceName,
     this.artwork,
     this.readOnly = false,
+    this.onEmpty,
     this.trackedByDevice = false,
   });
 
@@ -30,6 +31,10 @@ final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
   final String Function(TEntry entry)? choiceName;
   final Uri? Function(TEntry entry)? artwork;
   final bool readOnly;
+
+  /// What to do instead of a picker when the device reports no entries, such
+  /// as opening the TV's own input picker.
+  final Future<void> Function(TDevice device)? onEmpty;
 
   /// Rebuilds an entry from a stored (id, name) option such as a pinned shortcut.
   final TEntry Function(String id, String name) fromOption;

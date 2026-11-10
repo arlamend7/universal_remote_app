@@ -7,6 +7,7 @@ import 'package:remote_ui/src/ui_model.dart';
 
 import '../../widgets/grid/models/remote_preview_data.dart';
 import '../../widgets/dialogs/device_choice_sheet.dart';
+import '../../widgets/dialogs/show_command_sent.dart';
 
 final class GridRemoteViewModel implements TvRemoteDevice {
   GridRemoteViewModel(this.remote, {this.previewData});
@@ -199,8 +200,8 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   }
 
   @override
-  Future<void> launchShortcut(String target) => execute(() async {
-    await tv(RemoteCapability.appShortcuts)?.launchShortcut(target);
+  Future<void> openInputPicker() => execute(() async {
+    await tv(RemoteCapability.inputs)?.openInputPicker();
   });
 
   @override
@@ -245,6 +246,10 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     GridItem item,
     RemoteCollection<TvRemoteDevice, Object> collection,
   ) {
+    final manual = item.config['appTarget']?.trim();
+    if (manual != null && manual.isNotEmpty) {
+      return [(manual, manual)];
+    }
     final configured = widgetTargets(item.config['targets']);
     final preview = previewData;
     if (configured.isNotEmpty || preview == null) {
@@ -318,7 +323,6 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     }
     return execute(() async {
       final capability = switch (key) {
-        RemoteKey.source => RemoteCapability.inputPicker,
         RemoteKey.settings => RemoteCapability.tvSettings,
         RemoteKey.replay => RemoteCapability.instantReplay,
         RemoteKey.menu ||
@@ -408,6 +412,12 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     if (choices == null ||
         !context.mounted ||
         !identical(owner, remote.connection.controller)) {
+      return;
+    }
+    final onEmpty = collection.onEmpty;
+    if (choices.isEmpty && onEmpty != null) {
+      await execute(() => onEmpty(this));
+      showCommandSent(context);
       return;
     }
     final id = await DeviceChoiceSheet.choose(

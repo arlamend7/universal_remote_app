@@ -30,5 +30,5 @@ abstract interface class TvRemoteDevice {
   Future<void> setVolume(double value);
   Future<List<DeviceApplication>> installedApps();
   Future<void> launchApp(DeviceApplication app);
-  Future<void> launchShortcut(String target);
+  Future<void> openInputPicker();
 }

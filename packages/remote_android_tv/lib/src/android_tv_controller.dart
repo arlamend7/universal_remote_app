@@ -47,7 +47,7 @@ final class AndroidTvController extends TVRemoteBase
         _known(RemoteCapability.media),
         _known(RemoteCapability.numericKeys),
         _known(RemoteCapability.tvSettings),
-        _known(RemoteCapability.inputPicker),
+        _known(RemoteCapability.inputs),
         _known(RemoteCapability.mute),
         const CapabilityEvidence(
           RemoteCapability.channels,
@@ -61,7 +61,7 @@ final class AndroidTvController extends TVRemoteBase
         _known(RemoteCapability.textInput),
         _known(RemoteCapability.currentContent),
       ],
-      if (session.supportsAppLinks) _known(RemoteCapability.appShortcuts),
+      if (session.supportsAppLinks) _known(RemoteCapability.applications),
       if (session.supportsAbsoluteVolume)
         _known(RemoteCapability.absoluteVolume),
       if (session.supportsPower) _known(RemoteCapability.power),
@@ -287,17 +287,17 @@ final class AndroidTvController extends TVRemoteBase
   Future<void> sendEnter() async =>
       await (_session?.submit() ?? _unsupported());
   @override
-  Future<List<DeviceInput>> inputs() => _unsupported();
+  Future<List<DeviceInput>> inputs() async => const [];
   @override
   Future<void> selectInput(String id) => _unsupported();
   @override
-  Future<List<DeviceApplication>> applications() => _unsupported();
-
+  Future<void> openInputPicker() => sendKey(RemoteKey.source);
   @override
-  Future<void> launchApplication(String id) => _unsupported();
+  Future<List<DeviceApplication>> applications() async => const [];
 
+  /// Launches a supported app link, such as vnd.youtube:// or an HTTPS link.
   @override
-  Future<void> launchShortcut(String target) async {
+  Future<void> launchApplication(String target) async {
     final uri = Uri.tryParse(target);
     final safe =
         target == 'vnd.youtube://' ||
@@ -307,7 +307,7 @@ final class AndroidTvController extends TVRemoteBase
             uri.userInfo.isEmpty);
     if (!safe ||
         target.length > 512 ||
-        !supports(RemoteCapability.appShortcuts)) {
+        !supports(RemoteCapability.applications)) {
       throw const RemoteException(
         'appLink',
         'Enter a supported app link, such as vnd.youtube:// or an HTTPS link.',

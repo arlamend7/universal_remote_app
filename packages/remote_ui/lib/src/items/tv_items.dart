@@ -1,15 +1,14 @@
-import 'package:flutter/material.dart'
-    show Icon, IconData, Icons, ScaffoldMessenger, SnackBar, Text;
+import 'package:flutter/material.dart' show Icon, IconData, Icons;
 import 'package:remote_core/remote_core.dart';
 
 import '../devices/tv_remote_device.dart';
 import '../elements/remote_action.dart';
 import '../elements/remote_collection.dart';
-import '../elements/remote_element_context.dart';
 import '../elements/remote_info.dart';
 import '../elements/remote_reading.dart';
 import '../elements/remote_input.dart';
 import '../widgets/apps/tv_app_icon.dart';
+import '../widgets/dialogs/show_command_sent.dart';
 
 abstract final class TvItems {
   static final up = RemoteAction<TvRemoteDevice>(
@@ -354,25 +353,6 @@ abstract final class TvItems {
     keyDigit0,
     keyEnter,
   ];
-  static final configuredApp = RemoteAction<TvRemoteDevice>(
-    'configured_app',
-    builder: (context, remote) {
-      final target = context.settings['appTarget']?.trim() ?? '';
-      return (
-        icon: Icons.launch,
-        label: 'Launch app',
-        enabled: target.isNotEmpty,
-        execute: () => remote.launchShortcut(target),
-      );
-    },
-  );
-
-  static final inputPicker = _remoteKey(
-    'input_picker',
-    'Input picker',
-    Icons.input,
-    RemoteKey.source,
-  );
   static final settings = _remoteKey(
     'tv_settings',
     'Open TV settings',
@@ -399,25 +379,12 @@ abstract final class TvItems {
       enabled: true,
       execute: () async {
         await remote.key(key);
-        if (key == RemoteKey.source || key == RemoteKey.settings) {
-          _confirmSent(context);
+        if (key == RemoteKey.settings) {
+          showCommandSent(context.buildContext);
         }
       },
     ),
   );
-
-  /// These keys give no feedback on the TV's state, so say the command left.
-  static void _confirmSent(RemoteElementContext context) {
-    final screen = context.buildContext;
-    if (screen == null || !screen.mounted) {
-      return;
-    }
-    ScaffoldMessenger.maybeOf(screen)?.showSnackBar(
-      const SnackBar(
-        content: Text('Command sent. Check the TV for a response.'),
-      ),
-    );
-  }
 
   static final muteToggle = RemoteAction<TvRemoteDevice>(
     'mute_toggle',
@@ -432,7 +399,7 @@ abstract final class TvItems {
         execute: () async {
           await remote.mute(null);
           if (muted == null) {
-            _confirmSent(context);
+            showCommandSent(context.buildContext);
           }
         },
       );
@@ -633,6 +600,7 @@ abstract final class TvItems {
     fromOption: DeviceInput.new,
     sample: (data) => data.inputs,
     onSelected: (remote, input) => remote.input(input.id),
+    onEmpty: (remote) => remote.openInputPicker(),
   );
   static final channels = RemoteCollection<TvRemoteDevice, DeviceChannel>(
     'pinned_channels',

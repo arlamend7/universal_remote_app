@@ -4,7 +4,6 @@ import '../host/remote_panel.dart';
 
 import '../configuration/remote_setting.dart';
 import '../elements/remote_element.dart';
-import '../elements/remote_action.dart';
 import 'enums/item_axis.dart';
 import 'enums/remote_item_category.dart';
 import 'layouts/layouts.dart';
@@ -17,8 +16,6 @@ final class RemoteItemDefinition<TDevice> {
     this.axis = ItemAxis.horizontal,
     this.description,
     this.requires = const {},
-    this.requiresAny = const [],
-    this.collectionAlternative,
     this.elements = const [],
     this.layout = const LinearLayout(),
     this.settings = const [],
@@ -83,27 +80,13 @@ final class RemoteItemDefinition<TDevice> {
   }
 
   final Set<RemoteCapability> requires;
-  final List<Set<RemoteCapability>> requiresAny;
-
-  /// A single action used when a collection is unavailable or a target is set manually.
-  final ({
-    RemoteCapability primary,
-    RemoteCapability fallback,
-    RemoteAction<TDevice> action,
-    String? setting,
-  })?
-  collectionAlternative;
-
-  bool _supports(bool Function(RemoteCapability) has) =>
-      requires.every(has) &&
-      (requiresAny.isEmpty || requiresAny.any((group) => group.every(has)));
 
   /// Eligibility: can this item be offered for a device with [capabilities]?
   bool isCompatibleWith(Set<RemoteCapability> capabilities) =>
-      id != 'unknown' && _supports(capabilities.contains);
+      id != 'unknown' && requires.every(capabilities.contains);
 
   /// Whether the connected session reports every required capability.
-  bool isSupportedBy(RemotePanel remote) => _supports(remote.supports);
+  bool isSupportedBy(RemotePanel remote) => requires.every(remote.supports);
 
   /// Runtime availability: connected, idle and supported.
   bool isAvailableOn(RemotePanel remote) =>

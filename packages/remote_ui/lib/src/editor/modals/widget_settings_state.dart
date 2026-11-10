@@ -47,20 +47,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     _ => null,
   };
   bool get _hasTargetPicker => _presentation?.choosesTargets ?? false;
-  bool get _choosesTargets =>
-      _hasTargetPicker &&
-      _hasCapability(_definition.collectionAlternative?.primary);
-
-  bool _hasCapability(RemoteCapability? capability) {
-    if (capability == null) {
-      return true;
-    }
-    final connection = widget.dependencies.live.connection;
-    return connection.selected.value?.id == widget.model.device.id &&
-            connection.state.value == DeviceConnectionState.connected
-        ? connection.supports(capability)
-        : widget.model.device.capabilities.contains(capability);
-  }
+  bool get _choosesTargets => _hasTargetPicker;
 
   @override
   void dispose() {
@@ -147,8 +134,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
         onChanged: (next) => setState(() => style = next),
       ),
       if (_pressable.isNotEmpty) _largerIcons(),
-      for (final setting in _definition.settings)
-        if (_showSetting(setting)) _setting(setting),
+      for (final setting in _definition.settings) _setting(setting),
       if (_choosesTargets) _targets(),
       if (_isGroup)
         TextButton.icon(
@@ -242,13 +228,6 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     );
     height = definition.height;
   });
-
-  bool _showSetting(RemoteSetting setting) {
-    final alternate = _definition.collectionAlternative;
-    return alternate == null ||
-        setting.key != alternate.setting ||
-        _hasCapability(alternate.fallback);
-  }
 
   Widget _setting(RemoteSetting setting) => switch (setting.type) {
     RemoteSettingType.toggle => SwitchListTile(

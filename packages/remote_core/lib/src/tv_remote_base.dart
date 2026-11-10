@@ -36,12 +36,18 @@ abstract class TVRemoteBase extends RemoteBase {
 
   Future<List<DeviceInput>> inputs();
   Future<void> selectInput(String id);
+
+  /// Opens the TV's own input picker, for TVs that cannot list their inputs
+  /// ([inputs] returns empty).
+  Future<void> openInputPicker() => _unsupported('Input picker');
   DeviceInput? get currentInput => null;
   Stream<DeviceInput?> get currentInputChanges => const Stream.empty();
 
   Future<List<DeviceApplication>> applications();
+
+  /// Launches an app by id; providers that launch by link accept a link too,
+  /// and may report no list ([applications] empty).
   Future<void> launchApplication(String id);
-  Future<void> launchShortcut(String target) => _unsupported('App shortcut');
   Future<String?> currentApplication();
 
   /// Ids from the latest successful app-list response, or null when unknown.
