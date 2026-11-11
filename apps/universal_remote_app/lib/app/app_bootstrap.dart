@@ -100,9 +100,16 @@ abstract final class AppBootstrap {
       autoReconnect: () => settings.autoReconnect.value,
       removeDashboards: grids.removeForDevice,
       clearManagedCredentials: drivers?.clearCredentials,
-      onConnected: drivers == null
+      beforeConnecting: drivers == null
           ? null
-          : (device) => _prepareBindings(drivers, providers, device, logger),
+          : (device, cancelled, cancellation) => _prepareBindings(
+              drivers,
+              providers,
+              device,
+              logger,
+              cancelled: cancelled,
+              cancellation: cancellation,
+            ),
       pinFirstCertificate: (device, code) async {
         final unpinned = providers
             .networkConfiguration(device)
@@ -163,15 +170,23 @@ abstract final class AppBootstrap {
     ManagedDriverService drivers,
     ProviderRegistry providers,
     RemoteDevice device,
-    DiagnosticLogger logger,
-  ) async {
+    DiagnosticLogger logger, {
+    required bool Function() cancelled,
+    required Stream<void> cancellation,
+  }) async {
     if (!providers.providerFor(device).supportsManagedBindings) {
       return;
     }
     try {
-      await drivers.prepareBindings(device);
+      await drivers.prepareBindings(
+        device,
+        cancelled: cancelled,
+        cancellation: cancellation,
+      );
     } on Exception {
-      logger.record(AppLogLevel.warning, 'drivers.bindingsUnavailable');
+      if (!cancelled()) {
+        logger.record(AppLogLevel.warning, 'drivers.bindingsUnavailable');
+      }
     }
   }
 

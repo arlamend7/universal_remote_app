@@ -156,11 +156,18 @@ final class ManagedDriverService {
         : manager.active(match.candidate.identity.id)?.bindings;
   }
 
-  Future<void> prepareBindings(RemoteDevice device) async {
-    if (bindingsFor(device) != null) {
+  Future<void> prepareBindings(
+    RemoteDevice device, {
+    required bool Function() cancelled,
+    Stream<void>? cancellation,
+  }) async {
+    if (cancelled() || bindingsFor(device) != null) {
       return;
     }
     _catalog ??= await catalogs?.refresh();
+    if (cancelled()) {
+      return;
+    }
     final candidates = _releases
         .where(
           (release) =>
@@ -170,7 +177,11 @@ final class ManagedDriverService {
         .map((release) => DriverCandidate(release.manifest));
     final match = _resolver.resolve(_evidence(device), candidates).selected;
     if (match != null) {
-      await manager.install(match.candidate.identity);
+      await manager.install(
+        match.candidate.identity,
+        cancelled: cancelled,
+        cancellation: cancellation,
+      );
     }
   }
 

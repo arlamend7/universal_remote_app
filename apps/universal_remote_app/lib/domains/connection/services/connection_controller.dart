@@ -18,7 +18,7 @@ class ConnectionController implements RemotePanelSession {
     this.wakeLearner,
     this.removeDashboards,
     this.autoReconnect,
-    this.onConnected,
+    this.beforeConnecting,
     this.clearManagedCredentials,
     this.pinFirstCertificate,
     this.wakeRetryDelay = const Duration(seconds: 2),
@@ -26,7 +26,12 @@ class ConnectionController implements RemotePanelSession {
   final DeviceWakeLearner? wakeLearner;
   final Future<void> Function(Iterable<String>)? removeDashboards;
   final bool Function()? autoReconnect;
-  final Future<void> Function(RemoteDevice)? onConnected;
+  final Future<void> Function(
+    RemoteDevice device,
+    bool Function() cancelled,
+    Stream<void> cancellation,
+  )?
+  beforeConnecting;
   final Future<void> Function(RemoteDevice)? clearManagedCredentials;
 
   /// Pins the certificate of a TV that has none yet and returns the updated
@@ -65,6 +70,7 @@ class ConnectionController implements RemotePanelSession {
   ValueNotifier<bool> get commandBusy => _commands.busy;
   RemoteBase? get controller => _session?.controller;
   DeviceSession? _session;
+  Completer<void>? _preparing;
   Future<void> _cleanup = Future.value();
   Future<void>? _disposeFuture;
   int _generation = 0;
@@ -119,6 +125,10 @@ class ConnectionController implements RemotePanelSession {
       return;
     }
     try {
+      await _prepare(device, generation);
+      if (!_isCurrent(generation)) {
+        return;
+      }
       await DeviceConnectionWorkflow(retryDelay: wakeRetryDelay).run(
         wake: waking ? () => registry.wake(device) : null,
         connect: () => _connectAttempt(device, generation, waking: waking),
@@ -129,6 +139,9 @@ class ConnectionController implements RemotePanelSession {
         reset: _clear,
       );
     } catch (exception) {
+      if (!_isCurrent(generation)) {
+        return;
+      }
       final pinned = allowPinning && exception is RemoteException
           ? await pinFirstCertificate?.call(device, exception.code)
           : null;
@@ -299,7 +312,6 @@ class ConnectionController implements RemotePanelSession {
         },
       ),
     );
-    unawaited(onConnected?.call(session.controller.device));
     _updated();
     unawaited(
       wakeLearner?.learn(
@@ -391,7 +403,29 @@ class ConnectionController implements RemotePanelSession {
     revision.value++;
   }
 
+  Future<void> _prepare(RemoteDevice device, int generation) async {
+    final prepare = beforeConnecting;
+    if (prepare == null) {
+      return;
+    }
+    final pending = _preparing = Completer<void>();
+    try {
+      await prepare(
+        device,
+        () => !_isCurrent(generation),
+        pending.future.asStream(),
+      );
+    } finally {
+      if (identical(_preparing, pending)) {
+        _preparing = null;
+        pending.complete();
+      }
+    }
+  }
+
   Future<void> _clear() {
+    _preparing?.complete();
+    _preparing = null;
     final session = _session;
     _session = null;
     _cleanup = _cleanup.then((_) => _releaseSession(session));
