@@ -2114,11 +2114,13 @@
       "dependencies": [
         "remote_core",
         "remote_network",
+        "remote_driver_runtime",
         "test"
       ],
       "directDependencies": [
         "remote_core",
-        "remote_network"
+        "remote_network",
+        "remote_driver_runtime"
       ],
       "devDependencies": [
         "test"
@@ -2126,6 +2128,7 @@
       "dependencyConstraints": {
         "remote_core": "^0.1.0",
         "remote_network": "^0.1.0",
+        "remote_driver_runtime": "^0.1.0",
         "test": "^1.31.1"
       }
     },

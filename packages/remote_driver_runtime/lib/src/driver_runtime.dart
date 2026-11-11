@@ -18,6 +18,9 @@ final class DriverRuntime {
   const DriverRuntime({DriverWebSocketConnector? connect})
     : _connect = connect ?? IoWebSocketTransport.connect;
 
+  static final version = DriverVersion.parse('1.0.0');
+  static const operations = DriverOperation.values;
+
   final DriverWebSocketConnector _connect;
 
   DriverConnection connection({
