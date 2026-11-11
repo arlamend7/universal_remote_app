@@ -21,6 +21,7 @@ final class AppDependencies {
     required this.inspectCertificate,
     this.disposeCredentials,
     this.drivers,
+    this.checkDriverUpdates,
   });
   final DiscoveryController discovery;
   final SavedDevicesController savedDevices;
@@ -30,6 +31,7 @@ final class AppDependencies {
   final DeviceSleepController sleep;
   final ProviderRegistry providers;
   final ManagedDriverService? drivers;
+  final Future<void> Function()? checkDriverUpdates;
   final Future<PeerCertificate> Function(Uri) inspectCertificate;
   final void Function()? disposeCredentials;
   Future<List<String>> identifyAddress(

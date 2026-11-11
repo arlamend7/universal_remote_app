@@ -60,10 +60,18 @@ final class DriverManager {
   Future<DriverBundle> install(
     DriverIdentity identity, {
     bool Function()? cancelled,
+    DriverVersion? expectedActive,
   }) => _serialize(() async {
     _requireInitialized();
     _checkCancellation(cancelled);
     final current = _inventory[identity.id];
+    if (expectedActive != null &&
+        (current?.active != expectedActive || current?.enabled != true)) {
+      throw const RemoteException(
+        'driverChanged',
+        'The active driver changed.',
+      );
+    }
     final local = await _validLocal(identity.id, identity.version);
     final package = local ?? await _repository.fetch(identity);
     _checkCancellation(cancelled);

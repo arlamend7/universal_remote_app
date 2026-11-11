@@ -143,8 +143,24 @@ abstract final class AppBootstrap {
       sleep: DeviceSleepController(connection),
       providers: providers,
       drivers: drivers,
+      checkDriverUpdates: drivers == null
+          ? null
+          : () => _checkDriverUpdates(drivers, providers, saved, logger),
       inspectCertificate: inspectCertificate ?? inspectTvCertificate,
     );
+  }
+
+  static Future<void> _checkDriverUpdates(
+    ManagedDriverService drivers,
+    ProviderRegistry providers,
+    SavedDevicesController saved,
+    DiagnosticLogger logger,
+  ) async {
+    try {
+      await drivers.checkUpdates(providers, saved.devices.value);
+    } on Exception {
+      logger.record(AppLogLevel.warning, 'drivers.updateFailed');
+    }
   }
 
   static Future<ManagedDriverService?> _initializeDrivers(

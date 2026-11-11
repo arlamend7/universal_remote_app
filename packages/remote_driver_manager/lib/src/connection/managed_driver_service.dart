@@ -6,18 +6,24 @@ import '../distribution/driver_catalog.dart';
 import '../distribution/driver_catalog_repository.dart';
 import '../distribution/driver_release.dart';
 import '../lifecycle/driver_manager.dart';
+import '../lifecycle/driver_update_service.dart';
 import '../resolution/driver_candidate.dart';
 import '../resolution/driver_resolver.dart';
 import 'managed_tv_provider.dart';
 
 /// Registers signed declarative providers in the app's existing registry.
 final class ManagedDriverService {
-  ManagedDriverService(this.manager, this.catalogs, {DriverRuntime? runtime})
-    : runtime = runtime ?? const DriverRuntime();
+  ManagedDriverService(
+    this.manager,
+    this.catalogs, {
+    DriverRuntime? runtime,
+    this.updates,
+  }) : runtime = runtime ?? const DriverRuntime();
 
   final DriverManager manager;
   final DriverCatalogRepository catalogs;
   final DriverRuntime runtime;
+  final DriverUpdateService? updates;
   final _resolver = DriverResolver(
     runtimeVersion: DriverRuntime.version,
     operations: DriverRuntime.operations,
@@ -41,6 +47,16 @@ final class ManagedDriverService {
   Future<void> refresh(ProviderRegistry registry) async {
     _catalog = await catalogs.refresh();
     _register(registry);
+  }
+
+  Future<void> checkUpdates(
+    ProviderRegistry registry,
+    Iterable<RemoteDevice> devices,
+  ) async {
+    await updates?.check(devices, () async {
+      await refresh(registry);
+      return _catalog!;
+    });
   }
 
   void _register(ProviderRegistry registry) {

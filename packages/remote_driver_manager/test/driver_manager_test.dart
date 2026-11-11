@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:remote_driver_manager/remote_driver_manager.dart';
+import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 import 'package:test/test.dart';
 
@@ -29,6 +30,65 @@ Future<DriverPackageStorage> _storage() async {
 }
 
 void main() {
+  test(
+    'daily updates persist their window, back off and preserve the old bundle',
+    () async {
+      final storage = await _storage();
+      final (first, next) = await _releases();
+      final id = first.identity.id;
+      final repository = FixtureDriverRepository([first, next]);
+      final manager = DriverManager(storage, repository);
+      await manager.initialize();
+      final sessionBundle = await manager.install(first.identity);
+      var now = DateTime.utc(2026, 1, 1);
+      final service = DriverUpdateService(manager, storage, now: () => now);
+      final tv = RemoteDevice(
+        id: 'fixture',
+        name: 'Example TV',
+        providerId: first.identity.providerId,
+      );
+      final catalog = await _updateCatalog(next);
+      var requests = 0;
+      Future<DriverCatalog> refresh() async {
+        requests++;
+        return catalog;
+      }
+
+      await Future.wait([
+        service.check([tv], refresh),
+        service.check([tv], refresh),
+      ]);
+      expect(requests, 1);
+      expect(
+        manager.active(id)?.manifest.identity.version,
+        next.identity.version,
+      );
+      expect(sessionBundle.manifest.identity.version, first.identity.version);
+      await manager.rollback(id);
+      final restarted = DriverUpdateService(manager, storage, now: () => now);
+      await restarted.check([tv], refresh);
+      expect(requests, 1);
+
+      now = now.add(const Duration(hours: 24));
+      await expectLater(
+        restarted.check([
+          tv,
+        ], () async => throw const SocketException('offline')),
+        throwsA(isA<SocketException>()),
+      );
+      now = now.add(const Duration(hours: 24));
+      await restarted.check([tv], refresh);
+      expect(requests, 1);
+      now = now.add(const Duration(hours: 24));
+      await restarted.check([tv], refresh);
+      expect(requests, 2);
+      expect(
+        manager.active(id)?.manifest.identity.version,
+        first.identity.version,
+      );
+    },
+  );
+
   test(
     'retains the exact catalog envelope and ETag for offline validation',
     () async {
@@ -119,5 +179,32 @@ void main() {
       await recovered.install(next.identity);
       expect(source.requests, 2);
     },
+  );
+}
+
+Future<DriverCatalog> _updateCatalog(DriverPackage package) {
+  final identity = package.identity;
+  final data = {
+    'schemaVersion': 1,
+    'revision': 1,
+    'publishedAt': '2026-01-01T00:00:00Z',
+    'releases': [
+      {
+        'manifest': package.bundle.manifest.toJson(),
+        'package': 'packages/${identity.id}/${identity.version}/driver.zip',
+        'size': 1,
+        'sha256': 'a' * 64,
+        'signature': 'AQ==',
+        'channel': 'stable',
+      },
+    ],
+  };
+  return DriverCatalog.verify(
+    jsonEncode({
+      'keyId': 'fixture',
+      'signature': 'AQ==',
+      'payload': base64Encode(utf8.encode(jsonEncode(data))),
+    }),
+    (_, _, _) async => true,
   );
 }

@@ -14,6 +14,22 @@ final class DriverPackageStorage {
 
   final Directory directory;
 
+  Future<DateTime?> nextUpdate() async {
+    final file = _updates;
+    if (!await file.exists()) {
+      return null;
+    }
+    final json = await _readJson(file);
+    final value = json['nextUpdate'];
+    if (value is! String) {
+      throw const FormatException('Invalid driver update schedule.');
+    }
+    return DateTime.parse(value).toUtc();
+  }
+
+  Future<void> scheduleUpdate(DateTime next) =>
+      _write(_updates, {'nextUpdate': next.toUtc().toIso8601String()});
+
   Future<CachedDriverCatalog?> readCatalog() async {
     final file = _catalog;
     if (!await file.exists()) {
@@ -123,6 +139,8 @@ final class DriverPackageStorage {
       await handle.close();
     }
   }
+
+  File get _updates => File('${directory.path}/updates.json');
 
   File get _catalog => File('${directory.path}/catalog.json');
 

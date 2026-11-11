@@ -14,12 +14,20 @@ class UniversalRemoteAppState extends State<UniversalRemoteApp>
     super.initState();
     routes = AppRoutes(widget.dependencies);
     WidgetsBinding.instance.addObserver(this);
+    _checkDriverUpdates();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _cancelBackgroundDiscovery(state);
+    if (state == AppLifecycleState.resumed) {
+      _checkDriverUpdates();
+    }
     unawaited(widget.dependencies.connection.lifecycle(state));
+  }
+
+  void _checkDriverUpdates() {
+    unawaited(widget.dependencies.checkDriverUpdates?.call());
   }
 
   void _cancelBackgroundDiscovery(AppLifecycleState state) {

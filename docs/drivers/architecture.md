@@ -64,3 +64,7 @@ The app loads its installed driver inventory and verified catalog before using t
 The first connection installs only the selected driver. Cancellation prevents a pending download from activating its package, and the existing secure connection attempt can be cancelled. The current installation indicator is indeterminate. The app keeps the resolved bundle for the session. The initial generic controller exposes relative volume and power off when their named commands are present. The compiled manufacturer integrations retain their provider IDs and existing priority.
 
 To enable distribution on Android, iOS or macOS, set `DRIVER_CATALOG_BASE_URL` to the HTTPS base URL with a trailing slash and `DRIVER_TRUSTED_KEYS` to a JSON object keyed by signing key ID. Each value is the Base64 encoding of a 65-byte uncompressed P-256 public point. Private keys remain outside the app. The platform verifies DER-encoded ECDSA signatures over SHA-256.
+
+## Automatic update window
+
+Startup and foreground resume can request a check. The manager persists the next eligible time before contacting the catalog, coalesces concurrent requests, and backs off for 48 hours after a failed check. Successful checks use a 24-hour window. Updates are limited to enabled installed drivers and releases that match every saved device associated with that provider. A manual rollback excludes the rolled-back version from automatic reinstallation. The new package becomes available to the next connection; active controllers retain their bundle.

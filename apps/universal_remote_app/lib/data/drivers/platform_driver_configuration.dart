@@ -47,7 +47,12 @@ abstract final class PlatformDriverConfiguration {
 
     final catalogs = DriverCatalogRepository(source, storage, verify);
     final packages = HttpDriverPackageRepository(source, catalogs, verify);
-    return ManagedDriverService(DriverManager(storage, packages), catalogs);
+    final manager = DriverManager(storage, packages);
+    return ManagedDriverService(
+      manager,
+      catalogs,
+      updates: DriverUpdateService(manager, storage),
+    );
   }
 
   static MapEntry<String, Uint8List> _decodeKey(String id, Object? value) {
