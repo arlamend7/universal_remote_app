@@ -2107,6 +2107,29 @@
       }
     },
     {
+      "name": "remote_driver_manager",
+      "version": "0.1.0",
+      "kind": "root",
+      "source": "root",
+      "dependencies": [
+        "remote_core",
+        "remote_network",
+        "test"
+      ],
+      "directDependencies": [
+        "remote_core",
+        "remote_network"
+      ],
+      "devDependencies": [
+        "test"
+      ],
+      "dependencyConstraints": {
+        "remote_core": "^0.1.0",
+        "remote_network": "^0.1.0",
+        "test": "^1.31.1"
+      }
+    },
+    {
       "name": "remote_driver_runtime",
       "version": "0.1.0",
       "kind": "root",

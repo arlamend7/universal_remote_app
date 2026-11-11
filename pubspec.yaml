@@ -6,6 +6,7 @@ workspace:
   - packages/remote_core
   - packages/remote_network
   - packages/remote_driver_runtime
+  - packages/remote_driver_manager
   - packages/remote_lg_webos
   - packages/remote_android_tv
   - packages/remote_roku

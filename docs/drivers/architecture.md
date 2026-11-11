@@ -40,3 +40,7 @@ The initial runtime executes a single command over a secure local WebSocket endp
 ## Persistent JSON sessions
 
 Persistent exchanges use a compiled JSON envelope with a request ID and an explicit acknowledgment. A session permits one active exchange. A mismatched reply, timeout or cancellation closes that session, and the host can reconnect without replaying a potentially completed command. Subscription requests control delivery of event messages to the host. The pairing code comes from a host callback. Only an acknowledged pairing response may persist a token in the selected driver and device credential scope. The host selects the endpoint, certificate pin and storage scope. This envelope supports the fictional driver protocol; providers with different message formats still need their own compiled or validated protocol adapter.
+
+## Compatibility resolution
+
+The manager checks the existing identified provider ID, known manufacturer, runtime version and operation availability before considering a profile. Within a family, model and firmware evidence rank ahead of generic profiles. Among equally specific releases, package version and then profile revision break ties. Equally supported families require user selection. Connection preparation prefers a compatible installed package by default. Update callers can opt out of that preference. Exact firmware strings are opaque. A firmware or OS range needs a trusted platform comparator, and unknown evidence only matches profiles without that constraint.
