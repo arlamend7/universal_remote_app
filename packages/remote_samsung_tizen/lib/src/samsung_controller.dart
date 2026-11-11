@@ -16,11 +16,13 @@ final class SamsungController extends TVRemoteBase {
     this._wake,
     this.canWake, {
     this.openTransport = openSamsungTransport,
+    this.bindings,
   });
 
   @override
   final RemoteDevice device;
   final CredentialStore credentials;
+  final DriverBindings? bindings;
   final Future<void> Function() _wake;
   final Future<TextTransport> Function(Uri, String) openTransport;
   @override
@@ -195,29 +197,33 @@ final class SamsungController extends TVRemoteBase {
 
   Future<void> _key(String key) async => _active.key(key);
 
+  Future<void> _managedKey(String action, String fallback) =>
+      _key(bindings?.select(action, fallback) ?? fallback);
+
   @override
   Future<void> wake() => _wake();
   @override
-  Future<void> powerOff() => _key('KEY_POWER');
+  Future<void> powerOff() => _managedKey('power-off', 'KEY_POWER');
   @override
-  Future<void> volumeUp() => _key('KEY_VOLUP');
+  Future<void> volumeUp() => _managedKey('volume-up', 'KEY_VOLUP');
   @override
-  Future<void> volumeDown() => _key('KEY_VOLDOWN');
+  Future<void> volumeDown() => _managedKey('volume-down', 'KEY_VOLDOWN');
   @override
-  Future<void> channelUp() => _key('KEY_CHUP');
+  Future<void> channelUp() => _managedKey('channel-up', 'KEY_CHUP');
   @override
-  Future<void> channelDown() => _key('KEY_CHDOWN');
+  Future<void> channelDown() => _managedKey('channel-down', 'KEY_CHDOWN');
 
   @override
-  Future<void> press(NavigationKey key) => _key(switch (key) {
-    NavigationKey.up => 'KEY_UP',
-    NavigationKey.down => 'KEY_DOWN',
-    NavigationKey.left => 'KEY_LEFT',
-    NavigationKey.right => 'KEY_RIGHT',
-    NavigationKey.enter => 'KEY_ENTER',
-    NavigationKey.back => 'KEY_RETURN',
-    NavigationKey.home => 'KEY_HOME',
-  });
+  Future<void> press(NavigationKey key) =>
+      _managedKey('navigation-${key.name}', switch (key) {
+        NavigationKey.up => 'KEY_UP',
+        NavigationKey.down => 'KEY_DOWN',
+        NavigationKey.left => 'KEY_LEFT',
+        NavigationKey.right => 'KEY_RIGHT',
+        NavigationKey.enter => 'KEY_ENTER',
+        NavigationKey.back => 'KEY_RETURN',
+        NavigationKey.home => 'KEY_HOME',
+      });
 
   @override
   Future<void> sendMedia(MediaAction action) => switch (action) {

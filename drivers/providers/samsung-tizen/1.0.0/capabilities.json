@@ -1,0 +1,22 @@
+{
+  "volume": [
+    "volume-up",
+    "volume-down"
+  ],
+  "power": [
+    "power-off"
+  ],
+  "channels": [
+    "channel-up",
+    "channel-down"
+  ],
+  "navigation": [
+    "navigation-up",
+    "navigation-down",
+    "navigation-left",
+    "navigation-right",
+    "navigation-enter",
+    "navigation-back",
+    "navigation-home"
+  ]
+}

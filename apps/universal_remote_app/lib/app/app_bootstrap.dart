@@ -232,7 +232,10 @@ abstract final class AppBootstrap {
         ).definition,
       )
       ..registerDefinition(
-        SamsungProvider(credentials: credentials).definition,
+        SamsungProvider(
+          credentials: credentials,
+          bindings: bindings,
+        ).definition,
       );
     if (!kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
       providers.registerDefinition(const RokuProvider().definition);

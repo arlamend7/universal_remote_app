@@ -13,9 +13,10 @@ final class SamsungProvider
         ManualDeviceProvider,
         DeviceConnectionPolicy,
         DeviceWakeProvider {
-  const SamsungProvider({required this.credentials});
+  const SamsungProvider({required this.credentials, this.bindings});
 
   final CredentialStore credentials;
+  final DriverBindingsLookup? bindings;
 
   ProviderDefinition<SamsungController> get definition => ProviderDefinition(
     identifier: const SamsungIdentifier(),
@@ -23,6 +24,7 @@ final class SamsungProvider
     manualSetup: this,
     connection: this,
     wake: this,
+    supportsManagedBindings: true,
   );
 
   SamsungController _controller(RemoteDevice device) {
@@ -40,6 +42,7 @@ final class SamsungProvider
       credentials,
       () => wakeDevice(device),
       canWakeDevice(device),
+      bindings: bindings?.call(device),
     );
   }
 

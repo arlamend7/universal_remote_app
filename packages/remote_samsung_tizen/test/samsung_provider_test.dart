@@ -28,6 +28,10 @@ void main() {
         credentials,
         () async {},
         false,
+        bindings: DriverBindings({
+          'navigation-enter': 'KEY_ENTER',
+          'volume-up': 'KEY_POWER',
+        }),
         openTransport: (uri, pin) async {
           expect(pin, 'AQID');
           requests.add(uri);
