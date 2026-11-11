@@ -26,3 +26,7 @@ Drivers contain data and can invoke only operations shipped in the app. Restrict
 ## Current storage
 
 Device profiles and dashboard data use the application preferences adapter. Pairing secrets use the separate protected storage adapter and `CredentialStore`, with a session wrapper on macOS. Keep all existing storage keys valid during migration. Driver storage will use its own inventory and versioned installation paths.
+
+## Core metadata format
+
+Core schema version 1 defines stable numeric `major.minor.patch` package and runtime versions. A runtime requirement uses `>=minimum` with an optional exclusive `<upper` bound. Prerelease versions are currently unsupported. Profile revisions are positive integers. Platform OS and firmware evidence are separate opaque strings, interpreted later by the manager's comparison strategy. The metadata decoder rejects unknown fields and operation IDs. Recognizing an operation ID in core does not establish that a particular runtime build implements it.
