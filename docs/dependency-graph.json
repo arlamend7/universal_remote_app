@@ -2112,12 +2112,14 @@
       "kind": "root",
       "source": "root",
       "dependencies": [
+        "crypto",
         "remote_core",
         "remote_network",
         "remote_driver_runtime",
         "test"
       ],
       "directDependencies": [
+        "crypto",
         "remote_core",
         "remote_network",
         "remote_driver_runtime"
@@ -2126,6 +2128,7 @@
         "test"
       ],
       "dependencyConstraints": {
+        "crypto": "3.0.8",
         "remote_core": "^0.1.0",
         "remote_network": "^0.1.0",
         "remote_driver_runtime": "^0.1.0",

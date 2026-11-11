@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import tempfile
-from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+from zipfile import ZIP_STORED, ZipFile, ZipInfo
 
 
 def build(source: Path, destination: Path) -> None:
@@ -24,7 +24,7 @@ def build(source: Path, destination: Path) -> None:
                 entry = ZipInfo(name)
                 entry.create_system = 3
                 entry.external_attr = 0o100644 << 16
-                archive.writestr(entry, content.encode("utf-8"), compress_type=ZIP_DEFLATED)
+                archive.writestr(entry, content.encode("utf-8"), compress_type=ZIP_STORED)
         staging.replace(destination)
     finally:
         staging.unlink(missing_ok=True)

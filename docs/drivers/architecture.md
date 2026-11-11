@@ -50,3 +50,9 @@ The independent [driver authoring tree](../../drivers/README.md) contains the fi
 ## Local lifecycle
 
 The manager initializes from its application-private inventory and package files. It validates package schema, stored identity and runtime support, then activates the enabled records in memory. Installation stages a complete package before committing the inventory, using atomic renames within the same storage directory. A package staged without an inventory commit stays inactive after restart. A structurally damaged active package can fall back to a valid previous version. An offline restart makes no repository requests. The catalog cache preserves the original envelope and ETag for validation by the catalog repository. The lifecycle fixtures use a trusted local repository; remote authentication is the next phase.
+
+## Signed distribution
+
+The repository accepts catalog artifacts from a configured HTTPS origin. It verifies signatures over the exact decoded payload bytes using the host's trusted-key verifier, validates the signed catalog before caching it, and rejects older or conflicting revisions. A verified ETag avoids reloading unchanged metadata. Package downloads are deduplicated and checked against signed size and SHA-256 metadata and a detached package signature before parsing. The ZIP reader accepts the uncompressed, regular-file subset emitted by the builder. It reads bounded text files in memory and rejects unknown paths and entries, so archive names never become disk write paths.
+
+The local HTTP fixture uses ephemeral P-256 keys and verifies signatures with OpenSSL. Platform trust provisioning and application wiring are separate from this repository layer. Package SHA-256 uses the already locked Dart-team `crypto` version 3.0.8. The cached catalog revision protects against remote rollback while the app's private cache remains intact.

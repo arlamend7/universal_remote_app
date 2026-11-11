@@ -42,7 +42,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 128,
-            "pattern": "^providers/[a-z][a-z0-9._-]*/[0-9.]+/driver\\.zip$"
+            "pattern": "^packages/[a-z][a-z0-9._-]*/[0-9.]+/driver\\.zip$"
           },
           "size": {
             "type": "integer",
