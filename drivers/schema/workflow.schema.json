@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Driver workflow",
+  "oneOf": [
+    {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operation"
+            ],
+            "properties": {
+              "operation": {
+                "const": "websocket.connect"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operation",
+              "payload"
+            ],
+            "properties": {
+              "operation": {
+                "const": "websocket.sendJson"
+              },
+              "payload": {
+                "type": "object"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operation"
+            ],
+            "properties": {
+              "operation": {
+                "const": "websocket.awaitJson"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "operation"
+            ],
+            "properties": {
+              "operation": {
+                "const": "websocket.disconnect"
+              }
+            }
+          }
+        ]
+      },
+      "minItems": 3,
+      "maxItems": 32
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "payload"
+          ],
+          "properties": {
+            "operation": {
+              "const": "websocket.request"
+            },
+            "payload": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "payload"
+          ],
+          "properties": {
+            "operation": {
+              "const": "websocket.subscribe"
+            },
+            "payload": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "payload"
+          ],
+          "properties": {
+            "operation": {
+              "const": "websocket.unsubscribe"
+            },
+            "payload": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "payload"
+          ],
+          "properties": {
+            "operation": {
+              "const": "websocket.authenticate"
+            },
+            "payload": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "payload"
+          ],
+          "properties": {
+            "operation": {
+              "const": "websocket.pair"
+            },
+            "payload": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "payload"
+          ],
+          "properties": {
+            "operation": {
+              "const": "Unknown required driver operation."
+            },
+            "payload": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

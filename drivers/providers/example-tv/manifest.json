@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "example.smarttv",
+  "providerId": "example.tv",
+  "version": "1.0.0",
+  "name": "Example TV",
+  "manufacturer": "Example",
+  "platform": "ExampleOS",
+  "requiredRuntime": ">=1.0.0",
+  "operations": [
+    "websocket.connect",
+    "websocket.sendJson",
+    "websocket.awaitJson",
+    "websocket.disconnect",
+    "websocket.request"
+  ],
+  "capabilities": ["volume"],
+  "compatibility": [{"id": "generic", "version": 1, "models": []}]
+}

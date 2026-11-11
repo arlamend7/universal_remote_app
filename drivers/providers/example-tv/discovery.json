@@ -1,0 +1,5 @@
+{
+  "targets": {"bonjour": ["_example-tv._tcp"]},
+  "port": 9000,
+  "path": "/remote"
+}

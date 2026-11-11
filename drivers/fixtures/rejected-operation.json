@@ -1,0 +1,5 @@
+[
+  {"operation":"websocket.connect"},
+  {"operation":"shell.exec","payload":{"command":"untrusted"}},
+  {"operation":"websocket.disconnect"}
+]

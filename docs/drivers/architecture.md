@@ -44,3 +44,5 @@ Persistent exchanges use a compiled JSON envelope with a request ID and an expli
 ## Compatibility resolution
 
 The manager checks the existing identified provider ID, known manufacturer, runtime version and operation availability before considering a profile. Within a family, model and firmware evidence rank ahead of generic profiles. Among equally specific releases, package version and then profile revision break ties. Equally supported families require user selection. Connection preparation prefers a compatible installed package by default. Update callers can opt out of that preference. Exact firmware strings are opaque. A firmware or OS range needs a trusted platform comparator, and unknown evidence only matches profiles without that constraint.
+
+The independent [driver authoring tree](../../drivers/README.md) contains the file schemas, an example, and validation and package tooling. The typed loader cross-checks declared capabilities and command files and rejects unexpected entries and symlinks. The package builder archives the exact bytes accepted by the validator in a stable order. The development fixture executes a command loaded from that tree.

@@ -61,9 +61,13 @@ void main() {
               timeout: timeout,
             ),
       );
+      const example = 'drivers/providers/example-tv';
+      final source = Directory(example);
+      final bundle = await const LocalDriverSource(enabled: true)
+          .load(source.existsSync() ? source : Directory('../../$example'));
       final response = await runtime.execute(
-        DriverCommand.parse(source, manifest),
-        endpoint: Uri.parse('wss://192.168.1.2:9000/remote'),
+        bundle.commands['volume-up']!,
+        endpoint: bundle.discovery.endpoint('192.168.1.2'),
       );
       expect(await received.future, {'command': 'volumeUp'});
       expect(response, {'volume': 21});
