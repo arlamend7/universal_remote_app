@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:remote_core/src/device.dart';
 
+import 'devices/models/device_software_information.dart';
+
 /// Common lifecycle and optional capabilities exposed by a provider remote.
 abstract class RemoteBase implements RemoteDriver {
   DeviceConnectionState get state;
@@ -20,6 +22,9 @@ abstract class RemoteBase implements RemoteDriver {
   /// Stable identity established by an authenticated connection, when available.
   String? get verifiedPeerIdentity => null;
   String? get reportedDiscoveryIdentity => null;
+
+  /// Software evidence produced by the current connection attempt.
+  DeviceSoftwareInformation? get sessionSoftwareInformation => null;
 
   bool get canWake;
   Future<void> powerOff();

@@ -14,6 +14,14 @@ final class DeviceDetailsViewModel {
   final RemoteDevice original;
   RemoteDevice get device =>
       dependencies.savedDevices.byId(original.id) ?? original;
+  DeviceSoftwareInformation? get liveSoftware {
+    final controller = dependencies.connection.controller;
+    if (!connected || controller?.device.id != device.id) {
+      return null;
+    }
+    return controller?.sessionSoftwareInformation;
+  }
+
   String get wakeStatus {
     if (!dependencies.providers.canWake(device)) {
       return 'Not configured';

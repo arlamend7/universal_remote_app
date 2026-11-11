@@ -17,6 +17,7 @@ export 'src/rendering/grid_remote_canvas.dart';
 export 'src/rendering/grid_remote_item.dart';
 export 'src/rendering/element_renderer.dart';
 export 'src/widgets/apps/tv_app_icon.dart';
+export 'src/widgets/devices/device_software_details.dart';
 export 'src/widgets/dialogs/confirmation_dialog.dart';
 export 'src/widgets/dialogs/device_choice_sheet.dart';
 export 'src/widgets/grid/fitted_grid_surface.dart';

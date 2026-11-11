@@ -15,6 +15,11 @@ final class RokuController extends TVRemoteBase {
 
   @override
   RemoteDevice get device => _device;
+  @override
+  DeviceSoftwareInformation? get sessionSoftwareInformation =>
+      state == DeviceConnectionState.connected
+      ? device.softwareInformation
+      : null;
   RemoteDevice _device;
   final RokuEcpClient client;
   final DriverBindings? bindings;
@@ -165,6 +170,7 @@ final class RokuController extends TVRemoteBase {
         RemoteCapability.currentInput,
       ],
     });
+    _device = bindings?.describe(device, null) ?? device;
     _state(DeviceConnectionState.connected);
   }
 

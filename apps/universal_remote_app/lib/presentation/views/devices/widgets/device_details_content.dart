@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:remote_ui/remote_ui.dart';
 
 import '../viewmodels/device_details_viewmodel.dart';
 import 'capability_evidence_list.dart';
@@ -28,8 +29,7 @@ class DeviceDetailsContent extends StatelessWidget {
           model.device.model,
         ].whereType<String>().join(' · '),
       ),
-      if (model.device.metadata['softwareVersion'] case final version?)
-        _value('Software', version),
+      DeviceSoftwareDetails(device: model.device, live: model.liveSoftware),
       if (model.currentApp != null) _value('Current app', model.currentApp!),
       const SizedBox(height: 16),
       FilledButton(

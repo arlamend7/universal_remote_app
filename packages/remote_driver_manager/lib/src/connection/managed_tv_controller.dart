@@ -17,6 +17,10 @@ final class ManagedTvController extends TVRemoteBase
   @override
   RemoteDevice get device => _device;
   RemoteDevice _device;
+  DeviceSoftwareInformation? _sessionSoftware;
+  @override
+  DeviceSoftwareInformation? get sessionSoftwareInformation =>
+      state == DeviceConnectionState.connected ? _sessionSoftware : null;
   final ManagedDriverService _drivers;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   final _changes = StreamController<void>.broadcast();
@@ -179,6 +183,7 @@ final class ManagedTvController extends TVRemoteBase
     _endpoint = endpoint;
     _bundle = bundle;
     _profile = profile;
+    _sessionSoftware = software;
     _device = copyDevice(
       identified,
       metadata: {
@@ -411,6 +416,7 @@ final class ManagedTvController extends TVRemoteBase
     _setInstalling(false);
     _bundle = null;
     _profile = null;
+    _sessionSoftware = null;
     _currentInput = null;
     _reportedApplicationIds = null;
     _inputs.add(null);

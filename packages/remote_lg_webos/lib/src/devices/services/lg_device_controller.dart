@@ -36,6 +36,10 @@ final class LgDeviceController extends TVRemoteBase
     this.requestTimeout = const Duration(seconds: 8),
   }) : _device = device;
   RemoteDevice _device;
+  DeviceSoftwareInformation? _sessionSoftware;
+  @override
+  DeviceSoftwareInformation? get sessionSoftwareInformation =>
+      state == DeviceConnectionState.connected ? _sessionSoftware : null;
   @override
   RemoteDevice get device => _device;
   final CredentialStore credentials;
@@ -284,6 +288,7 @@ final class LgDeviceController extends TVRemoteBase
   }
 
   Future<void> _connect() async {
+    _sessionSoftware = null;
     final generation = ++_generation;
     _setState(DeviceConnectionState.connecting);
     _capabilities.clear();
@@ -443,7 +448,7 @@ final class LgDeviceController extends TVRemoteBase
       if (!_isCurrent(generation)) {
         return;
       }
-      final software = lgSoftwareInformation(info);
+      final software = _sessionSoftware = lgSoftwareInformation(info);
       final version = info['product_name'] ?? info['version'];
       _device = copyDevice(
         _device,

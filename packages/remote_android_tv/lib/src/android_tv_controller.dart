@@ -17,6 +17,11 @@ final class AndroidTvController extends TVRemoteBase
   RemoteDevice _device;
   @override
   RemoteDevice get device => _device;
+  @override
+  DeviceSoftwareInformation? get sessionSoftwareInformation =>
+      state == DeviceConnectionState.connected
+      ? device.softwareInformation
+      : null;
   final CredentialStore credentials;
   final DriverBindings? bindings;
   final Future<void> Function() _wake;
@@ -144,6 +149,7 @@ final class AndroidTvController extends TVRemoteBase
         identifiedAt: DateTime.now(),
       ),
     );
+    _device = bindings?.describe(device, null) ?? device;
     _setState(DeviceConnectionState.connected);
   }
 

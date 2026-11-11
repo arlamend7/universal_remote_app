@@ -9,7 +9,7 @@ import 'connection/samsung_endpoint.dart';
 
 final class SamsungController extends TVRemoteBase {
   SamsungController(
-    this.device,
+    this._device,
     this.credentials,
     this._wake,
     this.canWake, {
@@ -17,8 +17,9 @@ final class SamsungController extends TVRemoteBase {
     this.bindings,
   });
 
+  RemoteDevice _device;
   @override
-  final RemoteDevice device;
+  RemoteDevice get device => _device;
   final CredentialStore credentials;
   final DriverBindings? bindings;
   final Future<void> Function() _wake;
@@ -101,6 +102,7 @@ final class SamsungController extends TVRemoteBase {
         'The Samsung TV connection closed.',
       );
     }
+    _device = bindings?.describe(device, null) ?? device;
     _state(DeviceConnectionState.connected);
   }
 

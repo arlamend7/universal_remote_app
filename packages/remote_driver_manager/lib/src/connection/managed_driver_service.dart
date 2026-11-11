@@ -197,6 +197,8 @@ final class ManagedDriverService {
       selection: {
         'managedDriverId': identity.id,
         'managedDriverVersion': identity.version.toString(),
+        'managedDriverProfile': match.profile.id,
+        'managedDriverProfileVersion': '${match.profile.version}',
       },
     );
   }
