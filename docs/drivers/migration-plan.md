@@ -25,3 +25,7 @@ The feature branch is `feature/dynamic-driver-runtime`. Validate each phase and 
 | 18 | Run full validation and document development, publishing, offline use and hardware checks. |
 
 Before migration, compare each provider with the same fixtures on both paths. Keep the old controller or a compatible compiled adapter until the relevant behavior is covered. Record physical-device testing separately from fixture results.
+
+## Capability parity follow-up
+
+The follow-up migration starts from `f259d52`. Use the [TV API parity matrix](parity/tv-api.md) and the provider audits as the baseline before changing ownership of compiled behavior. [Device software resolution](device-version-resolution.md) defines the evidence boundary for compatibility checks.
