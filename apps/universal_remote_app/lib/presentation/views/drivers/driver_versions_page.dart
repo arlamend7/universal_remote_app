@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
 
 import 'driver_capabilities_page.dart';
+import 'driver_profile_summary.dart';
 
 class DriverVersionsPage extends StatelessWidget {
   const DriverVersionsPage({
@@ -49,15 +50,7 @@ class DriverVersionsPage extends StatelessWidget {
               : 'App update required',
           if (published != null)
             MaterialLocalizations.of(context).formatMediumDate(published),
-          ...manifest.compatibility.map(
-            (profile) => [
-              profile.id,
-              if (profile.models.isNotEmpty) profile.models.join(', '),
-              if (profile.osVersion != null) 'OS ${profile.osVersion}',
-              if (profile.firmwareVersion != null)
-                'Firmware ${profile.firmwareVersion}',
-            ].join(' · '),
-          ),
+          ...manifest.compatibility.map(driverProfileSummary),
           if (release.notes?.isNotEmpty == true) release.notes!,
         ].join('\n'),
       ),

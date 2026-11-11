@@ -39,7 +39,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Capabilities'), findsOneWidget);
       expect(find.text('volume'), findsOneWidget);
-      expect(find.text('Declared by the driver'), findsOneWidget);
+      expect(find.textContaining('Declared by the driver'), findsOneWidget);
+      expect(find.textContaining('Disabled for restricted'), findsOneWidget);
+      expect(find.textContaining('Firmware >=04.00.00'), findsOneWidget);
+      expect(find.text('No catalog declaration'), findsWidgets);
     },
   );
 
@@ -69,6 +72,13 @@ String _catalog() {
     'capabilities': ['volume'],
     'compatibility': [
       {'id': 'generic', 'version': 1, 'models': <String>[]},
+      {
+        'id': 'restricted',
+        'version': 2,
+        'models': ['Example Mk II'],
+        'firmwareVersion': '>=04.00.00',
+        'disabledCapabilities': ['volume'],
+      },
     ],
   };
   final payload = {

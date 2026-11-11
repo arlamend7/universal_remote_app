@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
 
+import 'driver_profile_summary.dart';
+
 class DriverCapabilitiesPage extends StatelessWidget {
   const DriverCapabilitiesPage({super.key, required this.release});
 
@@ -39,31 +41,16 @@ class DriverCapabilitiesPage extends StatelessWidget {
 
   Widget _capability(DriverManifest manifest, RemoteCapability capability) {
     final declared = manifest.capabilities.contains(capability);
-    final constraints = [
-      for (final profile in manifest.compatibility)
-        if (profile.models.isNotEmpty || profile.firmwareVersion != null)
-          [
-            profile.id,
-            if (profile.models.isNotEmpty) profile.models.join(', '),
-            if (profile.firmwareVersion != null)
-              'Firmware ${profile.firmwareVersion}',
-          ].join(' · '),
-    ];
+    final restrictions = manifest.compatibility.where(
+      (profile) => profile.disabledCapabilities.contains(capability),
+    );
     return ListTile(
       title: Text(capability.name),
       subtitle: Text(
         [
-          if (!declared) 'Unsupported by this release',
-          if (declared && constraints.isEmpty) 'Declared by the driver',
-          if (declared && constraints.isNotEmpty) ...[
-            'Conditional by profile',
-            ...constraints,
-          ],
-          if (declared &&
-              manifest.runtime.operations.contains(
-                DriverOperation.webSocketPair,
-              ))
-            'Driver includes a pairing workflow',
+          declared ? 'Declared by the driver' : 'No catalog declaration',
+          for (final profile in restrictions)
+            'Disabled for ${driverProfileSummary(profile)}',
         ].join('\n'),
       ),
     );

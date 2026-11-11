@@ -51,6 +51,7 @@ final class ManagedTvController extends TVRemoteBase
   ManagedTvSession? _persistent;
   Completer<String?>? _pairingCode;
   final _rejectedSubscriptions = <String>{};
+  final _acknowledged = <String>{};
   Uri? _endpoint;
   bool _disposed = false;
 
@@ -70,9 +71,11 @@ final class ManagedTvController extends TVRemoteBase
       for (final capability in bundle.capabilities.keys)
         CapabilityEvidence(
           capability,
-          CapabilitySource.driver,
           _disabled(capability)
-              ? CapabilityAvailability.unavailable
+              ? CapabilitySource.profile
+              : CapabilitySource.driver,
+          _disabled(capability)
+              ? CapabilityAvailability.conditional
               : _availability(bundle, capability),
           reason: _disabled(capability)
               ? 'Disabled by the TV software compatibility profile.'
@@ -84,9 +87,26 @@ final class ManagedTvController extends TVRemoteBase
   CapabilityAvailability _availability(
     DriverBundle bundle,
     RemoteCapability capability,
-  ) => DriverTvCapabilities.supports(bundle, capability)
-      ? CapabilityAvailability.known
-      : CapabilityAvailability.advertised;
+  ) {
+    final disabled =
+        _profile?.disabledCapabilities ?? const <RemoteCapability>{};
+    if (!DriverTvCapabilities.supports(
+      bundle,
+      capability,
+      disabled: disabled,
+    )) {
+      return CapabilityAvailability.advertised;
+    }
+    final verified = DriverTvCapabilities.supports(
+      bundle,
+      capability,
+      acknowledged: _acknowledged,
+      disabled: disabled,
+    );
+    return verified
+        ? CapabilityAvailability.verified
+        : CapabilityAvailability.known;
+  }
 
   bool _disabled(RemoteCapability capability) =>
       _profile?.disabledCapabilities.contains(capability) == true;
@@ -318,7 +338,11 @@ final class ManagedTvController extends TVRemoteBase
         'The TV returned no response.',
       );
     }
-    return decode(result);
+    final decoded = decode(result);
+    if (decoded != null) {
+      _acknowledge(id);
+    }
+    return decoded;
   }
 
   Future<void> _send(
@@ -326,7 +350,16 @@ final class ManagedTvController extends TVRemoteBase
     String id, [
     Map<String, Object> arguments = const {},
   ]) async {
-    await _command(capability, id, arguments);
+    final result = await _command(capability, id, arguments);
+    if (result?['ok'] == true) {
+      _acknowledge(id);
+    }
+  }
+
+  void _acknowledge(String id) {
+    if (_acknowledged.add(id)) {
+      _changes.add(null);
+    }
   }
 
   bool _has(RemoteCapability capability, String id) {
@@ -367,6 +400,7 @@ final class ManagedTvController extends TVRemoteBase
       pairing.complete(null);
     }
     _rejectedSubscriptions.clear();
+    _acknowledged.clear();
     final selection = _selection;
     _selection = null;
     choices = const [];

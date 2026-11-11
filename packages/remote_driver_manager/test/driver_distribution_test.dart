@@ -146,7 +146,20 @@ void main() {
       expect(await remote.submitPairingCode('123abc'), isTrue);
       await connecting;
       expect((await feedback.timeout(const Duration(seconds: 2))).volume, 52);
+      await remote.volumeUp();
+      expect(
+        remote.evidence
+            .firstWhere((entry) => entry.capability == RemoteCapability.volume)
+            .availability,
+        CapabilityAvailability.known,
+      );
       await Future.wait([remote.volumeUp(), remote.volumeDown()]);
+      expect(
+        remote.evidence
+            .firstWhere((entry) => entry.capability == RemoteCapability.volume)
+            .availability,
+        CapabilityAvailability.verified,
+      );
       expect(remote.device.model, 'Fixture Mk II');
       expect(
         remote.device.metadata['managedDriverProfile'],
@@ -157,7 +170,7 @@ void main() {
         remote.evidence
             .singleWhere((entry) => entry.capability == RemoteCapability.power)
             .availability,
-        CapabilityAvailability.unavailable,
+        CapabilityAvailability.conditional,
       );
       await expectLater(
         remote.powerOff(),
@@ -179,6 +192,7 @@ void main() {
         'identify',
         'subscribe',
         'up',
+        'up',
         'down',
       ]);
       expect(sockets, 1);
@@ -190,6 +204,7 @@ void main() {
         'authenticate',
         'identify',
         'subscribe',
+        'up',
         'up',
         'down',
         'authenticate',

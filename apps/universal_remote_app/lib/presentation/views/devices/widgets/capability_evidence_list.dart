@@ -18,7 +18,16 @@ class CapabilityEvidenceList extends StatelessWidget {
     subtitle: Text(_description(item)),
   );
   String _description(CapabilityEvidence item) {
-    final state = '${item.source.name} · ${item.availability.name}';
+    final status = switch (item.availability) {
+      CapabilityAvailability.advertised => 'Declared',
+      CapabilityAvailability.known => 'Known supported',
+      CapabilityAvailability.verified => 'Device verified',
+      CapabilityAvailability.conditional => 'Conditional',
+      CapabilityAvailability.unavailable => 'Temporarily unavailable',
+      CapabilityAvailability.unsupported => 'Unsupported',
+      CapabilityAvailability.unknown => 'Unknown',
+    };
+    final state = '${item.source.name} · $status';
     if (item.reason == null) {
       return state;
     }

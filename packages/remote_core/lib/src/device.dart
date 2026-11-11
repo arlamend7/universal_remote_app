@@ -130,6 +130,8 @@ enum CapabilityAvailability {
   verified,
   unavailable,
   unsupported,
+  conditional,
+  unknown,
 }
 
 enum CapabilitySource {

@@ -56,21 +56,30 @@ abstract final class DriverTvCapabilities {
           bundle.exchanges[action]?.operation ==
               DriverOperation.webSocketRequest);
 
-  static bool supports(DriverBundle bundle, RemoteCapability capability) {
+  static bool supports(
+    DriverBundle bundle,
+    RemoteCapability capability, {
+    Set<String>? acknowledged,
+    Set<RemoteCapability> disabled = const {},
+  }) {
+    bool has(RemoteCapability required, String action) =>
+        !disabled.contains(required) &&
+        provides(bundle, required, action) &&
+        (acknowledged == null || acknowledged.contains(action));
     if (capability == RemoteCapability.inputs) {
-      return provides(bundle, capability, 'open-input-picker') ||
+      return has(capability, 'open-input-picker') ||
           [
             'list-inputs',
             'select-input',
-          ].every((action) => provides(bundle, capability, action));
+          ].every((action) => has(capability, action));
     }
     if (capability == RemoteCapability.mute &&
-        provides(bundle, capability, 'set-mute') &&
-        provides(bundle, RemoteCapability.volumeFeedback, 'read-volume')) {
+        has(capability, 'set-mute') &&
+        has(RemoteCapability.volumeFeedback, 'read-volume')) {
       return true;
     }
     final required = _required[capability];
     return required != null &&
-        required.every((action) => provides(bundle, capability, action));
+        required.every((action) => has(capability, action));
   }
 }
