@@ -6,7 +6,7 @@ import 'driver_step.dart';
 
 /// A request supported by the persistent JSON session protocol.
 final class DriverExchange {
-  const DriverExchange._(this.operation, this._payload);
+  const DriverExchange._(this.operation, this._step, this.event);
 
   factory DriverExchange.parse(String source, DriverManifest manifest) {
     if (source.length > 16384) {
@@ -21,11 +21,23 @@ final class DriverExchange {
     if (payload.keys.any(_reserved.contains)) {
       throw const FormatException('A driver request uses a reserved field.');
     }
-    return DriverExchange._(step.operation, step.message!);
+    final event = payload['event'];
+    if ((step.operation == DriverOperation.webSocketSubscribe ||
+            step.operation == DriverOperation.webSocketUnsubscribe) &&
+        event != null &&
+        (event is! String || event.isEmpty || event.length > 64)) {
+      throw const FormatException('Invalid subscription event name.');
+    }
+    return DriverExchange._(
+      step.operation,
+      step,
+      event is String ? event : null,
+    );
   }
 
   final DriverOperation operation;
-  final String _payload;
+  final DriverStep _step;
+  final String? event;
 
   static const _reserved = {'id', 'code', 'token'};
   static const _operations = {
@@ -36,8 +48,13 @@ final class DriverExchange {
     DriverOperation.webSocketPair,
   };
 
-  String encode(int id, {String? code, String? token}) => jsonEncode({
-    ...jsonDecode(_payload) as Map<String, Object?>,
+  String encode(
+    int id, {
+    String? code,
+    String? token,
+    Map<String, Object> arguments = const {},
+  }) => jsonEncode({
+    ...jsonDecode(_step.render(arguments)) as Map<String, Object?>,
     'id': id,
     if (code != null) 'code': code,
     if (token != null) 'token': token,

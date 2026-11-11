@@ -6,16 +6,17 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
 final class DriverTextSession {
-  DriverTextSession(this._transport, {this.onEvent}) {
+  DriverTextSession(this._transport, {this.onEvent, this.onLost}) {
     _subscription = _transport.messages.listen(
       _receive,
-      onError: (Object _) => _fail('Driver connection failed.'),
-      onDone: () => _fail('Driver connection closed.'),
+      onError: (Object _) => _lost('Driver connection failed.'),
+      onDone: () => _lost('Driver connection closed.'),
     );
   }
 
   final TextTransport _transport;
   final void Function(Map<String, Object?>)? onEvent;
+  final void Function()? onLost;
   final _messages = Queue<String>();
   late final StreamSubscription<String> _subscription;
   Completer<String>? _waiting;
@@ -56,7 +57,7 @@ final class DriverTextSession {
       return;
     }
     if (message.length > 65536 || _messages.length >= 16) {
-      _fail('Driver response exceeds the session limits.');
+      _lost('Driver response exceeds the session limits.');
       return;
     }
     if (onEvent != null && _dispatchEvent(message)) {
@@ -87,6 +88,14 @@ final class DriverTextSession {
     }
     onEvent!(value);
     return true;
+  }
+
+  void _lost(String message) {
+    if (_failure != null) {
+      return;
+    }
+    _fail(message);
+    onLost?.call();
   }
 
   void _fail(String message) {

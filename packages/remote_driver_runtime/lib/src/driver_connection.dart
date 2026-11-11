@@ -14,7 +14,11 @@ final class DriverConnection {
   final Future<TextTransport> Function(Stream<void>, Duration) _open;
   DriverTextSession? _session;
   bool _busy = false;
-  bool _subscribed = false;
+  final _subscriptions = <String>{};
+  void Function()? _stopActive;
+  Completer<void>? _operationFinished;
+  void Function()? onLost;
+  bool get connected => _session != null;
   int _sequence = 0;
   void Function(Map<String, Object?>)? onFeedback;
 
@@ -32,7 +36,11 @@ final class DriverConnection {
           await transport.close();
           throw _cancelled;
         }
-        _session = DriverTextSession(transport, onEvent: _feedback);
+        _session = DriverTextSession(
+          transport,
+          onEvent: _feedback,
+          onLost: () => onLost?.call(),
+        );
       },
       timeout,
       cancellation,
@@ -41,6 +49,7 @@ final class DriverConnection {
 
   Future<Map<String, Object?>> request(
     DriverExchange exchange, {
+    Map<String, Object> arguments = const {},
     Duration timeout = const Duration(seconds: 5),
     Stream<void>? cancellation,
   }) {
@@ -49,13 +58,14 @@ final class DriverConnection {
     }
     return _run(
       (_, _) async {
+        final event = exchange.event ?? '*';
         if (exchange.operation == DriverOperation.webSocketSubscribe) {
-          _subscribed = true;
+          _subscriptions.add(event);
         }
         if (exchange.operation == DriverOperation.webSocketUnsubscribe) {
-          _subscribed = false;
+          _subscriptions.remove(event);
         }
-        final reply = await _exchange(exchange);
+        final reply = await _requestReply(exchange, arguments, event);
         return Map.unmodifiable(
           reply
             ..remove('token')
@@ -65,6 +75,21 @@ final class DriverConnection {
       timeout,
       cancellation,
     );
+  }
+
+  Future<Map<String, Object?>> _requestReply(
+    DriverExchange exchange,
+    Map<String, Object> arguments,
+    String event,
+  ) async {
+    try {
+      return await _exchange(exchange, arguments: arguments);
+    } on RemoteException {
+      if (exchange.operation == DriverOperation.webSocketSubscribe) {
+        _subscriptions.remove(event);
+      }
+      rethrow;
+    }
   }
 
   Future<void> authenticate(
@@ -136,20 +161,23 @@ final class DriverConnection {
     DriverExchange exchange, {
     String? code,
     String? token,
+    Map<String, Object> arguments = const {},
   }) async {
     final session = _session;
     if (session == null) {
       throw StateError('Open the driver connection first.');
     }
     final id = ++_sequence;
-    await session.send(exchange.encode(id, code: code, token: token));
+    await session.send(
+      exchange.encode(id, code: code, token: token, arguments: arguments),
+    );
     final reply = await session.receiveJson();
     if (reply['id'] is! int || reply['id'] != id) {
       throw const RemoteException('driverResponse', 'Mismatched TV response.');
     }
     if (reply['ok'] != true) {
       throw const RemoteException(
-        'driverResponse',
+        'driverRejected',
         'The TV refused the request.',
       );
     }
@@ -157,22 +185,23 @@ final class DriverConnection {
   }
 
   void _feedback(Map<String, Object?> event) {
-    if (_subscribed) {
+    if (_subscriptions.contains('*') ||
+        _subscriptions.contains(event['event'])) {
       onFeedback?.call(event);
     }
   }
 
-  Future<void> close() {
-    if (_busy) {
-      throw StateError('Cancel the active driver operation before closing.');
-    }
-    return _disconnect();
+  Future<void> close() async {
+    final finished = _operationFinished;
+    _stopActive?.call();
+    await finished?.future;
+    await _disconnect();
   }
 
   Future<void> _disconnect() async {
     final session = _session;
     _session = null;
-    _subscribed = false;
+    _subscriptions.clear();
     await session?.close();
   }
 
@@ -190,6 +219,7 @@ final class DriverConnection {
       );
     }
     _busy = true;
+    final finished = _operationFinished = Completer<void>();
     final interrupted = Completer<Never>();
     final stop = StreamController<void>.broadcast();
     var active = true;
@@ -201,6 +231,7 @@ final class DriverConnection {
       }
     }
 
+    _stopActive = () => interrupt(_cancelled);
     final timer = Timer(timeout, () => interrupt(_timedOut));
     StreamSubscription<void>? listener;
     try {
@@ -212,9 +243,11 @@ final class DriverConnection {
         () => action(stop.stream, () => active && !interrupted.isCompleted),
       );
       return await Future.any([interrupted.future, result]);
-    } catch (_) {
+    } catch (error) {
       active = false;
-      await _disconnect();
+      if (error is! RemoteException || error.code != 'driverRejected') {
+        await _disconnect();
+      }
       rethrow;
     } finally {
       active = false;
@@ -222,6 +255,9 @@ final class DriverConnection {
       await listener?.cancel();
       await stop.close();
       _busy = false;
+      _stopActive = null;
+      _operationFinished = null;
+      finished.complete();
     }
   }
 

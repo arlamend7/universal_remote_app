@@ -34,12 +34,18 @@ final class DriverBundle {
     }
     final ids = capabilities.values.expand((value) => value).toSet();
     final bindings = _bindings(files, ids, manifest);
-    final commands = _commands(
-      files,
-      ids.difference(bindings?.commands.keys.toSet() ?? const {}),
-      manifest,
-    );
     final exchanges = _exchanges(files, manifest);
+    final exchangeIds = ids.where(
+      (id) =>
+          exchanges[id]?.operation == DriverOperation.webSocketRequest &&
+          !files.containsKey('commands/$id.json'),
+    );
+    final oneShotIds = ids.difference({
+      ...?bindings?.commands.keys,
+      ...exchangeIds,
+    });
+    final commands = _commands(files, oneShotIds, manifest);
+    _validateSession(exchanges, commands);
     final expectedCount =
         3 + commands.length + exchanges.length + (bindings == null ? 0 : 1);
     if (files.length != expectedCount) {
@@ -66,6 +72,33 @@ final class DriverBundle {
   final Map<String, DriverCommand> commands;
   final Map<String, DriverExchange> exchanges;
   final DriverBindings? bindings;
+
+  bool get requiresPersistentSession =>
+      capabilities.values
+          .expand((ids) => ids)
+          .any(
+            (id) => !commands.containsKey(id) && exchanges.containsKey(id),
+          ) ||
+      exchanges.containsKey('authenticate') ||
+      exchanges.containsKey('pair');
+
+  static void _validateSession(
+    Map<String, DriverExchange> exchanges,
+    Map<String, DriverCommand> commands,
+  ) {
+    final auth = exchanges['authenticate'];
+    final pair = exchanges['pair'];
+    if ((auth != null &&
+            auth.operation != DriverOperation.webSocketAuthenticate) ||
+        (pair != null &&
+            (auth == null ||
+                pair.operation != DriverOperation.webSocketPair)) ||
+        (auth != null && commands.isNotEmpty)) {
+      throw const FormatException(
+        'Invalid authenticated driver session workflows.',
+      );
+    }
+  }
 
   static bool _oversized(String content) =>
       utf8.encode(content).length > maximumFileBytes;

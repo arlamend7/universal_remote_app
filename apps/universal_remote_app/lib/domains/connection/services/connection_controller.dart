@@ -19,6 +19,7 @@ class ConnectionController implements RemotePanelSession {
     this.removeDashboards,
     this.autoReconnect,
     this.onConnected,
+    this.clearManagedCredentials,
     this.pinFirstCertificate,
     this.wakeRetryDelay = const Duration(seconds: 2),
   });
@@ -26,6 +27,7 @@ class ConnectionController implements RemotePanelSession {
   final Future<void> Function(Iterable<String>)? removeDashboards;
   final bool Function()? autoReconnect;
   final Future<void> Function(RemoteDevice)? onConnected;
+  final Future<void> Function(RemoteDevice)? clearManagedCredentials;
 
   /// Pins the certificate of a TV that has none yet and returns the updated
   /// device. Returns null when the device is already pinned or not applicable.
@@ -435,6 +437,7 @@ class ConnectionController implements RemotePanelSession {
       return;
     }
     await disconnect();
+    await clearManagedCredentials?.call(device);
     await saved.credentials.delete(device.id);
     await connect(device);
   }
@@ -447,6 +450,14 @@ class ConnectionController implements RemotePanelSession {
       if (logical != null) logical.id,
       ...?logical?.profiles.map((profile) => profile.id),
     });
+    final clear = clearManagedCredentials;
+    if (clear != null) {
+      final devices =
+          logical?.profiles.map((profile) => profile.device) ?? [device];
+      for (final profile in devices) {
+        await clear(profile);
+      }
+    }
     await saved.forget(device);
   }
 

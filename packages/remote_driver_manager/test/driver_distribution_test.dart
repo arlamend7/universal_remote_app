@@ -9,6 +9,7 @@ import 'package:remote_network/remote_network.dart';
 import 'package:test/test.dart';
 
 import 'fixture_driver_signer.dart';
+import 'fixture_driver_credentials.dart';
 import 'fixture_driver_repository.dart';
 
 Future<String> _signCatalog(
@@ -33,6 +34,110 @@ Future<String> _signCatalog(
 }
 
 void main() {
+  test(
+    'persistent TV controller pairs, authenticates, queues and reconnects',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'driver-session-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final fixture = await LocalDriverPackageRepository.open(
+        Directory('drivers/providers/example-tv'),
+        enabled: true,
+      );
+      final package = DriverPackage({
+        'manifest.json': jsonEncode({
+          ...fixture.package.bundle.manifest.toJson(),
+          'capabilities': ['volume'],
+          'operations': [
+            'websocket.request',
+            'websocket.authenticate',
+            'websocket.pair',
+            'websocket.subscribe',
+          ],
+        }),
+        'discovery.json': fixture.package.files['discovery.json']!,
+        'capabilities.json': '{"volume":["volume-up","volume-down"]}',
+        'workflows/pair.json': _exchangeFile('pair', 'pair'),
+        'workflows/authenticate.json': _exchangeFile(
+          'authenticate',
+          'authenticate',
+        ),
+        'workflows/volume-up.json': _exchangeFile('request', 'up'),
+        'workflows/volume-down.json': _exchangeFile('request', 'down'),
+        'workflows/subscribe-volume.json': _exchangeFile(
+          'subscribe',
+          'subscribe',
+          event: 'volume',
+        ),
+      });
+      final manager = DriverManager(
+        DriverPackageStorage(directory),
+        FixtureDriverRepository([package]),
+      );
+      await manager.initialize();
+      await manager.install(package.identity);
+      final sent = <String>[];
+      final credentials = FixtureDriverCredentials();
+      var sockets = 0;
+      final runtime = await _fixtureTv(
+        sent,
+        onConnect: () => sockets++,
+        onRequest: (request) => {
+          'id': request['id'],
+          'ok': switch (request['command']) {
+            'pair' => request['code'] == '123abc',
+            'authenticate' => request['token'] == 'fixture-token',
+            _ => true,
+          },
+          if (request['command'] == 'pair') 'token': 'fixture-token',
+        },
+      );
+      final registry = ProviderRegistry();
+      await ManagedDriverService(
+        manager,
+        null,
+        runtime: runtime,
+      ).initialize(registry, credentials: credentials);
+      final device = registry.createManualDevice(
+        address: '192.168.1.20',
+        name: 'TV',
+        legacy: false,
+        allowInsecurePointer: false,
+      );
+      final remote = registry.createController(device) as ManagedTvController;
+      addTearDown(remote.dispose);
+      final pairing = remote.connectionStates.firstWhere(
+        (state) => state == DeviceConnectionState.pairing,
+      );
+      final feedback = remote.watchVolume().first;
+      final connecting = remote.connect();
+      await pairing.timeout(const Duration(seconds: 2));
+      expect(sent, isEmpty);
+      expect(await remote.submitPairingCode('123abc'), isTrue);
+      await connecting;
+      expect((await feedback.timeout(const Duration(seconds: 2))).volume, 52);
+      await Future.wait([remote.volumeUp(), remote.volumeDown()]);
+      expect(sent, ['pair', 'authenticate', 'subscribe', 'up', 'down']);
+      expect(sockets, 1);
+      await remote.disconnect();
+      await remote.connect();
+      await remote.volumeUp();
+      expect(sent, [
+        'pair',
+        'authenticate',
+        'subscribe',
+        'up',
+        'down',
+        'authenticate',
+        'subscribe',
+        'up',
+      ]);
+      expect(sockets, 2);
+      expect(credentials.values.values.single, 'fixture-token');
+    },
+  );
+
   test('managed commands bind inputs and publish typed feedback', () async {
     final directory = await Directory.systemTemp.createTemp('driver-commands-');
     addTearDown(() => directory.delete(recursive: true));
@@ -330,6 +435,12 @@ void _catalogResponse(
   response.write(body);
 }
 
+String _exchangeFile(String operation, String action, {String? event}) =>
+    jsonEncode({
+      'operation': 'websocket.$operation',
+      'payload': {'command': action, if (event != null) 'event': event},
+    });
+
 String _commandFile(String action, [Map<String, Object> data = const {}]) =>
     jsonEncode([
       {'operation': 'websocket.connect'},
@@ -344,6 +455,7 @@ String _commandFile(String action, [Map<String, Object> data = const {}]) =>
 Future<DriverRuntime> _fixtureTv(
   List<String> commands, {
   Map<String, Object?> Function(Map<String, Object?>)? onRequest,
+  void Function()? onConnect,
 }) async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   addTearDown(() => server.close(force: true));
@@ -351,10 +463,14 @@ Future<DriverRuntime> _fixtureTv(
     // The runtime owns closure of the peer connection.
     // ignore: close_sinks
     final socket = await WebSocketTransformer.upgrade(request);
+    onConnect?.call();
     socket.listen((message) {
       final command = jsonDecode(message as String) as Map<String, Object?>;
       commands.add(command['command'] as String);
       socket.add(jsonEncode(onRequest?.call(command) ?? {'ok': true}));
+      if (command['command'] == 'subscribe') {
+        socket.add('{"event":"volume","volume":52}');
+      }
     });
   });
   addTearDown(listener.cancel);

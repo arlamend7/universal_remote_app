@@ -30,10 +30,15 @@ final class ManagedDriverService {
     operations: DriverRuntime.operations,
   );
   DriverCatalog? _catalog;
+  CredentialStore? _credentials;
 
   DriverCatalog? get catalog => _catalog;
 
-  Future<void> initialize(ProviderRegistry registry) async {
+  Future<void> initialize(
+    ProviderRegistry registry, {
+    CredentialStore? credentials,
+  }) async {
+    _credentials = credentials ?? _credentials;
     await manager.initialize();
     _register(registry);
     try {
@@ -43,6 +48,31 @@ final class ManagedDriverService {
       return;
     }
     _register(registry);
+  }
+
+  DriverCredentialScope? credentialScope(
+    DriverBundle bundle,
+    RemoteDevice device,
+  ) {
+    final store = _credentials;
+    if (store == null) {
+      return null;
+    }
+    return DriverCredentialScope(store, bundle.manifest.identity.id, device.id);
+  }
+
+  Future<void> clearCredentials(RemoteDevice device) async {
+    final store = _credentials;
+    if (store == null) {
+      return;
+    }
+    final families = {
+      ...manager.inventory.keys,
+      if (device.metadata['managedDriverId'] case final id?) id,
+    };
+    for (final family in families) {
+      await DriverCredentialScope(store, family, device.id).delete();
+    }
   }
 
   Future<void> refresh(ProviderRegistry registry) async {

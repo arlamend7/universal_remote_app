@@ -16,6 +16,8 @@ final class DriverCredentialScope {
 
   Future<String?> read() => _store.read(_key);
 
+  Future<void> delete() => _store.delete(_key);
+
   Future<void> write(String token) {
     if (token.isEmpty || token.length > 4096) {
       throw const RemoteException('driverPairing', 'Invalid pairing token.');

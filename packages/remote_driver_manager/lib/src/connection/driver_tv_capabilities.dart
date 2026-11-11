@@ -52,7 +52,9 @@ abstract final class DriverTvCapabilities {
     String action,
   ) =>
       bundle.capabilities[capability]?.contains(action) == true &&
-      bundle.commands.containsKey(action);
+      (bundle.commands.containsKey(action) ||
+          bundle.exchanges[action]?.operation ==
+              DriverOperation.webSocketRequest);
 
   static bool supports(DriverBundle bundle, RemoteCapability capability) {
     if (capability == RemoteCapability.inputs) {

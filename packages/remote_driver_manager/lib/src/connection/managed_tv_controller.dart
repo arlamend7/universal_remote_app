@@ -7,9 +7,11 @@ import '../resolution/driver_match.dart';
 import 'driver_tv_capabilities.dart';
 import 'driver_tv_response.dart';
 import 'managed_driver_service.dart';
+import 'managed_tv_session.dart';
 
 /// Maps the supported, named driver commands to the television contract.
-final class ManagedTvController extends TVRemoteBase {
+final class ManagedTvController extends TVRemoteBase
+    implements PairingCodeReceiver {
   ManagedTvController(this._device, this._drivers);
 
   @override
@@ -45,6 +47,9 @@ final class ManagedTvController extends TVRemoteBase {
   // ignore: close_sinks
   StreamController<void>? _cancellation;
   DriverBundle? _bundle;
+  ManagedTvSession? _persistent;
+  Completer<String?>? _pairingCode;
+  final _rejectedSubscriptions = <String>{};
   Uri? _endpoint;
   bool _disposed = false;
 
@@ -68,8 +73,24 @@ final class ManagedTvController extends TVRemoteBase {
           DriverTvCapabilities.supports(bundle, capability)
               ? CapabilityAvailability.known
               : CapabilityAvailability.advertised,
+          reason: _subscriptionReason(capability),
         ),
     ];
+  }
+
+  String? _subscriptionReason(RemoteCapability capability) {
+    final event = switch (capability) {
+      RemoteCapability.volumeFeedback => 'volume',
+      RemoteCapability.currentContent => 'content',
+      RemoteCapability.currentInput => 'input',
+      _ => null,
+    };
+    if (event != null &&
+        (_rejectedSubscriptions.contains(event) ||
+            _rejectedSubscriptions.contains('*'))) {
+      return 'Live updates were declined by the TV. Reads are still available.';
+    }
+    return null;
   }
 
   @override
@@ -109,9 +130,7 @@ final class ManagedTvController extends TVRemoteBase {
     _setInstalling(false);
     final host = device.endpoints.first.host;
     final endpoint = bundle.discovery.endpoint(host);
-    final connection = _drivers.runtime.connection(endpoint: endpoint);
-    await connection.connect(cancellation: cancellation.stream);
-    await connection.close();
+    await _openSession(bundle, endpoint, cancellation);
     if (!identical(_cancellation, cancellation)) {
       return;
     }
@@ -125,6 +144,87 @@ final class ManagedTvController extends TVRemoteBase {
       },
     );
     _setState(DeviceConnectionState.connected);
+  }
+
+  Future<void> _openSession(
+    DriverBundle bundle,
+    Uri endpoint,
+    StreamController<void> cancellation,
+  ) async {
+    final connection = _drivers.runtime.connection(
+      endpoint: endpoint,
+      trustedCertificateDer: device.metadata['trustedCertificateDer'],
+    );
+    if (!bundle.requiresPersistentSession) {
+      await connection.connect(cancellation: cancellation.stream);
+      await connection.close();
+      return;
+    }
+    final session = _persistent = ManagedTvSession(
+      connection,
+      bundle,
+      onLost: () {
+        if (identical(_cancellation, cancellation)) {
+          unawaited(disconnect());
+        }
+      },
+    );
+    await session.open(
+      credentials: _drivers.credentialScope(bundle, device),
+      requestCode: _requestPairingCode,
+      feedback: _feedback,
+      subscriptionRejected: _rejectedSubscriptions.add,
+    );
+  }
+
+  Future<String?> _requestPairingCode() async {
+    final pending = _pairingCode = Completer<String?>();
+    _setState(DeviceConnectionState.pairing);
+    try {
+      return await pending.future;
+    } finally {
+      if (identical(_pairingCode, pending)) {
+        _pairingCode = null;
+        _setState(DeviceConnectionState.connecting);
+      }
+    }
+  }
+
+  @override
+  Future<bool> submitPairingCode(String code) async {
+    final pending = _pairingCode;
+    if (pending == null || pending.isCompleted || !_validCode.hasMatch(code)) {
+      return false;
+    }
+    pending.complete(code);
+    return true;
+  }
+
+  static final _validCode = RegExp(r'^[0-9a-fA-F]{6}$');
+
+  void _feedback(Map<String, Object?> event) {
+    switch (event['event']) {
+      case 'volume':
+        _publishFeedback(_volume, event, DriverTvResponse.volume);
+      case 'content':
+        _publishFeedback(_content, event, DriverTvResponse.content);
+      case 'input':
+        _publishFeedback(_inputs, event, (response) {
+          return _currentInput = DriverTvResponse.input(response);
+        });
+    }
+  }
+
+  void _publishFeedback<T>(
+    StreamController<T> target,
+    Map<String, Object?> event,
+    T Function(Map<String, Object?>) decode,
+  ) {
+    try {
+      target.add(decode(event));
+    } on RemoteException catch (error, trace) {
+      target.addError(error, trace);
+    }
   }
 
   Future<DriverMatch?> _choose(List<DriverMatch> alternatives) async {
@@ -156,12 +256,18 @@ final class ManagedTvController extends TVRemoteBase {
     if (!DriverTvCapabilities.provides(bundle, capability, id)) {
       throw _unavailable;
     }
-    final result = await _drivers.runtime.execute(
-      bundle.commands[id]!,
-      endpoint: endpoint,
-      arguments: arguments,
-      cancellation: cancellation.stream,
-    );
+    final exchange = bundle.exchanges[id];
+    final result =
+        !bundle.commands.containsKey(id) &&
+            exchange?.operation == DriverOperation.webSocketRequest
+        ? await _persistent!.request(exchange!, arguments)
+        : await _drivers.runtime.execute(
+            bundle.commands[id]!,
+            endpoint: endpoint,
+            arguments: arguments,
+            trustedCertificateDer: device.metadata['trustedCertificateDer'],
+            cancellation: cancellation.stream,
+          );
     if (!identical(_cancellation, cancellation)) {
       throw const RemoteException('cancelled', 'Driver command cancelled.');
     }
@@ -226,6 +332,14 @@ final class ManagedTvController extends TVRemoteBase {
       return;
     }
     _cancellation = null;
+    final persistent = _persistent;
+    _persistent = null;
+    final pairing = _pairingCode;
+    _pairingCode = null;
+    if (pairing != null && !pairing.isCompleted) {
+      pairing.complete(null);
+    }
+    _rejectedSubscriptions.clear();
     final selection = _selection;
     _selection = null;
     choices = const [];
@@ -241,6 +355,7 @@ final class ManagedTvController extends TVRemoteBase {
     _setState(DeviceConnectionState.disconnected);
     cancellation.add(null);
     await cancellation.close();
+    await persistent?.close();
   }
 
   @override

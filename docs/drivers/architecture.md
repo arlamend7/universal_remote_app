@@ -35,11 +35,11 @@ The shared WebSocket transport supports bounded, cancellable handshakes and exac
 
 ## Runtime foundation
 
-The initial runtime executes a single command over a secure local WebSocket endpoint supplied by the host. A command opens a session, sends validated JSON objects, optionally reads JSON object replies, and closes the connection. The runtime bounds source size, payload nesting, step count, response buffering and total execution time. Configuration cannot supply a URL or certificate pin. The host supplies endpoint and certificate trust through the existing network transport. The fictional-TV fixture substitutes a loopback connector in tests. Persistent sessions, pairing and subscriptions belong to the next phase.
+The initial runtime executes a single command over a secure local WebSocket endpoint supplied by the host. A command opens a session, sends validated JSON objects, optionally reads JSON object replies, and closes the connection. The runtime bounds source size, payload nesting, step count, response buffering and total execution time. Configuration cannot supply a URL or certificate pin. The host supplies endpoint and certificate trust through the existing network transport. The fictional-TV fixture substitutes a loopback connector in tests. Drivers that declare authenticated workflows or subscriptions use a persistent session.
 
 ## Persistent JSON sessions
 
-Persistent exchanges use a compiled JSON envelope with a request ID and an explicit acknowledgment. A session permits one active exchange. A mismatched reply, timeout or cancellation closes that session, and the host can reconnect without replaying a potentially completed command. Subscription requests control delivery of event messages to the host. The pairing code comes from a host callback. Only an acknowledged pairing response may persist a token in the selected driver and device credential scope. The host selects the endpoint, certificate pin and storage scope. This envelope supports the fictional driver protocol; providers with different message formats still need their own compiled or validated protocol adapter.
+Persistent exchanges use a compiled JSON envelope with a request ID and an explicit acknowledgment. A session permits one active exchange at a time and queues up to 16 concurrent calls. A mismatched reply, timeout or cancellation closes that session, and the host can reconnect without replaying a potentially completed command. Subscription requests control delivery of event messages to the host. The pairing code comes from a host callback. Only an acknowledged pairing response may persist a token in the selected driver and device credential scope. The host selects the endpoint, certificate pin and storage scope. This envelope supports the fictional driver protocol; providers with different message formats still need their own compiled or validated protocol adapter.
 
 ## Compatibility resolution
 
@@ -77,6 +77,6 @@ See [authoring](../../drivers/README.md), [publishing](publishing.md), and [vali
 
 ### Managed television operations
 
-Command IDs are matched to the declared capability before execution. Parameterized JSON send steps use single-field objects such as `{"$argument":"volume"}`. Only bounded scalar arguments can be substituted, and the runtime renders the complete request before opening a socket. Catalogs, volume, playback and content replies are decoded to the shared TV types. Read results feed the controller's state streams. Protocol-originated subscription events and authorization are handled by the persistent workflow phase.
+Command IDs are matched to the declared capability before execution. Parameterized JSON send steps use single-field objects such as `{"$argument":"volume"}`. Only bounded scalar arguments can be substituted, and the runtime renders the complete request before opening a socket. Catalogs, volume, playback and content replies are decoded to the shared TV types. Read results feed the controller's state streams. Persistent sessions also feed protocol-originated volume, content and input updates into those streams.
 
 The TV API adapter distinguishes a declaration from a usable command set. A package cannot enable a control solely by listing the capability, and a failed optional read does not revoke independent write operations.

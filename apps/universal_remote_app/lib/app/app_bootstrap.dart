@@ -62,6 +62,7 @@ abstract final class AppBootstrap {
     final drivers = managedDrivers = await _initializeDrivers(
       driverService,
       providers,
+      credentials,
       logger,
     );
     final saved = SavedDevicesController(
@@ -98,6 +99,7 @@ abstract final class AppBootstrap {
       logger,
       autoReconnect: () => settings.autoReconnect.value,
       removeDashboards: grids.removeForDevice,
+      clearManagedCredentials: drivers?.clearCredentials,
       onConnected: drivers == null
           ? null
           : (device) => _prepareBindings(drivers, providers, device, logger),
@@ -189,11 +191,12 @@ abstract final class AppBootstrap {
   static Future<ManagedDriverService?> _initializeDrivers(
     ManagedDriverService? service,
     ProviderRegistry registry,
+    CredentialStore credentials,
     DiagnosticLogger logger,
   ) async {
     try {
       final drivers = service ?? await PlatformDriverConfiguration.load();
-      await drivers?.initialize(registry);
+      await drivers?.initialize(registry, credentials: credentials);
       return drivers;
     } on Exception {
       logger.record(AppLogLevel.warning, 'drivers.localInitializationFailed');
