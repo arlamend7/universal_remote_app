@@ -238,7 +238,7 @@ abstract final class AppBootstrap {
         ).definition,
       );
     if (!kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
-      providers.registerDefinition(const RokuProvider().definition);
+      providers.registerDefinition(RokuProvider(bindings: bindings).definition);
     }
     return providers;
   }

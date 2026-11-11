@@ -14,3 +14,11 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s drivers/tests
 ```
 
 The tool enables filesystem loading explicitly. The packaged ZIP is unsigned and intended for development. Signing and distribution are separate phases. The production app has no filesystem driver-source configuration.
+
+To load a source directory directly in a development app, run Flutter with
+`--dart-define=DRIVER_LOCAL_PATH=/absolute/path/to/driver`. Use a new driver
+version for changed files. Development installs use separate local storage.
+Roku also requires `--dart-define=ENABLE_ROKU_ECP=true`. Release builds ignore
+both development flags. The compiled bindings format uses `bindings.json`
+and the `compiled.bindings` operation. Each compiled adapter validates its
+permitted wire values.

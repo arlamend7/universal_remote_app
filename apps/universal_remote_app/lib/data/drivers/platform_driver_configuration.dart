@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:remote_driver_manager/remote_driver_manager.dart';
 
 abstract final class PlatformDriverConfiguration {
@@ -10,6 +11,10 @@ abstract final class PlatformDriverConfiguration {
   );
 
   static Future<ManagedDriverService?> load() async {
+    const local = String.fromEnvironment('DRIVER_LOCAL_PATH');
+    if (!kReleaseMode && local.isNotEmpty) {
+      return _local(local);
+    }
     const url = String.fromEnvironment('DRIVER_CATALOG_BASE_URL');
     const keys = String.fromEnvironment('DRIVER_TRUSTED_KEYS');
     if (url.isEmpty ||
@@ -22,10 +27,7 @@ abstract final class PlatformDriverConfiguration {
       throw const FormatException('Invalid driver trust configuration.');
     }
     final trusted = values.map(_decodeKey);
-    final path = await _channel.invokeMethod<String>('storageDirectory');
-    if (path == null || path.isEmpty) {
-      throw StateError('Private driver storage is unavailable.');
-    }
+    final path = await _storageDirectory();
     final source = DriverHttpSource(Uri.parse(url));
     final storage = DriverPackageStorage(Directory(path));
     Future<bool> verify(
@@ -53,6 +55,27 @@ abstract final class PlatformDriverConfiguration {
       catalogs,
       updates: DriverUpdateService(manager, storage),
     );
+  }
+
+  static Future<ManagedDriverService> _local(String path) async {
+    final repository = await LocalDriverPackageRepository.open(
+      Directory(path),
+      enabled: !kReleaseMode,
+    );
+    final directory = await _storageDirectory();
+    final storage = DriverPackageStorage(Directory('$directory/development'));
+    final manager = DriverManager(storage, repository);
+    await manager.initialize();
+    await manager.install(repository.package.identity);
+    return ManagedDriverService(manager, null);
+  }
+
+  static Future<String> _storageDirectory() async {
+    final path = await _channel.invokeMethod<String>('storageDirectory');
+    if (path == null || path.isEmpty) {
+      throw StateError('Private driver storage is unavailable.');
+    }
+    return path;
   }
 
   static MapEntry<String, Uint8List> _decodeKey(String id, Object? value) {

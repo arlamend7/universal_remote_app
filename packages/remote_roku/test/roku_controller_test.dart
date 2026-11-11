@@ -35,7 +35,14 @@ void main() {
       providerId: 'roku.ecp',
       endpoints: [endpoint],
     );
-    final controller = RokuController(device, RokuEcpClient(endpoint));
+    final controller = RokuController(
+      device,
+      RokuEcpClient(endpoint),
+      bindings: DriverBindings({
+        'volume-up': 'VolumeUp',
+        'volume-down': 'PowerOff',
+      }),
+    );
     addTearDown(controller.dispose);
     await controller.connect();
     expect(controller.device.category, DeviceCategory.television);

@@ -37,3 +37,24 @@ class DriverPublicationTest(unittest.TestCase):
             self.assertEqual(len(package), release["size"])
             self.assertTrue(envelope["signature"])
             self.assertTrue(release["signature"])
+
+    def test_roku_cannot_be_included_in_a_publication(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            key = root / "fixture.pem"
+            index = root / "release.json"
+            index.write_text(json.dumps([{"source": "roku-ecp/1.0.0", "channel": "stable"}]))
+            subprocess.run(
+                ["openssl", "genpkey", "-algorithm", "EC", "-pkeyopt",
+                 "ec_paramgen_curve:P-256", "-out", str(key)],
+                check=True,
+            )
+            result = subprocess.run(
+                ["python3", str(DRIVERS / "tools/publish/build_site.py"),
+                 "--index", str(index), "--output", str(root / "site"),
+                 "--key", str(key), "--key-id", "fixture", "--revision", "1"],
+                capture_output=True, check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(b"Roku packages must remain local", result.stderr)
+            self.assertFalse((root / "site").exists())

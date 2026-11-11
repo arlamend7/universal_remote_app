@@ -21,7 +21,7 @@ final class ManagedDriverService {
   }) : runtime = runtime ?? const DriverRuntime();
 
   final DriverManager manager;
-  final DriverCatalogRepository catalogs;
+  final DriverCatalogRepository? catalogs;
   final DriverRuntime runtime;
   final DriverUpdateService? updates;
   final _resolver = DriverResolver(
@@ -36,7 +36,7 @@ final class ManagedDriverService {
     await manager.initialize();
     _register(registry);
     try {
-      _catalog = await catalogs.cached();
+      _catalog = await catalogs?.cached();
     } on FormatException {
       // Installed packages stay usable when catalog metadata is damaged.
       return;
@@ -45,7 +45,7 @@ final class ManagedDriverService {
   }
 
   Future<void> refresh(ProviderRegistry registry) async {
-    _catalog = await catalogs.refresh();
+    _catalog = await catalogs?.refresh();
     _register(registry);
   }
 
@@ -53,6 +53,9 @@ final class ManagedDriverService {
     ProviderRegistry registry,
     Iterable<RemoteDevice> devices,
   ) async {
+    if (catalogs == null) {
+      return;
+    }
     await updates?.check(devices, () async {
       await refresh(registry);
       return _catalog!;
@@ -126,7 +129,7 @@ final class ManagedDriverService {
     if (bindingsFor(device) != null) {
       return;
     }
-    _catalog ??= await catalogs.refresh();
+    _catalog ??= await catalogs?.refresh();
     final candidates = _releases
         .where(
           (release) =>
@@ -161,7 +164,7 @@ final class ManagedDriverService {
         !result.requiresSelection &&
         !cancelled()) {
       try {
-        _catalog = await catalogs.refresh();
+        _catalog = await catalogs?.refresh();
       } on Exception {
         if (result.selected == null) {
           rethrow;

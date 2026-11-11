@@ -24,3 +24,5 @@ LG webOS reads managed SSAP volume, mute and power mappings when a compatible si
 Android TV reads managed Remote v2 navigation, media, relative volume and power key mappings. The compiled adapter validates each key against its expected Android code and retains pairing, mutual TLS, certificate pinning, binary framing, feature negotiation and wake. The TLS fixture checks that a managed mapping and a rejected override emit the same binary keys as before.
 
 Samsung Tizen reads managed navigation, relative volume, channel and power keys. The compiled adapter still owns TLS pinning, token authorization, app launch, capability reporting and wake. The transport fixture verifies the existing key and pairing behavior with an approved mapping and a rejected override.
+
+Roku reads local managed relative-volume and power mappings through its existing ECP controller. The serial check, LAN transport and device-specific capability gates stay in the compiled engine. Roku registration still requires a non-release build with `ENABLE_ROKU_ECP=true`. The publication tool rejects Roku packages independently of the release index channel.

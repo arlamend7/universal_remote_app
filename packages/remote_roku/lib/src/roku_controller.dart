@@ -9,12 +9,13 @@ import 'roku_serial.dart';
 import 'roku_channel_data.dart';
 
 final class RokuController extends TVRemoteBase {
-  RokuController(this._device, this.client);
+  RokuController(this._device, this.client, {this.bindings});
 
   @override
   RemoteDevice get device => _device;
   RemoteDevice _device;
   final RokuEcpClient client;
+  final DriverBindings? bindings;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   final _inputChanges = StreamController<DeviceInput?>.broadcast();
   DeviceInput? _currentInput;
@@ -252,11 +253,20 @@ final class RokuController extends TVRemoteBase {
   Future<void> togglePlayback() =>
       _key(RemoteCapability.playbackToggle, 'Play');
   @override
-  Future<void> volumeUp() => _key(RemoteCapability.volume, 'VolumeUp');
+  Future<void> volumeUp() =>
+      _managedKey(RemoteCapability.volume, 'volume-up', 'VolumeUp');
   @override
-  Future<void> volumeDown() => _key(RemoteCapability.volume, 'VolumeDown');
+  Future<void> volumeDown() =>
+      _managedKey(RemoteCapability.volume, 'volume-down', 'VolumeDown');
   @override
-  Future<void> powerOff() => _key(RemoteCapability.power, 'PowerOff');
+  Future<void> powerOff() =>
+      _managedKey(RemoteCapability.power, 'power-off', 'PowerOff');
+  Future<void> _managedKey(
+    RemoteCapability capability,
+    String action,
+    String fallback,
+  ) => _key(capability, bindings?.select(action, fallback) ?? fallback);
+
   @override
   Future<void> sendEnter() => _key(RemoteCapability.textInput, 'Enter');
   @override

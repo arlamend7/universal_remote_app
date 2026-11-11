@@ -8,7 +8,9 @@ import 'roku_endpoint.dart';
 import 'roku_identifier.dart';
 
 final class RokuProvider implements ManualDeviceProvider, DeviceWakeProvider {
-  const RokuProvider();
+  const RokuProvider({this.bindings});
+
+  final DriverBindingsLookup? bindings;
 
   String get id => RokuIdentifier.providerId;
   bool supports(RemoteDevice device) => device.providerId == id;
@@ -18,6 +20,7 @@ final class RokuProvider implements ManualDeviceProvider, DeviceWakeProvider {
     createController: createController,
     manualSetup: this,
     wake: this,
+    supportsManagedBindings: true,
   );
 
   RokuController createController(RemoteDevice device) {
@@ -31,7 +34,11 @@ final class RokuProvider implements ManualDeviceProvider, DeviceWakeProvider {
         'Roku requires a local IPv4 address and its HTTP control port.',
       );
     }
-    return RokuController(device, RokuEcpClient(endpoint));
+    return RokuController(
+      device,
+      RokuEcpClient(endpoint),
+      bindings: bindings?.call(device),
+    );
   }
 
   /// A Roku TV that reports power control is sent the PowerOn key while it is
