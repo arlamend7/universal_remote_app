@@ -145,6 +145,51 @@ void main() {
   );
 
   test(
+    'two televisions can resolve different releases after an offline restart',
+    () async {
+      final storage = await _storage();
+      final (first, next) = await _releases();
+      final source = FixtureDriverRepository([first, next]);
+      final initial = DriverManager(storage, source);
+      await initial.initialize();
+      await initial.install(first.identity);
+      await initial.install(next.identity);
+      final offline = FixtureDriverRepository([]);
+      final manager = DriverManager(storage, offline);
+      final service = ManagedDriverService(manager, null);
+      await service.initialize(ProviderRegistry());
+      final pinned = RemoteDevice(
+        id: 'pinned',
+        name: 'Older TV',
+        providerId: first.identity.providerId,
+        metadata: {
+          'managedDriverId': first.identity.id,
+          'managedDriverPinnedVersion': first.identity.version.toString(),
+        },
+      );
+      final other = RemoteDevice(
+        id: 'other',
+        name: 'New TV',
+        providerId: next.identity.providerId,
+      );
+      final olderBundle = await service.prepare(pinned, cancelled: () => false);
+      final newerBundle = await service.prepare(other, cancelled: () => false);
+      expect(olderBundle.manifest.identity.version, first.identity.version);
+      expect(newerBundle.manifest.identity.version, next.identity.version);
+      await manager.rollback(first.identity.id);
+      expect(
+        (await service.prepare(
+          other,
+          cancelled: () => false,
+        )).manifest.identity.version,
+        first.identity.version,
+      );
+      expect(newerBundle.manifest.identity.version, next.identity.version);
+      expect(offline.requests, 0);
+    },
+  );
+
+  test(
     'uncommitted files remain inactive and a corrupted update rolls back',
     () async {
       final storage = await _storage();

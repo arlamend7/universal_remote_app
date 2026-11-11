@@ -110,8 +110,37 @@ final class ManagedDriverService {
     }
   }
 
-  Iterable<DriverBundle> get _installed =>
-      manager.inventory.keys.map(manager.active).nonNulls;
+  Iterable<DriverBundle> get _installed => manager.enabledBundles;
+
+  DriverCandidate _localCandidate(DriverBundle bundle) {
+    final identity = bundle.manifest.identity;
+    return DriverCandidate(
+      bundle.manifest,
+      installed: true,
+      preferred: manager.inventory[identity.id]?.active == identity.version,
+    );
+  }
+
+  DriverMatch? _pinned(
+    RemoteDevice device,
+    Iterable<DriverCandidate> candidates,
+  ) {
+    final family = device.metadata['managedDriverId'];
+    final version = device.metadata['managedDriverPinnedVersion'];
+    if (family == null || version == null) {
+      return null;
+    }
+    return _resolver
+        .resolve(
+          _evidence(device),
+          candidates.where(
+            (candidate) =>
+                candidate.identity.id == family &&
+                candidate.identity.version.toString() == version,
+          ),
+        )
+        .selected;
+  }
 
   Iterable<({DriverManifest manifest, DriverDiscoveryRules rules})>
   descriptions(String providerId) sync* {
@@ -134,7 +163,7 @@ final class ManagedDriverService {
     for (final bundle in _installed) {
       if (bundle.manifest.identity.providerId == providerId &&
           !_compiled(bundle.manifest)) {
-        yield DriverCandidate(bundle.manifest, installed: true);
+        yield _localCandidate(bundle);
       }
     }
     for (final release in _releases) {
@@ -149,13 +178,15 @@ final class ManagedDriverService {
   DriverBindings? bindingsFor(RemoteDevice device) {
     final candidates = _installed
         .where((bundle) => _compiled(bundle.manifest))
-        .map((bundle) => DriverCandidate(bundle.manifest, installed: true));
-    final match = _resolver.resolve(_evidence(device), candidates).selected;
+        .map(_localCandidate);
+    final match =
+        _pinned(device, candidates) ??
+        _resolver.resolve(_evidence(device), candidates).selected;
     if (match == null) {
       return null;
     }
     final identity = match.candidate.identity;
-    final bundle = manager.active(identity.id);
+    final bundle = manager.installed(identity.id, identity.version);
     final bindings = bundle?.bindings;
     if (bundle == null || bindings == null) {
       return null;
@@ -195,6 +226,7 @@ final class ManagedDriverService {
         match.candidate.identity,
         cancelled: cancelled,
         cancellation: cancellation,
+        makeDefault: false,
       );
     }
   }
@@ -247,13 +279,18 @@ final class ManagedDriverService {
     if (cancelled()) {
       throw const RemoteException('cancelled', 'Driver connection cancelled.');
     }
-    final chosen = result.requiresSelection
-        ? await choose?.call(result.alternatives)
-        : result.selected;
+    final pinned = _pinned(device, _deviceCandidates(device));
+    final chosen =
+        pinned ??
+        (result.requiresSelection
+            ? await choose?.call(result.alternatives)
+            : result.selected);
     if (cancelled()) {
       throw const RemoteException('cancelled', 'Driver connection cancelled.');
     }
-    if (result.requiresSelection && !result.alternatives.contains(chosen)) {
+    if (pinned == null &&
+        result.requiresSelection &&
+        !result.alternatives.contains(chosen)) {
       throw const RemoteException(
         'driverAmbiguous',
         'Choose a compatible TV driver.',
@@ -267,7 +304,10 @@ final class ManagedDriverService {
       );
     }
     if (candidate.installed) {
-      return manager.active(candidate.identity.id)!;
+      return manager.installed(
+        candidate.identity.id,
+        candidate.identity.version,
+      )!;
     }
     onInstalling?.call();
     return manager.install(
@@ -275,6 +315,7 @@ final class ManagedDriverService {
       cancelled: cancelled,
       cancellation: cancellation,
       progress: progress,
+      makeDefault: false,
     );
   }
 
@@ -284,7 +325,9 @@ final class ManagedDriverService {
     final selected = candidates.where(
       (candidate) => candidate.identity.id == preferred,
     );
-    return selected.isEmpty ? candidates : selected;
+    return _resolver.resolve(_evidence(device), selected).selected == null
+        ? candidates
+        : selected;
   }
 
   Iterable<DriverRelease> get _releases =>

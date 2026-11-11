@@ -111,9 +111,13 @@ final class DriverResolver {
 
   static int _prefer(DriverMatch a, DriverMatch b, bool preferInstalled) {
     final priority = _rank(a, b, preferInstalled);
-    return priority == 0
-        ? DriverVersionResolver.preferredRelease(a, b)
-        : priority;
+    if (priority != 0) {
+      return priority;
+    }
+    if (preferInstalled && a.candidate.preferred != b.candidate.preferred) {
+      return a.candidate.preferred ? 1 : -1;
+    }
+    return DriverVersionResolver.preferredRelease(a, b);
   }
 
   static int _rank(DriverMatch a, DriverMatch b, bool preferInstalled) {

@@ -16,14 +16,26 @@ final class DriverManager {
   final DriverPackageStorage _storage;
   final DriverPackageRepository _repository;
   Map<String, DriverInstallation> _inventory = {};
-  Map<String, DriverPackage> _active = {};
+  Map<(String, DriverVersion), DriverPackage> _installedPackages = {};
   Set<String> _unavailable = {};
   bool _initialized = false;
   Future<void> _queue = Future.value();
 
   Map<String, DriverInstallation> get inventory => Map.unmodifiable(_inventory);
   Set<String> get unavailable => Set.unmodifiable(_unavailable);
-  DriverBundle? active(String id) => _active[id]?.bundle;
+  DriverBundle? active(String id) {
+    final record = _inventory[id];
+    return record == null ? null : installed(id, record.active);
+  }
+
+  DriverBundle? installed(String id, DriverVersion version) =>
+      _inventory[id]?.enabled == true
+      ? _installedPackages[(id, version)]?.bundle
+      : null;
+
+  Iterable<DriverBundle> get enabledBundles => _installedPackages.values
+      .where((package) => _inventory[package.identity.id]?.enabled == true)
+      .map((package) => package.bundle);
 
   Future<void> initialize() => _serialize(() async {
     if (_initialized) {
@@ -31,7 +43,7 @@ final class DriverManager {
     }
     final recorded = await _storage.readInventory();
     final inventory = <String, DriverInstallation>{};
-    final active = <String, DriverPackage>{};
+    final packages = <(String, DriverVersion), DriverPackage>{};
     final unavailable = <String>{};
     for (final entry in recorded.values) {
       final recovered = await _recover(entry);
@@ -41,9 +53,7 @@ final class DriverManager {
       }
       final (record, package) = recovered;
       inventory[record.id] = record;
-      if (record.enabled) {
-        active[record.id] = package;
-      }
+      packages.addAll(await _loadVersions(record, package));
     }
     if (inventory.length != recorded.length ||
         inventory.values.any(
@@ -52,10 +62,25 @@ final class DriverManager {
       await _storage.writeInventory(inventory.values);
     }
     _inventory = inventory;
-    _active = active;
+    _installedPackages = packages;
     _unavailable = unavailable;
     _initialized = true;
   });
+
+  Future<Map<(String, DriverVersion), DriverPackage>> _loadVersions(
+    DriverInstallation record,
+    DriverPackage active,
+  ) async {
+    final packages = {(record.id, record.active): active};
+    for (final version in record.versions.difference({record.active})) {
+      final package = await _validLocal(record.id, version);
+      if (package != null &&
+          package.identity.providerId == active.identity.providerId) {
+        packages[(record.id, version)] = package;
+      }
+    }
+    return packages;
+  }
 
   Future<DriverBundle> install(
     DriverIdentity identity, {
@@ -63,6 +88,7 @@ final class DriverManager {
     Stream<void>? cancellation,
     void Function(double)? progress,
     DriverVersion? expectedActive,
+    bool makeDefault = true,
   }) => _serialize(() async {
     _requireInitialized();
     _checkCancellation(cancelled);
@@ -95,20 +121,37 @@ final class DriverManager {
         'This driver requires a different runtime.',
       );
     }
+    final currentPackage = current == null
+        ? null
+        : _installedPackages[(identity.id, current.active)];
+    if (currentPackage != null &&
+        currentPackage.identity.providerId != identity.providerId) {
+      throw const RemoteException(
+        'driverIdentity',
+        'A driver family cannot change providers.',
+      );
+    }
     await _storage.prepare(package);
     _checkCancellation(cancelled);
     if (current?.active == identity.version) {
-      if (current!.enabled) {
-        _active[identity.id] = package;
-      }
+      _installedPackages[(identity.id, identity.version)] = package;
       return package.bundle;
+    }
+    final changeDefault = current == null || makeDefault;
+    final retained = {...?current?.versions, identity.version};
+    if (retained.length > 256) {
+      throw const RemoteException(
+        'driverInventory',
+        'Too many installed versions of this driver.',
+      );
     }
     await _activate(
       DriverInstallation(
         id: identity.id,
-        active: identity.version,
-        previous: current?.active,
+        active: changeDefault ? identity.version : current.active,
+        previous: changeDefault ? current?.active : current.previous,
         enabled: current?.enabled ?? true,
+        retained: Set.unmodifiable(retained),
       ),
       package,
     );
@@ -127,6 +170,7 @@ final class DriverManager {
         active: current.active,
         previous: current.previous,
         enabled: enabled,
+        retained: current.retained,
       ),
       package,
     );
@@ -148,6 +192,7 @@ final class DriverManager {
         active: previous,
         previous: current.active,
         enabled: current.enabled,
+        retained: current.retained,
       ),
       package,
     );
@@ -177,11 +222,7 @@ final class DriverManager {
     await _storage.writeInventory(next.values);
     _inventory = next;
     _unavailable.remove(record.id);
-    if (record.enabled) {
-      _active[record.id] = package;
-      return;
-    }
-    _active.remove(record.id);
+    _installedPackages[(record.id, package.identity.version)] = package;
   }
 
   Future<(DriverInstallation, DriverPackage)?> _recover(
@@ -191,22 +232,28 @@ final class DriverManager {
     if (active != null) {
       return (entry, active);
     }
-    final previous = entry.previous;
-    if (previous == null) {
-      return null;
+    final alternatives = entry.retained.difference({
+      entry.active,
+      entry.previous,
+    }).toList()..sort((a, b) => b.compareTo(a));
+    for (final version in [
+      if (entry.previous case final value?) value,
+      ...alternatives,
+    ]) {
+      final fallback = await _validLocal(entry.id, version);
+      if (fallback != null) {
+        return (
+          DriverInstallation(
+            id: entry.id,
+            active: version,
+            enabled: entry.enabled,
+            retained: entry.versions.difference({entry.active}),
+          ),
+          fallback,
+        );
+      }
     }
-    final fallback = await _validLocal(entry.id, previous);
-    if (fallback == null) {
-      return null;
-    }
-    return (
-      DriverInstallation(
-        id: entry.id,
-        active: previous,
-        enabled: entry.enabled,
-      ),
-      fallback,
-    );
+    return null;
   }
 
   Future<DriverPackage?> _validLocal(String id, DriverVersion version) async {

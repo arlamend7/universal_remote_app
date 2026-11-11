@@ -37,6 +37,8 @@ class DriverVersionsPage extends StatelessWidget {
         ? (record!.enabled ? 'Installed and active' : 'Installed and disabled')
         : (record?.previous == id.version
               ? 'Installed for rollback'
+              : record?.versions.contains(id.version) == true
+              ? 'Installed'
               : 'Available');
     final published = release.publishedAt;
     return ListTile(

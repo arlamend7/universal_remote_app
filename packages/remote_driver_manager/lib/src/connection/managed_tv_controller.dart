@@ -184,6 +184,7 @@ final class ManagedTvController extends TVRemoteBase
       metadata: {
         ...device.metadata,
         'managedDriverId': bundle.manifest.identity.id,
+        'managedDriverVersion': bundle.manifest.identity.version.toString(),
         'managedDriverProfile': profile.id,
         'managedDriverProfileVersion': profile.version.toString(),
       },

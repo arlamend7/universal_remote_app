@@ -102,6 +102,6 @@ class DriverExplorerPage extends StatelessWidget {
   bool _installed(DriverRelease release) {
     final id = release.manifest.identity;
     final record = inventory[id.id];
-    return record?.active == id.version || record?.previous == id.version;
+    return record?.versions.contains(id.version) ?? false;
   }
 }
