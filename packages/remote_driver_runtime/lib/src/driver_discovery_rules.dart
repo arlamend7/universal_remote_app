@@ -28,6 +28,15 @@ final class DriverDiscoveryRules {
   final int port;
   final String path;
 
+  Map<String, Object?> toJson() => {
+    'port': port,
+    'path': path,
+    'targets': {
+      for (final entry in requirements.targets.entries)
+        entry.key.name: (entry.value.toList()..sort()),
+    },
+  };
+
   Uri endpoint(String host) {
     if (!isLocalProbeAddress(host)) {
       throw const FormatException(

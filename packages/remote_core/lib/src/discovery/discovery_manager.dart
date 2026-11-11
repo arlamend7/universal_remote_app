@@ -19,6 +19,7 @@ final class DiscoveryManager {
     this.registry,
     Iterable<ProviderIdentifier> identifiers, {
     this.savedProfiles,
+    this.registeredIdentifiers,
   }) : identifiers = List.unmodifiable(identifiers) {
     if (this.identifiers.map((identifier) => identifier.id).toSet().length !=
         this.identifiers.length) {
@@ -29,6 +30,7 @@ final class DiscoveryManager {
   final DiscoveryRegistry registry;
   final Iterable<RemoteDevice> Function()? savedProfiles;
   final List<ProviderIdentifier> identifiers;
+  final Iterable<ProviderIdentifier> Function()? registeredIdentifiers;
   final _resolver = const DeviceIdentifierResolver();
 
   /// Emits a merged snapshot as each provider identifies or updates a device.
@@ -95,7 +97,8 @@ final class DiscoveryManager {
     }
 
     final reports = await Future.wait([
-      for (final identifier in identifiers) ...[
+      for (final identifier
+          in registeredIdentifiers?.call().toList() ?? identifiers) ...[
         for (final entry in identifier.requirements.targets.entries)
           for (final service in entry.value)
             _search(

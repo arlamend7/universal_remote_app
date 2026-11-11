@@ -57,11 +57,16 @@ final class DriverManager {
     _initialized = true;
   });
 
-  Future<DriverBundle> install(DriverIdentity identity) => _serialize(() async {
+  Future<DriverBundle> install(
+    DriverIdentity identity, {
+    bool Function()? cancelled,
+  }) => _serialize(() async {
     _requireInitialized();
+    _checkCancellation(cancelled);
     final current = _inventory[identity.id];
     final local = await _validLocal(identity.id, identity.version);
     final package = local ?? await _repository.fetch(identity);
+    _checkCancellation(cancelled);
     if (!_sameIdentity(identity, package.identity)) {
       throw const RemoteException(
         'driverIdentity',
@@ -75,6 +80,7 @@ final class DriverManager {
       );
     }
     await _storage.prepare(package);
+    _checkCancellation(cancelled);
     if (current?.active == identity.version) {
       if (current!.enabled) {
         _active[identity.id] = package;
@@ -200,6 +206,15 @@ final class DriverManager {
     final runtime = package.bundle.manifest.runtime;
     return DriverVersionResolver.supports(runtime, DriverRuntime.version) &&
         DriverRuntime.operations.toSet().containsAll(runtime.operations);
+  }
+
+  static void _checkCancellation(bool Function()? cancelled) {
+    if (cancelled?.call() == true) {
+      throw const RemoteException(
+        'cancelled',
+        'Driver installation cancelled.',
+      );
+    }
   }
 
   void _requireInitialized() {

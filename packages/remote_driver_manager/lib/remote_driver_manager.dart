@@ -20,3 +20,5 @@ export 'src/distribution/driver_http_source.dart';
 export 'src/distribution/driver_release.dart';
 export 'src/distribution/driver_signature_verifier.dart';
 export 'src/distribution/http_driver_package_repository.dart';
+export 'src/connection/managed_driver_service.dart';
+export 'src/connection/managed_tv_controller.dart';

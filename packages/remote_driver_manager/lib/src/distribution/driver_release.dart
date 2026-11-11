@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
 final class DriverRelease {
   DriverRelease._(
@@ -11,10 +12,12 @@ final class DriverRelease {
     this.sha256,
     this._signature,
     this.development,
+    this.discovery,
   );
 
   factory DriverRelease.fromJson(Object? value) {
-    if (value is! Map<String, Object?> || value.length != 6) {
+    if (value is! Map<String, Object?> ||
+        (value.length != 6 && value.length != 7)) {
       throw const FormatException('Invalid driver release.');
     }
     final manifestJson = value['manifest'];
@@ -28,7 +31,9 @@ final class DriverRelease {
     final hash = value['sha256'];
     final signature = value['signature'];
     final channel = value['channel'];
-    if (value['package'] != path ||
+    final discovery = value['discovery'];
+    if ((value.length == 7 && discovery is! Map<String, Object?>) ||
+        value['package'] != path ||
         size is! int ||
         size < 1 ||
         size > maxBytes ||
@@ -47,6 +52,9 @@ final class DriverRelease {
       hash,
       base64Decode(signature),
       channel == 'development',
+      discovery is Map<String, Object?>
+          ? DriverDiscoveryRules.fromJson(discovery)
+          : null,
     );
   }
 
@@ -54,6 +62,7 @@ final class DriverRelease {
   static final _hash = RegExp(r'^[0-9a-f]{64}$');
 
   final DriverManifest manifest;
+  final DriverDiscoveryRules? discovery;
   final String path, sha256;
   final int size;
   final Uint8List _signature;

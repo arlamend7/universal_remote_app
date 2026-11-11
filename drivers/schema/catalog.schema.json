@@ -65,6 +65,9 @@
               "stable",
               "development"
             ]
+          },
+          "discovery": {
+            "$ref": "discovery.schema.json"
           }
         }
       },

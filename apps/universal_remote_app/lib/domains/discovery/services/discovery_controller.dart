@@ -14,12 +14,14 @@ class DiscoveryController {
     required this.acquireNetwork,
     required this.releaseNetwork,
     this.logger,
+    this.refreshDriverCatalog,
   });
   final DiscoveryManager manager;
   final unresolved = ValueNotifier<List<DiscoveryObservation>>(const []);
   final Future<void> Function() acquireNetwork;
   final Future<void> Function() releaseNetwork;
   final DiagnosticLogger? logger;
+  final Future<void> Function()? refreshDriverCatalog;
   final statuses =
       ValueNotifier<
         Map<
@@ -64,6 +66,7 @@ class DiscoveryController {
     error.value = null;
     devices.value = [];
     _clearPresence();
+    unawaited(_refreshDrivers());
     try {
       await acquireNetwork();
       if (cancellation.isCancelled) {
@@ -93,6 +96,14 @@ class DiscoveryController {
       if (!_disposed) {
         busy.value = false;
       }
+    }
+  }
+
+  Future<void> _refreshDrivers() async {
+    try {
+      await refreshDriverCatalog?.call();
+    } on Exception {
+      _record('discovery.driverCatalogUnavailable');
     }
   }
 

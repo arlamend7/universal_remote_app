@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_manager/remote_driver_manager.dart';
 import 'package:remote_android_tv/remote_android_tv.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_network/remote_network.dart';
@@ -12,6 +13,8 @@ import 'package:remote_roku/remote_roku.dart';
 import 'package:remote_samsung_tizen/remote_samsung_tizen.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
+import '../data/drivers/platform_driver_configuration.dart';
+import '../domains/diagnostics/models/enums/app_log_level.dart';
 import '../data/settings/screen_awake.dart';
 import '../data/storage/adapters/native_preferences_storage.dart';
 import '../data/pairing/repositories/secure_credential_store.dart';
@@ -35,6 +38,7 @@ abstract final class AppBootstrap {
   static Future<AppDependencies> initialize({
     ApplicationStorage? storage,
     ApplicationStorage? credentialStorage,
+    ManagedDriverService? driverService,
     Future<PeerCertificate> Function(Uri)? inspectCertificate,
     ProviderRegistry? registry,
     DiscoveryRegistry? discoveryProtocols,
@@ -55,6 +59,7 @@ abstract final class AppBootstrap {
     final providers = registry ?? _providers(credentials);
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
+    final drivers = await _initializeDrivers(driverService, providers, logger);
     final saved = SavedDevicesController(
       SavedDeviceRepository(preferences),
       credentials,
@@ -62,6 +67,8 @@ abstract final class AppBootstrap {
     final discoveryManager = DiscoveryManager(
       protocols,
       providers.definitions.map((definition) => definition.identifier),
+      registeredIdentifiers: () =>
+          providers.definitions.map((definition) => definition.identifier),
       savedProfiles: () => saved.registered.expand(
         (device) => device.profiles.map((profile) => profile.device),
       ),
@@ -124,6 +131,9 @@ abstract final class AppBootstrap {
         acquireNetwork: acquireNetwork ?? network.acquire,
         releaseNetwork: releaseNetwork ?? network.release,
         logger: logger,
+        refreshDriverCatalog: drivers == null
+            ? null
+            : () => drivers.refresh(providers),
       ),
       savedDevices: saved,
       settings: settings,
@@ -132,8 +142,27 @@ abstract final class AppBootstrap {
       disposeCredentials: sessionCredentials?.dispose,
       sleep: DeviceSleepController(connection),
       providers: providers,
+      drivers: drivers,
       inspectCertificate: inspectCertificate ?? inspectTvCertificate,
     );
+  }
+
+  static Future<ManagedDriverService?> _initializeDrivers(
+    ManagedDriverService? service,
+    ProviderRegistry registry,
+    DiagnosticLogger logger,
+  ) async {
+    try {
+      final drivers = service ?? await PlatformDriverConfiguration.load();
+      await drivers?.initialize(registry);
+      return drivers;
+    } on Exception {
+      logger.record(AppLogLevel.warning, 'drivers.localInitializationFailed');
+      return null;
+    } on StateError {
+      logger.record(AppLogLevel.warning, 'drivers.localInitializationFailed');
+      return null;
+    }
   }
 
   static DiscoveryRegistry _protocols() => DiscoveryRegistry()

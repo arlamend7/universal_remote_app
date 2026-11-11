@@ -14,6 +14,7 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         preferencesChannel = PreferencesChannel(applicationContext, messenger)
+        DriverChannel.register(applicationContext, messenger)
         MethodChannel(messenger, "br.net.devcom.universal_remote/display")
             .setMethodCallHandler { call, result ->
                 val enabled = call.arguments as? Boolean

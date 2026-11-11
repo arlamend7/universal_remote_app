@@ -3,6 +3,9 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
+import 'package:remote_driver_runtime/remote_driver_runtime.dart';
+import 'package:remote_core/remote_core.dart';
+import 'package:remote_network/remote_network.dart';
 import 'package:test/test.dart';
 
 import 'fixture_driver_signer.dart';
@@ -51,6 +54,10 @@ void main() {
       const path = 'packages/example.smarttv/1.0.0/driver.zip';
       final release = <String, Object?>{
         'manifest': manifest,
+        'discovery': jsonDecode(
+          await File('drivers/providers/example-tv/discovery.json')
+              .readAsString(),
+        ),
         'package': path,
         'size': bytes.length,
         'sha256': sha256.convert(bytes).toString(),
@@ -107,12 +114,40 @@ void main() {
         packages.fetch(identity),
         packages.fetch(identity),
       ]);
-      expect(downloads.first.bundle.commands.keys, ['volume-up']);
+      expect(downloads.first.bundle.commands.keys, [
+        'volume-up',
+        'volume-down',
+      ]);
       expect(packageRequests, 1);
       final manager = DriverManager(storage, packages);
-      await manager.initialize();
+      final commands = <String>[];
+      final runtime = await _fixtureTv(commands);
+      final registry = ProviderRegistry();
+      final drivers = ManagedDriverService(manager, catalogs, runtime: runtime);
+      await drivers.initialize(registry);
       expect(packageRequests, 1);
-      await manager.install(identity);
+      final discovery = DiscoveryRegistry()
+        ..register(
+          DiscoveryProtocol.bonjour,
+          (_, _, observe) => observe(
+            DiscoveryObservation(
+              protocolId: DiscoveryProtocol.bonjour,
+              serviceType: '_example-tv._tcp',
+              endpoint: Uri.parse('wss://192.168.1.20:9000'),
+            ),
+          ),
+        );
+      final discovered = await DiscoveryManager(
+        discovery,
+        registry.definitions.map((definition) => definition.identifier),
+      ).discover();
+      final tv = discovered.devices.single;
+      expect(packageRequests, 1);
+      final remote = registry.createController(tv) as TVRemoteBase;
+      await remote.connect();
+      await remote.volumeUp();
+      await remote.dispose();
+      expect(commands, ['volumeUp']);
       expect(
         manager.active(identity.id)?.manifest.identity.version,
         identity.version,
@@ -131,11 +166,24 @@ void main() {
       await server.close(force: true);
       expect((await catalogs.cached())?.revision, 2);
       final offline = DriverManager(storage, packages);
-      await offline.initialize();
-      expect(
-        offline.active(identity.id)?.manifest.identity.version,
-        identity.version,
+      final offlineRegistry = ProviderRegistry();
+      await ManagedDriverService(
+        offline,
+        catalogs,
+        runtime: runtime,
+      ).initialize(offlineRegistry);
+      final manual = offlineRegistry.createManualDevice(
+        address: '192.168.1.20',
+        name: 'Offline TV',
+        legacy: false,
+        allowInsecurePointer: false,
       );
+      final offlineRemote =
+          offlineRegistry.createController(manual) as TVRemoteBase;
+      await offlineRemote.connect();
+      await offlineRemote.volumeDown();
+      await offlineRemote.dispose();
+      expect(commands, ['volumeUp', 'volumeDown']);
     },
   );
 }
@@ -154,4 +202,29 @@ void _catalogResponse(
   }
   response.headers.set(HttpHeaders.etagHeader, etag);
   response.write(body);
+}
+
+Future<DriverRuntime> _fixtureTv(List<String> commands) async {
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+  addTearDown(() => server.close(force: true));
+  final listener = server.listen((request) async {
+    // The runtime owns closure of the peer connection.
+    // ignore: close_sinks
+    final socket = await WebSocketTransformer.upgrade(request);
+    socket.listen((message) {
+      final command = jsonDecode(message as String) as Map<String, Object?>;
+      commands.add(command['command'] as String);
+      socket.add('{"ok":true}');
+    });
+  });
+  addTearDown(listener.cancel);
+  return DriverRuntime(
+    connect:
+        (_, {required cancellation, required timeout, trustedCertificateDer}) =>
+            IoWebSocketTransport.connect(
+              Uri.parse('ws://127.0.0.1:${server.port}'),
+              timeout: timeout,
+              cancellation: cancellation,
+            ),
+  );
 }

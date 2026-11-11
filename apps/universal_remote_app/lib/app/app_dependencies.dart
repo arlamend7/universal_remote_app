@@ -1,6 +1,7 @@
 import 'package:remote_ui/remote_ui.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
+import 'package:remote_driver_manager/remote_driver_manager.dart';
 
 import 'package:universal_remote_app/domains/connection/services/connection_controller.dart';
 import 'package:universal_remote_app/domains/devices/services/saved_devices_controller.dart';
@@ -19,6 +20,7 @@ final class AppDependencies {
     required this.providers,
     required this.inspectCertificate,
     this.disposeCredentials,
+    this.drivers,
   });
   final DiscoveryController discovery;
   final SavedDevicesController savedDevices;
@@ -27,8 +29,29 @@ final class AppDependencies {
   final DeviceGridsController grids;
   final DeviceSleepController sleep;
   final ProviderRegistry providers;
+  final ManagedDriverService? drivers;
   final Future<PeerCertificate> Function(Uri) inspectCertificate;
   final void Function()? disposeCredentials;
+  Future<List<String>> identifyAddress(
+    String address,
+    DiscoveryCancellation cancellation,
+  ) async {
+    final matches = await providers.identifyAddress(address, cancellation);
+    final service = drivers;
+    if (matches.isNotEmpty || service == null || cancellation.isCancelled) {
+      return matches;
+    }
+    try {
+      await service.refresh(providers);
+    } on Exception {
+      return matches;
+    }
+    if (cancellation.isCancelled) {
+      return matches;
+    }
+    return providers.identifyAddress(address, cancellation);
+  }
+
   Future<void>? _disposeFuture;
   Future<void> dispose() => _disposeFuture ??= _dispose();
   Future<void> _dispose() async {

@@ -1,0 +1,6 @@
+[
+  {"operation":"websocket.connect"},
+  {"operation":"websocket.sendJson","payload":{"command":"volumeDown"}},
+  {"operation":"websocket.awaitJson"},
+  {"operation":"websocket.disconnect"}
+]

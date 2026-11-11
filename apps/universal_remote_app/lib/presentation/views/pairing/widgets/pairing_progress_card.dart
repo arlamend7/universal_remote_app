@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_manager/remote_driver_manager.dart';
 import 'package:remote_ui/remote_ui.dart';
 
 import 'pairing_code_card.dart';
@@ -25,10 +26,12 @@ class PairingProgressCard extends StatelessWidget {
         deviceName: model.device?.name ?? 'your TV',
       );
     }
+    final installing =
+        controller is ManagedTvController && controller.installing;
     return AppSheet(
-      title: _title,
+      title: installing ? 'Installing TV driver…' : _title,
       onClose: model.disconnect,
-      child: _body(),
+      child: _body(installing),
       footer: AppSheetActions(
         primary: OutlinedButton(
           onPressed: model.disconnect,
@@ -38,7 +41,7 @@ class PairingProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _body() => Column(
+  Widget _body(bool installing) => Column(
     mainAxisSize: MainAxisSize.min,
     spacing: 16,
     children: [
@@ -46,12 +49,13 @@ class PairingProgressCard extends StatelessWidget {
         dimension: 28,
         child: CircularProgressIndicator(strokeWidth: 2),
       ),
-      Text(
-        model.state == DeviceConnectionState.reconnecting
-            ? 'The remote will connect automatically when the TV is ready.'
-            : 'Keep the TV on and accept its connection request.',
-        textAlign: TextAlign.center,
-      ),
+      if (!installing)
+        Text(
+          model.state == DeviceConnectionState.reconnecting
+              ? 'The remote will connect automatically when the TV is ready.'
+              : 'Keep the TV on and accept its connection request.',
+          textAlign: TextAlign.center,
+        ),
     ],
   );
 }

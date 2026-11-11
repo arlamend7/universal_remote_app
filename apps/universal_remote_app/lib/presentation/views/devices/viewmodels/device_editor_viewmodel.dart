@@ -6,10 +6,11 @@ final class DeviceEditorViewModel {
     required this.factory,
     this.device,
     this.identifyAddress,
-    this.setups = const {},
+    Map<String, ManualDeviceSetup> setups = const {},
+    this.currentSetups,
     DeviceNetworkConfiguration configuration =
         const DeviceNetworkConfiguration(),
-  }) {
+  }) : _setups = setups {
     provider.value =
         device?.providerId ??
         (identifyAddress == null ? setups.keys.firstOrNull : null);
@@ -27,7 +28,9 @@ final class DeviceEditorViewModel {
   final checking = ValueNotifier(false);
   DiscoveryCancellation? _scan;
   bool _disposed = false;
-  final Map<String, ManualDeviceSetup> setups;
+  final Map<String, ManualDeviceSetup> _setups;
+  final Map<String, ManualDeviceSetup> Function()? currentSetups;
+  Map<String, ManualDeviceSetup> get setups => currentSetups?.call() ?? _setups;
   final provider = ValueNotifier<String?>(null);
   final RemoteDevice? device;
   final name = TextEditingController();

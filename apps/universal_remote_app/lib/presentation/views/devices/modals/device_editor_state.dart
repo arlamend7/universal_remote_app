@@ -17,9 +17,10 @@ class DeviceEditorState extends State<DeviceEditor> {
           ? const DeviceNetworkConfiguration()
           : registry.networkConfiguration(device),
       factory: registry.createManualDevice,
-      setups: registry.manualSetups,
-      identifyAddress: registry.canIdentifyAddresses
-          ? registry.identifyAddress
+      currentSetups: () => registry.manualSetups,
+      identifyAddress:
+          registry.canIdentifyAddresses || widget.dependencies.drivers != null
+          ? widget.dependencies.identifyAddress
           : null,
       device: widget.device,
     );

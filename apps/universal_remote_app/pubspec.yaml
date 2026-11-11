@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   remote_core: ^0.1.0
   remote_network: ^0.1.0
+  remote_driver_manager: ^0.1.0
   remote_lg_webos: ^0.1.0
   remote_android_tv: ^0.1.0
   remote_roku: ^0.1.0

@@ -65,6 +65,14 @@ final class HttpDriverPackageRepository implements DriverPackageRepository {
         'Driver package manifest differs from its release.',
       );
     }
+    final discovery = release.discovery;
+    if (discovery != null &&
+        jsonEncode(package.bundle.discovery.toJson()) !=
+            jsonEncode(discovery.toJson())) {
+      throw const FormatException(
+        'Driver discovery rules differ from its release.',
+      );
+    }
     return package;
   }
 }
