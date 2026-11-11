@@ -74,7 +74,8 @@
           "websocket.pair",
           "Unknown required driver operation.",
           "compiled.bindings",
-          "remote-v2.session"
+          "remote-v2.session",
+          "samsung.session"
         ]
       },
       "minItems": 0,

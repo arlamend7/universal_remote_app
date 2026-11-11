@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_runtime/samsung_channel.dart';
 import 'package:remote_network/remote_network.dart';
 
-import 'connection/open_samsung_transport.dart';
-import 'connection/samsung_credentials.dart';
 import 'connection/samsung_endpoint.dart';
-import 'protocol/samsung_session.dart';
 
 final class SamsungController extends TVRemoteBase {
   SamsungController(

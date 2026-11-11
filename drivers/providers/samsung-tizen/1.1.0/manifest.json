@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "samsung-tizen",
+  "providerId": "samsung.tizen",
+  "name": "Samsung Tizen",
+  "manufacturer": "Samsung",
+  "platform": "Tizen",
+  "version": "1.1.0",
+  "requiredRuntime": ">=1.0.0",
+  "operations": [
+    "compiled.bindings",
+    "samsung.session"
+  ],
+  "capabilities": [
+    "volume",
+    "power",
+    "channels",
+    "navigation"
+  ],
+  "compatibility": [
+    {
+      "id": "secure-remote",
+      "version": 1,
+      "models": []
+    }
+  ]
+}

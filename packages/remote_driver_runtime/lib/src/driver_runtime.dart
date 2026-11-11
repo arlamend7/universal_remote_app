@@ -138,6 +138,7 @@ final class DriverRuntime {
         case DriverOperation.webSocketPair:
         case DriverOperation.compiledBindings:
         case DriverOperation.remoteV2Session:
+        case DriverOperation.samsungSession:
           throw StateError('Unexpected driver command step.');
       }
     }

@@ -22,13 +22,15 @@ final class DriverBundle {
       throw const FormatException('Driver bundle exceeds its content limits.');
     }
     final manifest = DriverManifest.fromJson(_object(files, 'manifest.json'));
-    if (manifest.runtime.operations.contains(DriverOperation.remoteV2Session) &&
-        (manifest.identity.providerId != ProviderIdentity.androidTv.storageId ||
-            !manifest.runtime.operations.contains(
-              DriverOperation.compiledBindings,
-            ))) {
+    final operations = manifest.runtime.operations;
+    if (operations.any(
+      (operation) =>
+          operation.provider != null &&
+          (operation.provider!.storageId != manifest.identity.providerId ||
+              !operations.contains(DriverOperation.compiledBindings)),
+    )) {
       throw const FormatException(
-        'Remote v2 requires the compiled Android TV adapter.',
+        'Driver requires a different compiled protocol adapter.',
       );
     }
     final discovery = DriverDiscoveryRules.fromJson(

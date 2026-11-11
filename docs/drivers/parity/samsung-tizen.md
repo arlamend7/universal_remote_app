@@ -12,3 +12,5 @@ Baseline `f259d52`. The [TV API matrix](tv-api.md) lists all existing capability
 | Models and persistence | Generic secure remote profile. Apps and individual keys vary by TV. Existing token and pin remain attached to their profile. | Keep session evidence and reject restrictive profiles with missing version evidence. |
 
 The managed bindings cover selected navigation, channel, volume and power keys. The compiled WebSocket authorization and app engine remain necessary. See the [capability audit](../../provider-capability-audit.md).
+
+The 1.1.0 source package requires the compiled `samsung.session` operation. The runtime shares the authorized WebSocket channel, token codec and certificate-pinned transport. The Samsung adapter still owns model discovery and conditional capabilities. The source package stays outside the publishing index pending full device parity validation.

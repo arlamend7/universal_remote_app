@@ -73,7 +73,13 @@ void main() {
       );
       final other = DriverCredentialScope(credentials, 'example.tv', 'tv-two');
       final feedback = <Map<String, Object?>>[];
-      connection.onFeedback = feedback.add;
+      final firstFeedback = Completer<void>();
+      connection.onFeedback = (event) {
+        feedback.add(event);
+        if (!firstFeedback.isCompleted) {
+          firstFeedback.complete();
+        }
+      };
 
       await connection.connect();
       await connection.pair(
@@ -89,7 +95,9 @@ void main() {
         selected,
       );
       await connection.request(_exchange('subscribe', 'subscribe'));
+      await firstFeedback.future.timeout(const Duration(seconds: 2));
       await connection.request(_exchange('unsubscribe', 'unsubscribe'));
+      await connection.request(_exchange('request', 'barrier'));
       expect(feedback, [
         {'event': 'volume', 'value': 25},
       ]);

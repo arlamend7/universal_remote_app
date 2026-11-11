@@ -1,3 +1,5 @@
+import '../providers/models/provider_identity.dart';
+
 /// Wire IDs for compiled operations recognized by the driver contract.
 enum DriverOperation {
   webSocketConnect('websocket.connect'),
@@ -10,10 +12,12 @@ enum DriverOperation {
   webSocketAuthenticate('websocket.authenticate'),
   webSocketPair('websocket.pair'),
   compiledBindings('compiled.bindings'),
-  remoteV2Session('remote-v2.session');
+  remoteV2Session('remote-v2.session', provider: ProviderIdentity.androidTv),
+  samsungSession('samsung.session', provider: ProviderIdentity.samsungTizen);
 
-  const DriverOperation(this.id);
+  const DriverOperation(this.id, {this.provider});
   final String id;
+  final ProviderIdentity? provider;
 
   static DriverOperation parse(String id) {
     final operation = values.where((value) => value.id == id).firstOrNull;
