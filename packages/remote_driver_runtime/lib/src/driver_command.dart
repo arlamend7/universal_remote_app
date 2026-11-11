@@ -18,7 +18,7 @@ final class DriverCommand {
     final steps = value.map(DriverStep.fromJson).toList();
     if (steps.first.operation != DriverOperation.webSocketConnect ||
         steps.last.operation != DriverOperation.webSocketDisconnect ||
-        steps.skip(1).take(steps.length - 2).any(_isConnectionStep) ||
+        steps.skip(1).take(steps.length - 2).any(_unsupportedStep) ||
         !steps.any(
           (step) => step.operation == DriverOperation.webSocketSendJson,
         )) {
@@ -38,7 +38,7 @@ final class DriverCommand {
 
   final List<DriverStep> steps;
 
-  static bool _isConnectionStep(DriverStep step) =>
-      step.operation == DriverOperation.webSocketConnect ||
-      step.operation == DriverOperation.webSocketDisconnect;
+  static bool _unsupportedStep(DriverStep step) =>
+      step.operation != DriverOperation.webSocketSendJson &&
+      step.operation != DriverOperation.webSocketAwaitJson;
 }

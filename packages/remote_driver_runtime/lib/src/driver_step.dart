@@ -10,7 +10,12 @@ final class DriverStep {
       throw const FormatException('Driver steps require an operation ID.');
     }
     final operation = DriverOperation.parse(value['operation'] as String);
-    final sends = operation == DriverOperation.webSocketSendJson;
+    final sends = switch (operation) {
+      DriverOperation.webSocketConnect ||
+      DriverOperation.webSocketDisconnect ||
+      DriverOperation.webSocketAwaitJson => false,
+      _ => true,
+    };
     if (value.length != (sends ? 2 : 1)) {
       throw const FormatException('Unexpected driver step fields.');
     }

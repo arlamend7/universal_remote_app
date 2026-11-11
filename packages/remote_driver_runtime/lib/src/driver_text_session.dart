@@ -6,7 +6,7 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
 final class DriverTextSession {
-  DriverTextSession(this._transport) {
+  DriverTextSession(this._transport, {this.onEvent}) {
     _subscription = _transport.messages.listen(
       _receive,
       onError: (Object _) => _fail('Driver connection failed.'),
@@ -15,6 +15,7 @@ final class DriverTextSession {
   }
 
   final TextTransport _transport;
+  final void Function(Map<String, Object?>)? onEvent;
   final _messages = Queue<String>();
   late final StreamSubscription<String> _subscription;
   Completer<String>? _waiting;
@@ -58,6 +59,9 @@ final class DriverTextSession {
       _fail('Driver response exceeds the session limits.');
       return;
     }
+    if (onEvent != null && _dispatchEvent(message)) {
+      return;
+    }
     final waiting = _waiting;
     if (waiting == null) {
       _messages.add(message);
@@ -65,6 +69,24 @@ final class DriverTextSession {
     }
     _waiting = null;
     waiting.complete(message);
+  }
+
+  bool _dispatchEvent(String message) {
+    final Object? value;
+    try {
+      value = jsonDecode(message);
+    } on FormatException {
+      return false;
+    }
+    if (value is! Map<String, Object?> ||
+        value.containsKey('id') ||
+        value['event'] is! String ||
+        value.containsKey('token') ||
+        value.containsKey('code')) {
+      return false;
+    }
+    onEvent!(value);
+    return true;
   }
 
   void _fail(String message) {

@@ -4,6 +4,7 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
 import 'driver_command.dart';
+import 'driver_connection.dart';
 import 'driver_text_session.dart';
 
 typedef DriverWebSocketConnector = Future<TextTransport> Function(
@@ -18,6 +19,21 @@ final class DriverRuntime {
     : _connect = connect ?? IoWebSocketTransport.connect;
 
   final DriverWebSocketConnector _connect;
+
+  DriverConnection connection({
+    required Uri endpoint,
+    String? trustedCertificateDer,
+  }) {
+    _validateEndpoint(endpoint);
+    return DriverConnection(
+      (cancellation, timeout) => _connect(
+        endpoint,
+        cancellation: cancellation,
+        timeout: timeout,
+        trustedCertificateDer: trustedCertificateDer,
+      ),
+    );
+  }
 
   Future<Map<String, Object?>?> execute(
     DriverCommand command, {
@@ -101,7 +117,12 @@ final class DriverRuntime {
         case DriverOperation.webSocketDisconnect:
           return response;
         case DriverOperation.webSocketConnect:
-          throw StateError('Unexpected driver connection step.');
+        case DriverOperation.webSocketRequest:
+        case DriverOperation.webSocketSubscribe:
+        case DriverOperation.webSocketUnsubscribe:
+        case DriverOperation.webSocketAuthenticate:
+        case DriverOperation.webSocketPair:
+          throw StateError('Unexpected driver command step.');
       }
     }
     throw StateError('Driver command did not terminate.');
