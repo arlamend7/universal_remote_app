@@ -151,9 +151,23 @@ final class ManagedDriverService {
         .where((bundle) => _compiled(bundle.manifest))
         .map((bundle) => DriverCandidate(bundle.manifest, installed: true));
     final match = _resolver.resolve(_evidence(device), candidates).selected;
-    return match == null
-        ? null
-        : manager.active(match.candidate.identity.id)?.bindings;
+    if (match == null) {
+      return null;
+    }
+    final identity = match.candidate.identity;
+    final bundle = manager.active(identity.id);
+    final bindings = bundle?.bindings;
+    if (bundle == null || bindings == null) {
+      return null;
+    }
+    return DriverBindings(
+      bindings.commands,
+      profileFor: (identified) => profileFor(bundle, identified),
+      selection: {
+        'managedDriverId': identity.id,
+        'managedDriverVersion': identity.version.toString(),
+      },
+    );
   }
 
   Future<void> prepareBindings(

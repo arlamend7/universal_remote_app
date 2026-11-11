@@ -216,6 +216,46 @@ void main() {
       expect(encodeLgNavigation(key).endsWith('\n\n'), isTrue);
     }
   });
+  test(
+    'authenticated software restrictions apply before controls are exposed',
+    () async {
+      final main = FakeTransport();
+      final pointer = FakeTransport();
+      standardResponses(main);
+      final controller = LgDeviceController(
+        device: testDevice(),
+        credentials: MemoryCredentials(),
+        options: const LgConnectionOptions(allowInsecure: true),
+        bindings: DriverBindings(
+          const {},
+          profileFor: (device) {
+            expect(device.softwareInformation?.firmwareVersion, '04.50.56');
+            return DriverCompatibility(
+              id: 'fixture-firmware',
+              version: 1,
+              models: const [],
+              disabledCapabilities: const [RemoteCapability.absoluteVolume],
+            );
+          },
+        ),
+        connector: (uri) async => uri.path == '/pointer' ? pointer : main,
+      );
+      addTearDown(controller.dispose);
+      await controller.connect();
+      expect(
+        controller.device.metadata['managedDriverProfile'],
+        'fixture-firmware',
+      );
+      expect(controller.supports(RemoteCapability.absoluteVolume), isFalse);
+      await expectLater(
+        Future<void>.sync(() => controller.setVolume(50)),
+        throwsA(isA<RemoteException>()),
+      );
+      await controller.volumeUp();
+      expect(main.sent.last['uri'], 'ssap://audio/volumeUp');
+    },
+  );
+
   for (final managed in [false, true]) {
     test(
       'device pairs and sends equivalent SSAP commands (managed: $managed)',

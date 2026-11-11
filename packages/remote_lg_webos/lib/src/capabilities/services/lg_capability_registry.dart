@@ -25,6 +25,18 @@ final class LgCapabilityRegistry {
     record(kind, availability, reason: reason);
   }
 
+  void restrict(Set<RemoteCapability> capabilities) {
+    for (final capability in capabilities) {
+      _controllers.remove(capability);
+      _evidence[capability] = CapabilityEvidence(
+        capability,
+        CapabilitySource.profile,
+        CapabilityAvailability.conditional,
+        reason: 'Disabled by the TV software compatibility profile.',
+      );
+    }
+  }
+
   void disable(RemoteCapability kind, {String? reason}) {
     _controllers.remove(kind);
     record(kind, CapabilityAvailability.unavailable, reason: reason);

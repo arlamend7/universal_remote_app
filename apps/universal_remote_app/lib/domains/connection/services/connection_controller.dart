@@ -301,6 +301,7 @@ class ConnectionController implements RemotePanelSession {
             'softwareVersion': version,
           for (final key in const [
             'managedDriverId',
+            'managedDriverVersion',
             'managedDriverProfile',
             'managedDriverProfileVersion',
           ])

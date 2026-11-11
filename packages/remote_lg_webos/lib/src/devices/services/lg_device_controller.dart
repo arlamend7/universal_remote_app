@@ -356,10 +356,13 @@ final class LgDeviceController extends TVRemoteBase
   }
 
   Future<void> _finishConnection(SsapClient client, int generation) async {
-    await _resolve(generation);
-    _requireCurrent(generation);
     await _readDetails(generation);
     _requireCurrent(generation);
+    final profile = bindings?.profileFor?.call(device);
+    await _resolve(generation);
+    _requireCurrent(generation);
+    _capabilities.restrict(profile?.disabledCapabilities ?? const {});
+    _device = bindings?.describe(device, profile) ?? device;
     if (client.isClosed) {
       throw const RemoteException(
         'disconnected',
