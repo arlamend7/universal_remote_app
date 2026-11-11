@@ -14,6 +14,9 @@ final class DriverCatalogRepository {
   final DriverSignatureVerifier _verify;
   Future<DriverCatalog>? _refreshing;
 
+  Future<DateTime?> lastChecked() async =>
+      (await _storage.readCatalog())?.checkedAt;
+
   Future<DriverCatalog?> cached() async {
     final cached = await _storage.readCatalog();
     return cached == null
@@ -42,6 +45,7 @@ final class DriverCatalogRepository {
     );
     final bytes = response.bytes;
     if (bytes == null) {
+      await _save(saved!.envelope, saved.etag);
       return old!;
     }
     final envelope = utf8.decode(bytes);
@@ -54,9 +58,15 @@ final class DriverCatalogRepository {
         'Driver catalog rollback or revision conflict.',
       );
     }
-    await _storage.writeCatalog(
-      CachedDriverCatalog(envelope, etag: response.etag),
-    );
+    await _save(envelope, response.etag);
     return catalog;
   }
+
+  Future<void> _save(String envelope, String? etag) => _storage.writeCatalog(
+    CachedDriverCatalog(
+      envelope,
+      etag: etag,
+      checkedAt: DateTime.now().toUtc(),
+    ),
+  );
 }

@@ -68,3 +68,7 @@ To enable distribution on Android, iOS or macOS, set `DRIVER_CATALOG_BASE_URL` t
 ## Automatic update window
 
 Startup and foreground resume can request a check. The manager persists the next eligible time before contacting the catalog, coalesces concurrent requests, and backs off for 48 hours after a failed check. Successful checks use a 24-hour window. Updates are limited to enabled installed drivers and releases that match every saved device associated with that provider. A manual rollback excludes the rolled-back version from automatic reinstallation. The new package becomes available to the next connection; active controllers retain their bundle.
+
+## Driver Explorer
+
+Settings → Drivers reads the signed cache and the local active and rollback inventory. It displays provider releases, versions, runtime requirements, profile constraints and declared capabilities. Browsing does not issue repository requests. Runtime compatibility applies to the installed app; device support still requires live verification.

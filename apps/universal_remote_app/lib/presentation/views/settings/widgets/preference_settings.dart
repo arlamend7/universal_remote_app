@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/remote_ui.dart';
 
 import '../viewmodels/settings_viewmodel.dart';
+import '../../drivers/driver_explorer_page.dart';
 
 class PreferenceSettings extends StatelessWidget {
   const PreferenceSettings({super.key, required this.model});
@@ -33,6 +34,20 @@ class PreferenceSettings extends StatelessWidget {
           Icons.sync,
           model.autoReconnect,
           (value) => model.setAutoReconnect(context, value),
+        ),
+        ListTile(
+          leading: _icon(context, Icons.extension_outlined),
+          title: const Text('Drivers'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => DriverExplorerPage(
+                catalogs: model.dependencies.drivers?.catalogs,
+                inventory:
+                    model.dependencies.drivers?.manager.inventory ?? const {},
+              ),
+            ),
+          ),
         ),
         ListTile(
           leading: _icon(context, Icons.help_outline),

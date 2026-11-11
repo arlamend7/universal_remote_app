@@ -13,11 +13,13 @@ final class DriverRelease {
     this._signature,
     this.development,
     this.discovery,
+    this.publishedAt,
+    this.notes,
   );
 
   factory DriverRelease.fromJson(Object? value) {
     if (value is! Map<String, Object?> ||
-        (value.length != 6 && value.length != 7)) {
+        value.keys.any((key) => !_fields.contains(key))) {
       throw const FormatException('Invalid driver release.');
     }
     final manifestJson = value['manifest'];
@@ -32,7 +34,15 @@ final class DriverRelease {
     final signature = value['signature'];
     final channel = value['channel'];
     final discovery = value['discovery'];
-    if ((value.length == 7 && discovery is! Map<String, Object?>) ||
+    final published = value['publishedAt'];
+    final notes = value['notes'];
+    if ((value.containsKey('discovery') &&
+            discovery is! Map<String, Object?>) ||
+        (published != null &&
+            (published is! String ||
+                !published.endsWith('Z') ||
+                DateTime.tryParse(published) == null)) ||
+        (notes != null && (notes is! String || notes.length > 4096)) ||
         value['package'] != path ||
         size is! int ||
         size < 1 ||
@@ -55,14 +65,29 @@ final class DriverRelease {
       discovery is Map<String, Object?>
           ? DriverDiscoveryRules.fromJson(discovery)
           : null,
+      published is String ? DateTime.parse(published) : null,
+      notes as String?,
     );
   }
 
+  static const _fields = {
+    'manifest',
+    'package',
+    'size',
+    'sha256',
+    'signature',
+    'channel',
+    'discovery',
+    'publishedAt',
+    'notes',
+  };
   static const maxBytes = 4 * 1024 * 1024;
   static final _hash = RegExp(r'^[0-9a-f]{64}$');
 
   final DriverManifest manifest;
   final DriverDiscoveryRules? discovery;
+  final DateTime? publishedAt;
+  final String? notes;
   final String path, sha256;
   final int size;
   final Uint8List _signature;

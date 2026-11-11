@@ -210,11 +210,12 @@ final class DriverManager {
     }
   }
 
-  static bool _supported(DriverPackage package) {
-    final runtime = package.bundle.manifest.runtime;
-    return DriverVersionResolver.supports(runtime, DriverRuntime.version) &&
-        DriverRuntime.operations.toSet().containsAll(runtime.operations);
-  }
+  static bool supportsManifest(DriverManifest manifest) =>
+      DriverVersionResolver.supports(manifest.runtime, DriverRuntime.version) &&
+      DriverRuntime.operations.toSet().containsAll(manifest.runtime.operations);
+
+  static bool _supported(DriverPackage package) =>
+      supportsManifest(package.bundle.manifest);
 
   static void _checkCancellation(bool Function()? cancelled) {
     if (cancelled?.call() == true) {

@@ -68,6 +68,14 @@
           },
           "discovery": {
             "$ref": "discovery.schema.json"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 4096
           }
         }
       },
