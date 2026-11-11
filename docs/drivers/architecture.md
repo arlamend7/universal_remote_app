@@ -74,3 +74,9 @@ Startup and foreground resume can request a check. The manager persists the next
 Settings → Drivers reads the signed cache and the local active and rollback inventory. It displays provider releases, versions, runtime requirements, profile constraints and declared capabilities. Browsing does not issue repository requests. Runtime compatibility applies to the installed app; device support still requires live verification.
 
 See [authoring](../../drivers/README.md), [publishing](publishing.md), and [validation](validation.md) for the commands and release gates.
+
+### Managed television operations
+
+Command IDs are matched to the declared capability before execution. Parameterized JSON send steps use single-field objects such as `{"$argument":"volume"}`. Only bounded scalar arguments can be substituted, and the runtime renders the complete request before opening a socket. Catalogs, volume, playback and content replies are decoded to the shared TV types. Read results feed the controller's state streams. Protocol-originated subscription events and authorization are handled by the persistent workflow phase.
+
+The TV API adapter distinguishes a declaration from a usable command set. A package cannot enable a control solely by listing the capability, and a failed optional read does not revoke independent write operations.

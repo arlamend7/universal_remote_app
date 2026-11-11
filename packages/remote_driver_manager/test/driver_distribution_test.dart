@@ -9,6 +9,7 @@ import 'package:remote_network/remote_network.dart';
 import 'package:test/test.dart';
 
 import 'fixture_driver_signer.dart';
+import 'fixture_driver_repository.dart';
 
 Future<String> _signCatalog(
   FixtureDriverSigner signer,
@@ -32,6 +33,104 @@ Future<String> _signCatalog(
 }
 
 void main() {
+  test('managed commands bind inputs and publish typed feedback', () async {
+    final directory = await Directory.systemTemp.createTemp('driver-commands-');
+    addTearDown(() => directory.delete(recursive: true));
+    final fixture = await LocalDriverPackageRepository.open(
+      Directory('drivers/providers/example-tv'),
+      enabled: true,
+    );
+    final files = fixture.package.files;
+    final manifest = fixture.package.bundle.manifest.toJson();
+    final commands = {
+      'set-volume': _commandFile('setVolume', {
+        'level': {r'$argument': 'volume'},
+      }),
+      'read-volume': _commandFile('readVolume'),
+      'list-applications': _commandFile('listApplications'),
+      'launch-application': _commandFile('launchApplication', {
+        'app': {r'$argument': 'target'},
+      }),
+    };
+    final package = DriverPackage({
+      ...files,
+      'manifest.json': jsonEncode({
+        ...manifest,
+        'capabilities': [
+          'volume',
+          'absoluteVolume',
+          'volumeFeedback',
+          'applications',
+        ],
+      }),
+      'capabilities.json': jsonEncode({
+        'volume': ['volume-up', 'volume-down'],
+        'absoluteVolume': ['set-volume'],
+        'volumeFeedback': ['read-volume'],
+        'applications': ['list-applications', 'launch-application'],
+      }),
+      for (final entry in commands.entries)
+        'commands/${entry.key}.json': entry.value,
+    });
+    final manager = DriverManager(
+      DriverPackageStorage(directory),
+      FixtureDriverRepository([package]),
+    );
+    await manager.initialize();
+    await manager.install(package.identity);
+    final sent = <String>[];
+    final payloads = <Map<String, Object?>>[];
+    final runtime = await _fixtureTv(
+      sent,
+      onRequest: (request) {
+        payloads.add(request);
+        return switch (request['command']) {
+          'readVolume' => {'volume': 42, 'muted': false},
+          'listApplications' => {
+            'applications': [
+              {'id': 'example.app', 'name': 'Example App'},
+            ],
+          },
+          _ => {'ok': true},
+        };
+      },
+    );
+    final registry = ProviderRegistry();
+    await ManagedDriverService(
+      manager,
+      null,
+      runtime: runtime,
+    ).initialize(registry);
+    final device = registry.createManualDevice(
+      address: '192.168.1.20',
+      name: 'TV',
+      legacy: false,
+      allowInsecurePointer: false,
+    );
+    final remote = registry.createController(device) as TVRemoteBase;
+    addTearDown(remote.dispose);
+    await remote.connect();
+    expect(remote.supports(RemoteCapability.absoluteVolume), isTrue);
+    expect(remote.supports(RemoteCapability.navigation), isFalse);
+    expect(() => remote.setVolume(101), throwsRangeError);
+    await remote.setVolume(42);
+    final observed = remote.watchVolume().first;
+    expect((await remote.readVolume()).volume, 42);
+    expect((await observed).muted, isFalse);
+    expect((await remote.applications()).single.name, 'Example App');
+    expect(remote.reportedApplicationIds, {'example.app'});
+    await remote.launchApplication('example.app');
+    await expectLater(remote.inputs(), throwsA(isA<RemoteException>()));
+    expect(sent, [
+      'setVolume',
+      'readVolume',
+      'listApplications',
+      'launchApplication',
+    ]);
+    expect(payloads.first['level'], 42);
+    expect(payloads.last['app'], 'example.app');
+  });
+
   test(
     'signed catalog and package verify, cache, deduplicate and install',
     () async {
@@ -231,7 +330,21 @@ void _catalogResponse(
   response.write(body);
 }
 
-Future<DriverRuntime> _fixtureTv(List<String> commands) async {
+String _commandFile(String action, [Map<String, Object> data = const {}]) =>
+    jsonEncode([
+      {'operation': 'websocket.connect'},
+      {
+        'operation': 'websocket.sendJson',
+        'payload': {'command': action, ...data},
+      },
+      {'operation': 'websocket.awaitJson'},
+      {'operation': 'websocket.disconnect'},
+    ]);
+
+Future<DriverRuntime> _fixtureTv(
+  List<String> commands, {
+  Map<String, Object?> Function(Map<String, Object?>)? onRequest,
+}) async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   addTearDown(() => server.close(force: true));
   final listener = server.listen((request) async {
@@ -241,7 +354,7 @@ Future<DriverRuntime> _fixtureTv(List<String> commands) async {
     socket.listen((message) {
       final command = jsonDecode(message as String) as Map<String, Object?>;
       commands.add(command['command'] as String);
-      socket.add('{"ok":true}');
+      socket.add(jsonEncode(onRequest?.call(command) ?? {'ok': true}));
     });
   });
   addTearDown(listener.cancel);

@@ -5,6 +5,7 @@ import 'package:remote_network/remote_network.dart';
 
 import 'driver_command.dart';
 import 'driver_connection.dart';
+import 'driver_step.dart';
 import 'driver_text_session.dart';
 
 typedef DriverWebSocketConnector = Future<TextTransport> Function(
@@ -41,6 +42,7 @@ final class DriverRuntime {
   Future<Map<String, Object?>?> execute(
     DriverCommand command, {
     required Uri endpoint,
+    Map<String, Object> arguments = const {},
     String? trustedCertificateDer,
     Stream<void>? cancellation,
     Duration timeout = const Duration(seconds: 5),
@@ -51,6 +53,13 @@ final class DriverRuntime {
         'Driver execution timeout must be within 30 seconds.',
       );
     }
+    // Render every frame before acquiring a socket so a missing argument
+    // cannot leave a partially executed command.
+    final messages = {
+      for (final step in command.steps)
+        if (step.operation == DriverOperation.webSocketSendJson)
+          step: step.render(arguments),
+    };
     final stop = StreamController<void>.broadcast();
     final interrupted = Completer<Never>();
     DriverTextSession? session;
@@ -76,6 +85,7 @@ final class DriverRuntime {
     try {
       final execution = _run(
         command,
+        message: (step) => messages[step]!,
         open: () async {
           final transport = await _connect(
             endpoint,
@@ -103,6 +113,7 @@ final class DriverRuntime {
 
   Future<Map<String, Object?>?> _run(
     DriverCommand command, {
+    required String Function(DriverStep) message,
     required Future<DriverTextSession> Function() open,
     required bool Function() active,
   }) async {
@@ -114,7 +125,7 @@ final class DriverRuntime {
       }
       switch (step.operation) {
         case DriverOperation.webSocketSendJson:
-          await session.send(step.message!);
+          await session.send(message(step));
         case DriverOperation.webSocketAwaitJson:
           response = await session.receiveJson();
         case DriverOperation.webSocketDisconnect:

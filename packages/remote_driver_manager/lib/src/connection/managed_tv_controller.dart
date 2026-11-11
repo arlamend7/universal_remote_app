@@ -4,6 +4,8 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
 import '../resolution/driver_match.dart';
+import 'driver_tv_capabilities.dart';
+import 'driver_tv_response.dart';
 import 'managed_driver_service.dart';
 
 /// Maps the supported, named driver commands to the television contract.
@@ -16,6 +18,11 @@ final class ManagedTvController extends TVRemoteBase {
   final ManagedDriverService _drivers;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   final _changes = StreamController<void>.broadcast();
+  final _volume = StreamController<VolumeState>.broadcast();
+  final _content = StreamController<CurrentContent>.broadcast();
+  final _inputs = StreamController<DeviceInput?>.broadcast();
+  DeviceInput? _currentInput;
+  Set<String>? _reportedApplicationIds;
   bool _installing = false;
 
   bool get installing => _installing;
@@ -54,30 +61,16 @@ final class ManagedTvController extends TVRemoteBase {
       return const [];
     }
     return [
-      if (_provides(bundle, RemoteCapability.volume, [
-        'volume-up',
-        'volume-down',
-      ]))
-        const CapabilityEvidence(
-          RemoteCapability.volume,
+      for (final capability in bundle.capabilities.keys)
+        CapabilityEvidence(
+          capability,
           CapabilitySource.driver,
-          CapabilityAvailability.known,
-        ),
-      if (_provides(bundle, RemoteCapability.power, ['power-off']))
-        const CapabilityEvidence(
-          RemoteCapability.power,
-          CapabilitySource.driver,
-          CapabilityAvailability.known,
+          DriverTvCapabilities.supports(bundle, capability)
+              ? CapabilityAvailability.known
+              : CapabilityAvailability.advertised,
         ),
     ];
   }
-
-  static bool _provides(
-    DriverBundle bundle,
-    RemoteCapability capability,
-    List<String> commands,
-  ) =>
-      commands.every(bundle.capabilities[capability]?.contains ?? (_) => false);
 
   @override
   Future<void> connect() async {
@@ -149,18 +142,65 @@ final class ManagedTvController extends TVRemoteBase {
     }
   }
 
-  Future<void> _command(String id) async {
+  Future<Map<String, Object?>?> _command(
+    RemoteCapability capability,
+    String id, [
+    Map<String, Object> arguments = const {},
+  ]) async {
     final cancellation = _cancellation;
-    final command = _bundle?.commands[id];
+    final bundle = _bundle;
     final endpoint = _endpoint;
-    if (command == null || endpoint == null || cancellation == null) {
+    if (bundle == null || endpoint == null || cancellation == null) {
+      throw const RemoteException('disconnected', 'Connect to the TV first.');
+    }
+    if (!DriverTvCapabilities.provides(bundle, capability, id)) {
       throw _unavailable;
     }
-    await _drivers.runtime.execute(
-      command,
+    final result = await _drivers.runtime.execute(
+      bundle.commands[id]!,
       endpoint: endpoint,
+      arguments: arguments,
       cancellation: cancellation.stream,
     );
+    if (!identical(_cancellation, cancellation)) {
+      throw const RemoteException('cancelled', 'Driver command cancelled.');
+    }
+    if (result?['ok'] == false) {
+      throw const RemoteException(
+        'driverRejected',
+        'The TV rejected the command.',
+      );
+    }
+    return result;
+  }
+
+  Future<T> _read<T>(
+    RemoteCapability capability,
+    String id,
+    T Function(Map<String, Object?>) decode,
+  ) async {
+    final result = await _command(capability, id);
+    if (result == null) {
+      throw const RemoteException(
+        'driverResponse',
+        'The TV returned no response.',
+      );
+    }
+    return decode(result);
+  }
+
+  Future<void> _send(
+    RemoteCapability capability,
+    String id, [
+    Map<String, Object> arguments = const {},
+  ]) async {
+    await _command(capability, id, arguments);
+  }
+
+  bool _has(RemoteCapability capability, String id) {
+    final bundle = _bundle;
+    return bundle != null &&
+        DriverTvCapabilities.provides(bundle, capability, id);
   }
 
   void _setInstalling(bool value) {
@@ -194,6 +234,9 @@ final class ManagedTvController extends TVRemoteBase {
     }
     _setInstalling(false);
     _bundle = null;
+    _currentInput = null;
+    _reportedApplicationIds = null;
+    _inputs.add(null);
     _endpoint = null;
     _setState(DeviceConnectionState.disconnected);
     cancellation.add(null);
@@ -209,69 +252,253 @@ final class ManagedTvController extends TVRemoteBase {
     await disconnect();
     await _states.close();
     await _changes.close();
+    await _volume.close();
+    await _content.close();
+    await _inputs.close();
   }
 
   @override
-  bool get canWake => false;
+  bool get canWake => _has(RemoteCapability.wake, 'wake');
   @override
-  Future<void> volumeUp() => _command('volume-up');
+  Future<void> wake() => _send(RemoteCapability.wake, 'wake');
   @override
-  Future<void> volumeDown() => _command('volume-down');
+  Future<void> volumeUp() => _send(RemoteCapability.volume, 'volume-up');
   @override
-  Future<void> powerOff() => _command('power-off');
+  Future<void> volumeDown() => _send(RemoteCapability.volume, 'volume-down');
+  @override
+  Future<void> powerOff() => _send(RemoteCapability.power, 'power-off');
+  @override
+  Future<void> turnOffScreen() =>
+      _send(RemoteCapability.screenPower, 'screen-off');
+  @override
+  Future<void> turnOnScreen() =>
+      _send(RemoteCapability.screenPower, 'screen-on');
+
+  @override
+  Future<void> setVolume(int volume) {
+    RangeError.checkValueInInterval(volume, 0, 100, 'volume');
+    return _send(RemoteCapability.absoluteVolume, 'set-volume', {
+      'volume': volume,
+    });
+  }
+
+  @override
+  Future<void> setMuted(bool muted) =>
+      _send(RemoteCapability.mute, 'set-mute', {'muted': muted});
+
+  @override
+  Future<void> toggleMute() async {
+    if (_has(RemoteCapability.mute, 'toggle-mute')) {
+      return _send(RemoteCapability.mute, 'toggle-mute');
+    }
+    final volume = await readVolume();
+    if (volume.muted == null) {
+      throw _unavailable;
+    }
+    await setMuted(!volume.muted!);
+  }
+
+  @override
+  Future<VolumeState> readVolume() async {
+    final state = await _read(
+      RemoteCapability.volumeFeedback,
+      'read-volume',
+      DriverTvResponse.volume,
+    );
+    if (!_volume.isClosed) {
+      _volume.add(state);
+    }
+    return state;
+  }
+
+  @override
+  Stream<VolumeState> watchVolume() => _volume.stream;
+
+  @override
+  Future<void> press(NavigationKey key) =>
+      _send(RemoteCapability.navigation, 'navigation-${key.name}');
+  @override
+  Future<void> channelUp() => _send(RemoteCapability.channels, 'channel-up');
+  @override
+  Future<void> channelDown() =>
+      _send(RemoteCapability.channels, 'channel-down');
+  @override
+  Future<List<DeviceChannel>> channels() => _read(
+    _has(RemoteCapability.channelCatalog, 'list-channels')
+        ? RemoteCapability.channelCatalog
+        : RemoteCapability.channelSelection,
+    'list-channels',
+    DriverTvResponse.channels,
+  );
+  @override
+  Future<void> selectChannel(String id) =>
+      _target(RemoteCapability.channelSelection, 'select-channel', id);
+
+  @override
+  Future<void> sendMedia(MediaAction action) {
+    final capability = switch (action) {
+      MediaAction.next ||
+      MediaAction.previous => RemoteCapability.trackNavigation,
+      MediaAction.fastForward ||
+      MediaAction.rewind => RemoteCapability.playbackScan,
+      _ => RemoteCapability.media,
+    };
+    final id = 'media-${_wireId(action.name)}';
+    return _send(
+      _has(capability, id) ? capability : RemoteCapability.media,
+      id,
+    );
+  }
+
+  @override
+  Future<void> togglePlayback() =>
+      _send(RemoteCapability.playbackToggle, 'toggle-playback');
+  @override
+  Future<bool?> playbackState() => _read(
+    RemoteCapability.playbackToggle,
+    'read-playback',
+    DriverTvResponse.playback,
+  );
+
+  @override
+  Future<void> movePointer(double dx, double dy) =>
+      _pointer('pointer-move', dx, dy);
+  @override
+  Future<void> scroll(double dx, double dy) =>
+      _pointer('pointer-scroll', dx, dy);
+  @override
+  Future<void> click() => _send(RemoteCapability.pointer, 'pointer-click');
+
+  Future<void> _pointer(String action, double dx, double dy) {
+    if (!dx.isFinite || !dy.isFinite || dx.abs() > 10000 || dy.abs() > 10000) {
+      throw ArgumentError('Pointer movement is outside the supported range.');
+    }
+    return _send(RemoteCapability.pointer, action, {'dx': dx, 'dy': dy});
+  }
+
+  @override
+  Future<void> sendKey(RemoteKey key) {
+    final capability = switch (key) {
+      RemoteKey.mute => RemoteCapability.mute,
+      RemoteKey.source => RemoteCapability.inputs,
+      RemoteKey.settings => RemoteCapability.tvSettings,
+      RemoteKey.liveTv => RemoteCapability.liveTvKey,
+      RemoteKey.captions => RemoteCapability.captionsKey,
+      RemoteKey.replay => RemoteCapability.instantReplay,
+      _ when key.name.startsWith('digit') => RemoteCapability.numericKeys,
+      _ => RemoteCapability.specialKeys,
+    };
+    return _send(capability, 'key-${_wireId(key.name)}');
+  }
+
+  @override
+  Future<void> sendText(String text) {
+    if (text.length > 2048) {
+      throw ArgumentError('Text exceeds the supported length.');
+    }
+    return _send(RemoteCapability.textInput, 'send-text', {'text': text});
+  }
+
+  @override
+  Future<void> sendEnter() => _send(RemoteCapability.textInput, 'send-enter');
+  @override
+  Future<List<DeviceInput>> inputs() =>
+      _read(RemoteCapability.inputs, 'list-inputs', DriverTvResponse.inputs);
+  @override
+  Future<void> selectInput(String id) =>
+      _target(RemoteCapability.inputs, 'select-input', id);
+  @override
+  Future<void> openInputPicker() =>
+      _send(RemoteCapability.inputs, 'open-input-picker');
+  @override
+  DeviceInput? get currentInput => _currentInput;
+  @override
+  Stream<DeviceInput?> get currentInputChanges => _inputs.stream;
+
+  Future<DeviceInput> readCurrentInput() async {
+    final input = await _read(
+      RemoteCapability.currentInput,
+      'read-input',
+      DriverTvResponse.input,
+    );
+    if (!_inputs.isClosed) {
+      _currentInput = input;
+      _inputs.add(input);
+    }
+    return input;
+  }
+
+  @override
+  Future<List<DeviceApplication>> applications() async {
+    final apps = await _read(
+      RemoteCapability.applications,
+      'list-applications',
+      DriverTvResponse.applications,
+    );
+    _reportedApplicationIds = Set.unmodifiable(apps.map((app) => app.id));
+    return apps;
+  }
+
+  @override
+  Set<String>? get reportedApplicationIds => _reportedApplicationIds;
+  @override
+  Future<void> launchApplication(String id) =>
+      _target(RemoteCapability.applications, 'launch-application', id);
+  @override
+  Future<String?> currentApplication() async {
+    if (_has(RemoteCapability.currentContent, 'read-application')) {
+      return _read(
+        RemoteCapability.currentContent,
+        'read-application',
+        DriverTvResponse.application,
+      );
+    }
+    return (await currentContent()).appId;
+  }
+
+  @override
+  Future<CurrentContent> currentContent() async {
+    final content = await _read(
+      RemoteCapability.currentContent,
+      'read-content',
+      DriverTvResponse.content,
+    );
+    if (!_content.isClosed) {
+      _content.add(content);
+    }
+    return content;
+  }
+
+  @override
+  Stream<CurrentContent> watchCurrentContent() => _content.stream;
+  @override
+  Future<List<BluetoothAccessory>> bluetoothAccessories() => _read(
+    RemoteCapability.bluetoothAccessories,
+    'list-accessories',
+    DriverTvResponse.accessories,
+  );
+  @override
+  Future<void> toggleBluetoothAccessory(String id) =>
+      _target(RemoteCapability.bluetoothAccessories, 'toggle-accessory', id);
+  @override
+  Future<void> openAccessorySettings() =>
+      _send(RemoteCapability.accessorySettings, 'open-accessory-settings');
+
+  Future<void> _target(RemoteCapability capability, String action, String id) {
+    if (id.trim().isEmpty || id.length > 2048) {
+      throw ArgumentError('Invalid TV command target.');
+    }
+    return _send(capability, action, {'target': id});
+  }
+
+  static final _uppercase = RegExp(r'[A-Z]');
+  static String _wireId(String name) => name.replaceAllMapped(
+    _uppercase,
+    (match) => '-${match[0]!.toLowerCase()}',
+  );
 
   static const _unavailable = RemoteException(
     'unsupported',
     'The driver does not provide this command.',
   );
-  Future<T> _unsupported<T>() => Future.error(_unavailable);
-
-  @override
-  Future<void> wake() => _unsupported();
-  @override
-  Future<void> setVolume(int volume) => _unsupported();
-  @override
-  Future<void> setMuted(bool muted) => _unsupported();
-  @override
-  Future<VolumeState> readVolume() => _unsupported();
-  @override
-  Stream<VolumeState> watchVolume() => const Stream.empty();
-  @override
-  Future<void> press(NavigationKey key) => _unsupported();
-  @override
-  Future<void> channelUp() => _unsupported();
-  @override
-  Future<void> channelDown() => _unsupported();
-  @override
-  Future<List<DeviceChannel>> channels() async => [];
-  @override
-  Future<void> selectChannel(String id) => _unsupported();
-  @override
-  Future<void> sendMedia(MediaAction action) => _unsupported();
-  @override
-  Future<void> movePointer(double dx, double dy) => _unsupported();
-  @override
-  Future<void> scroll(double dx, double dy) => _unsupported();
-  @override
-  Future<void> click() => _unsupported();
-  @override
-  Future<void> sendKey(RemoteKey key) => _unsupported();
-  @override
-  Future<void> sendText(String text) => _unsupported();
-  @override
-  Future<void> sendEnter() => _unsupported();
-  @override
-  Future<List<DeviceInput>> inputs() async => [];
-  @override
-  Future<void> selectInput(String id) => _unsupported();
-  @override
-  Future<List<DeviceApplication>> applications() async => [];
-  @override
-  Future<void> launchApplication(String id) => _unsupported();
-  @override
-  Future<String?> currentApplication() => _unsupported();
-  @override
-  Future<CurrentContent> currentContent() => _unsupported();
-  @override
-  Stream<CurrentContent> watchCurrentContent() => const Stream.empty();
 }

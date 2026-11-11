@@ -32,6 +32,48 @@ final class DriverStep {
   final DriverOperation operation;
   final String? message;
 
+  String render(Map<String, Object> arguments) {
+    final template = message!;
+    final value = _bind(jsonDecode(template), arguments);
+    final rendered = jsonEncode(value);
+    if (utf8.encode(rendered).length > 16384) {
+      throw const FormatException(
+        'Driver command payload exceeds the size limit.',
+      );
+    }
+    return rendered;
+  }
+
+  static Object? _bind(Object? value, Map<String, Object> arguments) {
+    if (value is Map<String, Object?> && value.containsKey(r'$argument')) {
+      final name = value[r'$argument'];
+      if (value.length != 1 ||
+          name is! String ||
+          !arguments.containsKey(name)) {
+        throw const FormatException(
+          'Missing or invalid driver command argument.',
+        );
+      }
+      final argument = arguments[name];
+      if (argument is String ||
+          argument is bool ||
+          (argument is num && argument.isFinite)) {
+        return argument;
+      }
+      throw const FormatException(
+        'Driver command arguments must be scalar values.',
+      );
+    }
+    return switch (value) {
+      Map<String, Object?> map => map.map(
+        (key, child) => MapEntry(key, _bind(child, arguments)),
+      ),
+      List<Object?> list =>
+        list.map((child) => _bind(child, arguments)).toList(),
+      _ => value,
+    };
+  }
+
   static bool _tooDeep(Object? value, int depth) {
     if (depth > 16) {
       return true;
