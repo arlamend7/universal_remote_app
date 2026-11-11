@@ -53,6 +53,7 @@ final class ManagedTvController extends TVRemoteBase
   DriverBundle? _bundle;
   DriverCompatibility? _profile;
   ManagedTvSession? _persistent;
+  ManagedTvSession? _pendingReplacement;
   Completer<String?>? _pairingCode;
   final _rejectedSubscriptions = <String>{};
   final _acknowledged = <String>{};
@@ -148,7 +149,7 @@ final class ManagedTvController extends TVRemoteBase
   }
 
   Future<void> _connect(StreamController<void> cancellation) async {
-    final bundle = await _drivers.prepare(
+    var bundle = await _drivers.prepare(
       device,
       cancelled: () => !identical(_cancellation, cancellation),
       onInstalling: () => _setInstalling(true),
@@ -167,19 +168,38 @@ final class ManagedTvController extends TVRemoteBase
     _setInstalling(false);
     final bootstrapProfile = _drivers.profileFor(bundle, device);
     final host = device.endpoints.first.host;
-    final endpoint = bundle.discovery.endpoint(host);
-    final software = await _openSession(bundle, endpoint, cancellation);
+    var endpoint = bundle.discovery.endpoint(host);
+    var software = await _openSession(bundle, endpoint, cancellation);
     if (!identical(_cancellation, cancellation)) {
       return;
     }
-    final identified = copyDevice(
+    var identified = copyDevice(
       device,
       model: software?.model,
       softwareInformation: software,
     );
-    final profile = software == null
+    var profile = software == null
         ? bootstrapProfile
-        : _drivers.profileFor(bundle, identified);
+        : _drivers.compatibleProfile(bundle, identified);
+    if (profile == null) {
+      final replacement = await _replaceSession(
+        bundle,
+        identified,
+        cancellation,
+      );
+      if (!identical(_cancellation, cancellation)) {
+        return;
+      }
+      bundle = replacement.bundle;
+      endpoint = replacement.endpoint;
+      software = replacement.software ?? software;
+      identified = copyDevice(
+        identified,
+        model: software?.model,
+        softwareInformation: software,
+      );
+      profile = replacement.profile;
+    }
     _endpoint = endpoint;
     _bundle = bundle;
     _profile = profile;
@@ -197,11 +217,77 @@ final class ManagedTvController extends TVRemoteBase
     _setState(DeviceConnectionState.connected);
   }
 
+  Future<
+    ({
+      DriverBundle bundle,
+      Uri endpoint,
+      DeviceSoftwareInformation? software,
+      DriverCompatibility profile,
+    })
+  >
+  _replaceSession(
+    DriverBundle bootstrap,
+    RemoteDevice identified,
+    StreamController<void> cancellation,
+  ) async {
+    bool cancelled() => !identical(_cancellation, cancellation);
+    final replacement = await _drivers.prepareReplacement(
+      bootstrap,
+      identified,
+      cancelled: cancelled,
+      cancellation: cancellation.stream,
+    );
+    if (replacement == null || cancelled()) {
+      throw const RemoteException(
+        'driverIncompatible',
+        'No available release supports the TV’s reported software.',
+      );
+    }
+    final endpoint = replacement.discovery.endpoint(
+      identified.endpoints.first.host,
+    );
+    final software = await _openSession(
+      replacement,
+      endpoint,
+      cancellation,
+      replacing: true,
+    );
+    if (cancelled()) {
+      throw const RemoteException('cancelled', 'Driver connection cancelled.');
+    }
+    final profile = _drivers.profileFor(
+      replacement,
+      copyDevice(
+        identified,
+        model: software?.model,
+        softwareInformation: software,
+      ),
+    );
+    final pending = _pendingReplacement;
+    if (replacement.requiresPersistentSession && pending?.connected != true) {
+      throw const RemoteException(
+        'disconnected',
+        'The replacement driver lost its connection.',
+      );
+    }
+    final original = _persistent;
+    _persistent = pending;
+    _pendingReplacement = null;
+    await original?.close();
+    return (
+      bundle: replacement,
+      endpoint: endpoint,
+      software: software,
+      profile: profile,
+    );
+  }
+
   Future<DeviceSoftwareInformation?> _openSession(
     DriverBundle bundle,
     Uri endpoint,
-    StreamController<void> cancellation,
-  ) async {
+    StreamController<void> cancellation, {
+    bool replacing = false,
+  }) async {
     final connection = _drivers.runtime.connection(
       endpoint: endpoint,
       trustedCertificateDer: device.metadata['trustedCertificateDer'],
@@ -211,21 +297,33 @@ final class ManagedTvController extends TVRemoteBase
       await connection.close();
       return null;
     }
-    final session = _persistent = ManagedTvSession(
+    late final ManagedTvSession session;
+    session = ManagedTvSession(
       connection,
       bundle,
       onLost: () {
-        if (identical(_cancellation, cancellation)) {
+        if (identical(_cancellation, cancellation) &&
+            identical(_persistent, session)) {
           unawaited(disconnect());
         }
       },
     );
+    _rememberSession(session, replacing: replacing);
     return session.open(
       credentials: _drivers.credentialScope(bundle, device),
       requestCode: _requestPairingCode,
       feedback: _feedback,
       subscriptionRejected: _rejectedSubscriptions.add,
     );
+  }
+
+  void _rememberSession(ManagedTvSession session, {required bool replacing}) {
+    if (!replacing) {
+      _persistent = session;
+      return;
+    }
+    _pendingReplacement = session;
+    _rejectedSubscriptions.clear();
   }
 
   Future<String?> _requestPairingCode() async {
@@ -399,7 +497,9 @@ final class ManagedTvController extends TVRemoteBase
     }
     _cancellation = null;
     final persistent = _persistent;
+    final replacement = _pendingReplacement;
     _persistent = null;
+    _pendingReplacement = null;
     final pairing = _pairingCode;
     _pairingCode = null;
     if (pairing != null && !pairing.isCompleted) {
@@ -424,7 +524,10 @@ final class ManagedTvController extends TVRemoteBase
     _setState(DeviceConnectionState.disconnected);
     cancellation.add(null);
     await cancellation.close();
-    await persistent?.close();
+    await Future.wait([
+      if (persistent != null) persistent.close(),
+      if (replacement != null) replacement.close(),
+    ]);
   }
 
   @override

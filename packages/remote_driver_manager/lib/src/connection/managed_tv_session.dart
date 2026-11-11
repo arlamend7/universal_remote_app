@@ -16,6 +16,8 @@ final class ManagedTvSession {
   bool _closed = false;
   int _queued = 0;
 
+  bool get connected => !_closed && _connection.connected;
+
   Future<DeviceSoftwareInformation?> open({
     required DriverCredentialScope? credentials,
     required Future<String?> Function() requestCode,

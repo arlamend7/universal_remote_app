@@ -236,17 +236,66 @@ final class ManagedDriverService {
   static bool _compiled(DriverManifest manifest) =>
       manifest.runtime.operations.contains(DriverOperation.compiledBindings);
 
+  DriverCompatibility? compatibleProfile(
+    DriverBundle bundle,
+    RemoteDevice device,
+  ) => _resolver
+      .resolve(_evidence(device), [
+        DriverCandidate(bundle.manifest, installed: true),
+      ])
+      .selected
+      ?.profile;
+
   DriverCompatibility profileFor(DriverBundle bundle, RemoteDevice device) {
-    final match = _resolver.resolve(_evidence(device), [
-      DriverCandidate(bundle.manifest, installed: true),
-    ]).selected;
-    if (match == null) {
+    final profile = compatibleProfile(bundle, device);
+    if (profile == null) {
       throw const RemoteException(
         'driverIncompatible',
         'This driver has no profile for the TV’s reported software.',
       );
     }
-    return match.profile;
+    return profile;
+  }
+
+  Future<DriverBundle?> prepareReplacement(
+    DriverBundle bootstrap,
+    RemoteDevice identified, {
+    required bool Function() cancelled,
+    required Stream<void> cancellation,
+  }) async {
+    final family = bootstrap.manifest.identity.id;
+    final mustAuthenticate = bootstrap.exchanges.containsKey('authenticate');
+    final candidates = _candidates(identified.providerId).where(
+      (candidate) =>
+          candidate.identity.id == family &&
+          (!mustAuthenticate ||
+              candidate.manifest.runtime.operations.contains(
+                DriverOperation.webSocketAuthenticate,
+              )),
+    );
+    final selected = _resolver
+        .resolve(_evidence(identified), candidates)
+        .selected;
+    if (selected == null || cancelled()) {
+      return null;
+    }
+    final identity = selected.candidate.identity;
+    final bundle = selected.candidate.installed
+        ? manager.installed(identity.id, identity.version)
+        : await manager.install(
+            identity,
+            cancelled: cancelled,
+            cancellation: cancellation,
+            makeDefault: false,
+          );
+    if (mustAuthenticate &&
+        bundle?.exchanges.containsKey('authenticate') != true) {
+      throw const RemoteException(
+        'driverIncompatible',
+        'The replacement release cannot authenticate this TV.',
+      );
+    }
+    return bundle;
   }
 
   static DriverDeviceEvidence _evidence(RemoteDevice device) =>

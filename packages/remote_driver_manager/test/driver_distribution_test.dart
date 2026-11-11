@@ -34,6 +34,104 @@ Future<String> _signCatalog(
 }
 
 void main() {
+  for (final handoff in ['authorized', 'refused', 'missing-auth']) {
+    test(
+      'authenticated firmware handoff preserves credentials ($handoff)',
+      () async {
+        final directory = await Directory.systemTemp.createTemp(
+          'driver-handoff-',
+        );
+        addTearDown(() => directory.delete(recursive: true));
+        final fixture = await LocalDriverPackageRepository.open(
+          Directory('drivers/providers/example-tv'),
+          enabled: true,
+        );
+        final old = _firmwareRelease(fixture.package, '1.0.0', 'old');
+        final replacement = _firmwareRelease(
+          fixture.package,
+          '2.0.0',
+          'new',
+          authenticate: handoff != 'missing-auth',
+        );
+        final manager = DriverManager(
+          DriverPackageStorage(directory),
+          FixtureDriverRepository([old, replacement]),
+        );
+        await manager.initialize();
+        await manager.install(old.identity);
+        await manager.install(replacement.identity);
+        final sent = <String>[];
+        var closed = 0;
+        final runtime = await _fixtureTv(
+          sent,
+          onDisconnect: () => closed++,
+          onRequest: (request) {
+            final command = request['command'];
+            if (command == 'auth-new') {
+              expect(closed, 0);
+              expect(request['token'], 'saved-token');
+            }
+            return {
+              'id': request['id'],
+              'ok': command != 'auth-new' || handoff == 'authorized',
+              if (command == 'identify') 'software': {'firmwareVersion': 'new'},
+            };
+          },
+        );
+        final credentials = FixtureDriverCredentials();
+        final registry = ProviderRegistry();
+        await ManagedDriverService(
+          manager,
+          null,
+          runtime: runtime,
+        ).initialize(registry, credentials: credentials);
+        final manual = registry.createManualDevice(
+          address: '192.168.1.20',
+          name: 'TV',
+          legacy: false,
+          allowInsecurePointer: false,
+        );
+        final device = copyDevice(
+          manual,
+          softwareInformation: DeviceSoftwareInformation(
+            source: DeviceInformationSource.authenticatedSession,
+            firmwareVersion: 'old',
+          ),
+        );
+        final scope = DriverCredentialScope(
+          credentials,
+          old.identity.id,
+          device.id,
+        );
+        await scope.write('saved-token');
+        final remote = registry.createController(device) as ManagedTvController;
+        addTearDown(remote.dispose);
+        if (handoff == 'authorized') {
+          await remote.connect();
+          expect(remote.state, DeviceConnectionState.connected);
+          expect(remote.device.metadata['managedDriverVersion'], '2.0.0');
+          await remote.volumeUp();
+          expect(sent, [
+            'auth-old',
+            'identify',
+            'auth-new',
+            'identify',
+            'up-new',
+          ]);
+        } else {
+          await expectLater(remote.connect(), throwsA(isA<RemoteException>()));
+          expect(remote.state, DeviceConnectionState.disconnected);
+          expect(sent, [
+            'auth-old',
+            'identify',
+            if (handoff == 'refused') 'auth-new',
+          ]);
+        }
+        expect(await scope.read(), 'saved-token');
+      },
+    );
+  }
+
   test(
     'persistent TV controller pairs, authenticates, queues and reconnects',
     () async {
@@ -514,6 +612,41 @@ void _catalogResponse(
   response.write(body);
 }
 
+DriverPackage _firmwareRelease(
+  DriverPackage fixture,
+  String version,
+  String firmware, {
+  bool authenticate = true,
+}) => DriverPackage({
+  'manifest.json': jsonEncode({
+    ...fixture.bundle.manifest.toJson(),
+    'version': version,
+    'capabilities': ['volume'],
+    'operations': [
+      'websocket.request',
+      if (authenticate) 'websocket.authenticate',
+    ],
+    'compatibility': [
+      {
+        'id': firmware,
+        'version': 1,
+        'models': <String>[],
+        'firmwareVersion': firmware,
+      },
+    ],
+  }),
+  'discovery.json': fixture.files['discovery.json']!,
+  'capabilities.json': '{"volume":["volume-up","volume-down"]}',
+  if (authenticate)
+    'workflows/authenticate.json': _exchangeFile(
+      'authenticate',
+      'auth-$firmware',
+    ),
+  'workflows/identify-software.json': _exchangeFile('request', 'identify'),
+  'workflows/volume-up.json': _exchangeFile('request', 'up-$firmware'),
+  'workflows/volume-down.json': _exchangeFile('request', 'down-$firmware'),
+});
+
 String _exchangeFile(String operation, String action, {String? event}) =>
     jsonEncode({
       'operation': 'websocket.$operation',
@@ -535,6 +668,7 @@ Future<DriverRuntime> _fixtureTv(
   List<String> commands, {
   Map<String, Object?> Function(Map<String, Object?>)? onRequest,
   void Function()? onConnect,
+  void Function()? onDisconnect,
 }) async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   addTearDown(() => server.close(force: true));
@@ -550,7 +684,7 @@ Future<DriverRuntime> _fixtureTv(
       if (command['command'] == 'subscribe') {
         socket.add('{"event":"volume","volume":52}');
       }
-    });
+    }, onDone: onDisconnect);
   });
   addTearDown(listener.cancel);
   return DriverRuntime(
