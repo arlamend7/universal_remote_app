@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:remote_android_tv/src/protocol/android_pairing.dart';
+import 'package:remote_android_tv/src/protocol/android_key_codes.dart';
 import 'package:remote_android_tv/src/protocol/android_remote_session.dart';
 import 'package:remote_android_tv/src/protocol/framed_socket.dart';
 import 'package:remote_android_tv/src/protocol/wire_message.dart';
@@ -80,8 +81,12 @@ void main() {
       expect(remote.supportsAbsoluteVolume, isTrue);
       expect(remote.content?.appId, 'com.example.tv');
       expect(reading.muted, isTrue);
-      await remote.key(23);
-      await remote.key(24);
+      final bindings = DriverBindings({
+        'navigation-enter': '23',
+        'volume-up': '99999',
+      });
+      await remote.key(androidManagedKeyCode(bindings, 'navigation-enter', 23));
+      await remote.key(androidManagedKeyCode(bindings, 'volume-up', 24));
       await remote.key(AndroidRemoteSession.channelUpKey);
       await remote.key(AndroidRemoteSession.channelDownKey);
       await remote.setVolume(60);

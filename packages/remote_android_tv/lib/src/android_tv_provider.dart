@@ -8,9 +8,10 @@ import 'discovery/android_tv_identifier.dart';
 
 final class AndroidTvProvider
     implements ManualDeviceProvider, DeviceWakeProvider {
-  const AndroidTvProvider({required this.credentials});
+  const AndroidTvProvider({required this.credentials, this.bindings});
 
   final CredentialStore credentials;
+  final DriverBindingsLookup? bindings;
 
   String get id => AndroidTvIdentifier.providerId;
   bool supports(RemoteDevice device) => device.providerId == id;
@@ -20,6 +21,7 @@ final class AndroidTvProvider
     createController: createController,
     manualSetup: this,
     wake: this,
+    supportsManagedBindings: true,
   );
 
   AndroidTvController createController(RemoteDevice device) =>
@@ -28,6 +30,7 @@ final class AndroidTvProvider
         credentials,
         () => wakeDevice(device),
         canWakeDevice(device),
+        bindings: bindings?.call(device),
       );
 
   /// Needs the TV's MAC address (learned after a connection) and network

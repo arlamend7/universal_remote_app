@@ -11,11 +11,18 @@ import 'security/paired_identity.dart';
 
 final class AndroidTvController extends TVRemoteBase
     implements PairingCodeReceiver {
-  AndroidTvController(this.device, this.credentials, this._wake, this.canWake);
+  AndroidTvController(
+    this.device,
+    this.credentials,
+    this._wake,
+    this.canWake, {
+    this.bindings,
+  });
 
   @override
   final RemoteDevice device;
   final CredentialStore credentials;
+  final DriverBindings? bindings;
   final Future<void> Function() _wake;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   AndroidPairing? _pairing;
@@ -215,28 +222,38 @@ final class AndroidTvController extends TVRemoteBase
   @override
   Future<void> wake() => _wake();
   @override
-  Future<void> powerOff() =>
-      supports(RemoteCapability.power) ? _key(223) : _unsupported();
+  Future<void> powerOff() => supports(RemoteCapability.power)
+      ? _managedKey('power-off', 223)
+      : _unsupported();
   @override
   Future<void> openAccessorySettings() => _unsupported();
   @override
-  Future<void> volumeUp() =>
-      supports(RemoteCapability.volume) ? _key(24) : _unsupported();
+  Future<void> volumeUp() => supports(RemoteCapability.volume)
+      ? _managedKey('volume-up', 24)
+      : _unsupported();
   @override
-  Future<void> volumeDown() =>
-      supports(RemoteCapability.volume) ? _key(25) : _unsupported();
+  Future<void> volumeDown() => supports(RemoteCapability.volume)
+      ? _managedKey('volume-down', 25)
+      : _unsupported();
   @override
-  Future<void> press(NavigationKey key) => _key(switch (key) {
-    NavigationKey.up => 19,
-    NavigationKey.down => 20,
-    NavigationKey.left => 21,
-    NavigationKey.right => 22,
-    NavigationKey.enter => 23,
-    NavigationKey.back => 4,
-    NavigationKey.home => 3,
-  });
+  Future<void> press(NavigationKey key) =>
+      _managedKey('navigation-${key.name}', switch (key) {
+        NavigationKey.up => 19,
+        NavigationKey.down => 20,
+        NavigationKey.left => 21,
+        NavigationKey.right => 22,
+        NavigationKey.enter => 23,
+        NavigationKey.back => 4,
+        NavigationKey.home => 3,
+      });
   @override
-  Future<void> sendMedia(MediaAction action) => _key(androidMediaCode(action));
+  Future<void> sendMedia(MediaAction action) => _managedKey(
+    'media-${action.name.toLowerCase()}',
+    androidMediaCode(action),
+  );
+
+  Future<void> _managedKey(String action, int fallback) =>
+      _key(androidManagedKeyCode(bindings, action, fallback));
 
   @override
   Future<void> setVolume(int volume) async =>

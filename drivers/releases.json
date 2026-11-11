@@ -3,5 +3,10 @@
     "source": "lg-webos/1.0.0",
     "channel": "stable",
     "notes": "Managed SSAP volume, mute and power mappings. Existing pairing and pointer engine."
+  },
+  {
+    "source": "android-tv/1.0.0",
+    "channel": "stable",
+    "notes": "Managed navigation, media, volume and power keys. Uses compiled Remote v2 pairing and TLS framing."
   }
 ]

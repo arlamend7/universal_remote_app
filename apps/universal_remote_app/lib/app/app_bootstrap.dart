@@ -226,7 +226,10 @@ abstract final class AppBootstrap {
         ).definition,
       )
       ..registerDefinition(
-        AndroidTvProvider(credentials: credentials).definition,
+        AndroidTvProvider(
+          credentials: credentials,
+          bindings: bindings,
+        ).definition,
       )
       ..registerDefinition(
         SamsungProvider(credentials: credentials).definition,

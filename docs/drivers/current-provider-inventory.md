@@ -20,3 +20,5 @@ After repair, the formatter reported no changes, static analysis and the structu
 ## Managed bindings
 
 LG webOS reads managed SSAP volume, mute and power mappings when a compatible signed package is installed. The adapter checks each binding against its approved SSAP path. Its compiled engine still owns registration, pairing, certificate behavior, capability negotiation, the pointer socket, apps, inputs and wake. The same fixture checks wire commands and capability behavior with and without managed bindings.
+
+Android TV reads managed Remote v2 navigation, media, relative volume and power key mappings. The compiled adapter validates each key against its expected Android code and retains pairing, mutual TLS, certificate pinning, binary framing, feature negotiation and wake. The TLS fixture checks that a managed mapping and a rejected override emit the same binary keys as before.

@@ -38,3 +38,10 @@ int androidMediaCode(MediaAction action) => switch (action) {
   MediaAction.previous => 88,
   MediaAction.next => 87,
 };
+
+/// Resolve only the Android key already approved for this control.
+int androidManagedKeyCode(
+  DriverBindings? bindings,
+  String action,
+  int fallback,
+) => int.parse(bindings?.select(action, '$fallback') ?? '$fallback');
