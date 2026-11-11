@@ -71,7 +71,7 @@ void main() {
     );
     expect(
       rules.inspect(
-        'packages/remote_lg_webos/lib/example.dart',
+        'packages/remote_driver_runtime/lib/src/adapters/lg_webos/example.dart',
         "import 'package:remote_ui/remote_ui.dart';",
       ),
       isNotEmpty,

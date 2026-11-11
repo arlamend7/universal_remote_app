@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_lg_webos/remote_lg_webos.dart';
+import 'package:remote_driver_runtime/tv_provider_adapters.dart';
 import 'package:remote_network/remote_network.dart';
 import 'package:remote_ui/remote_ui.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';

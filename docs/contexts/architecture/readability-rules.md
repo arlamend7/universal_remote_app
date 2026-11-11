@@ -58,7 +58,7 @@ Run from the repository root:
 ```sh
 dart run tool/check_structure.dart
 dart analyze
-dart test test packages/remote_core/test packages/remote_network/test packages/remote_lg_webos/test
+dart test test packages/remote_core/test packages/remote_network/test packages/remote_driver_runtime/test packages/remote_driver_manager/test
 ```
 
 The SDK-only structure check enforces one type per file outside the grouped

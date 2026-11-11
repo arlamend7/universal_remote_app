@@ -8,15 +8,12 @@ The app assembles the existing provider registry and supplies platform signature
 flowchart TD
   App[universal_remote_app] --> Manager[remote_driver_manager]
   App --> UI[remote_ui]
-  App --> Providers[Compiled provider adapters]
-  Manager --> Runtime[remote_driver_runtime]
+  App --> Runtime[remote_driver_runtime with compiled adapters]
+  Manager --> Runtime
   Manager --> Core[remote_core]
   Manager --> Network[remote_network]
   Runtime --> Core
   Runtime --> Network
-  Providers --> Runtime
-  Providers --> Network
-  Providers --> Core
   Network --> Core
   UI --> Core
   Authoring[Driver authoring tools] --> Runtime
@@ -51,7 +48,7 @@ dart analyze --fatal-infos
 dart run tool/check_structure.dart
 dart run tool/audit_dependencies.dart
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s drivers/tests
-dart test test packages/remote_core/test packages/remote_network/test packages/remote_driver_runtime/test packages/remote_driver_manager/test packages/remote_lg_webos/test packages/remote_android_tv/test packages/remote_roku/test packages/remote_samsung_tizen/test
+dart test test packages/remote_core/test packages/remote_network/test packages/remote_driver_runtime/test packages/remote_driver_manager/test
 cd apps/universal_remote_app
 flutter test --no-pub
 flutter build apk --release --no-pub
@@ -79,7 +76,7 @@ The handoff fixture covers an accepted replacement, a rejected authorization, an
 
 Production deployment requires a configured Pages source, protected environment, production signing key, and a release build with the corresponding trusted public key. Follow [publishing](publishing.md) and confirm that the deployment URL serves the exact catalog and package paths. The feature branch validates signing with ephemeral keys.
 
-Physical-device verification remains pending. Exercise at least one physical TV per enabled provider before claiming hardware compatibility. Roku testing uses an opt-in development build. Keep the existing provider adapters while their required functionality is still in use.
+Physical-device verification remains pending. Exercise at least one physical TV per enabled provider before claiming hardware compatibility. Roku testing uses an opt-in development build. The provider adapters now live inside the shared runtime.
 
 | Target | Verify on hardware |
 | --- | --- |

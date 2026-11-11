@@ -107,13 +107,13 @@ universal_remote/
 │   │   │   └── transport/
 │   │   └── test/
 │   │
-│   └── remote_lg_webos/
+│   └── remote_driver_runtime/
 │       ├── lib/src/
-│       │   ├── discovery/
-│       │   ├── pairing/
-│       │   ├── commands/
-│       │   ├── capabilities/
-│       │   └── protocol/
+│       │   ├── adapters/
+│       │   ├── ssap/
+│       │   ├── remote_v2/
+│       │   ├── samsung/
+│       │   └── ecp/
 │       └── test/
 │
 ├── docs/
@@ -576,7 +576,7 @@ Test:
 - Malformed discovery responses.
 - Discovery cancellation and cleanup.
 
-### remote_lg_webos
+### remote_driver_runtime · LG webOS adapter
 
 Use a fake/mock LG WebSocket server to test:
 

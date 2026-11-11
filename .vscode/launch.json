@@ -30,38 +30,20 @@
             "flutterMode": "release"
         },
         {
-            "name": "remote_android_tv",
-            "cwd": "packages/remote_android_tv",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
             "name": "remote_core",
             "cwd": "packages/remote_core",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "remote_lg_webos",
-            "cwd": "packages/remote_lg_webos",
+            "name": "remote_driver_runtime",
+            "cwd": "packages/remote_driver_runtime",
             "request": "launch",
             "type": "dart"
         },
         {
             "name": "remote_network",
             "cwd": "packages/remote_network",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "remote_roku",
-            "cwd": "packages/remote_roku",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "remote_samsung_tizen",
-            "cwd": "packages/remote_samsung_tizen",
             "request": "launch",
             "type": "dart"
         },

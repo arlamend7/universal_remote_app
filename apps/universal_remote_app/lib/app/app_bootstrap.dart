@@ -2,9 +2,11 @@ import 'package:remote_ui/remote_ui.dart';
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
+import 'package:remote_driver_runtime/tv_provider_adapters.dart';
 import 'package:remote_network/remote_network.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
@@ -27,7 +29,6 @@ import '../domains/discovery/services/discovery_controller.dart';
 import '../domains/settings/services/settings_controller.dart';
 import '../domains/connection/services/connection_controller.dart';
 import 'app_dependencies.dart';
-import 'built_in_providers.dart';
 
 /// Composition root only: validation and platform operations live in adapters.
 abstract final class AppBootstrap {
@@ -56,7 +57,13 @@ abstract final class AppBootstrap {
     DriverBindings? bindings(RemoteDevice device) =>
         managedDrivers?.bindingsFor(device);
     final providers =
-        registry ?? BuiltInProviders.create(credentials, bindings);
+        registry ??
+        TvProviderAdapters.create(
+          credentials,
+          bindings,
+          enableRoku:
+              !kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP'),
+        );
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
     final drivers = managedDrivers = await _initializeDrivers(

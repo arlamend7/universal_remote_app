@@ -1,6 +1,6 @@
 # Dynamic TV drivers
 
-The application currently creates compiled providers in [AppBootstrap](../../apps/universal_remote_app/lib/app/app_bootstrap.dart). Each registers a `ProviderDefinition` with an identifier, a controller factory, and optional manual setup, wake and connection policies. Nearby search uses the existing discovery manager to collect observations and resolve provider profiles. Manual connection uses provider-specific setup and the same connection controller. Controllers report capabilities through the existing typed remote interfaces.
+The application requests the shared adapter registry from [remote_driver_runtime](../../packages/remote_driver_runtime/lib/tv_provider_adapters.dart). Each adapter registers a `ProviderDefinition` with an identifier, a controller factory, and optional manual setup, wake and connection policies. Nearby search uses the existing discovery manager to collect observations and resolve provider profiles. Manual connection uses provider-specific setup and the same connection controller. Controllers report capabilities through the existing typed remote interfaces.
 
 ## Package boundaries
 
@@ -13,7 +13,7 @@ The application currently creates compiled providers in [AppBootstrap](../../app
 | `remote_ui` | Present typed catalog and capability data. Catalog browsing reads metadata without downloading driver packages. |
 | `universal_remote_app` | Compose dependencies, connect lifecycle events, supply local storage and credentials, and use the existing provider registry. |
 
-The current runtime dependency graph has no package cycles. Network and UI packages depend on core, compiled providers depend on core and network, and the app composes them. The runtime depends on core and network. The LG adapter uses the runtime’s compiled SSAP session. The manager uses core, network and runtime. The Flutter app compiles independently of the driver source tree.
+The current runtime dependency graph has no package cycles. Network and UI packages depend on core. The runtime contains the compiled adapters and protocol sessions and depends on core and network. The manager uses core, network and runtime. The Flutter app compiles independently of the driver source tree.
 
 ## Lifecycle and trust
 

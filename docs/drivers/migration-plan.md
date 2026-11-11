@@ -39,7 +39,7 @@ The follow-up migration starts from `f259d52`. Use the [TV API parity matrix](pa
 | 11 | Shared Samsung channel, token and transport code with authorization and reconnect fixtures. Samsung still uses its compiled typed adapter. |
 | 12 | Shared bounded Roku ECP client with the development-only gate. Roku still uses its compiled typed adapter for identity and capabilities. |
 | 13 | Concurrent local releases, exact bundle resolution, per-TV compatible pins, and rollback of the default. |
-| 14 | Adapter removal remains gated by functional parity. The independent provider adapters still own required behavior. |
+| 14 | Removed the four provider packages. Their required adapter implementations and tests now live in the shared runtime. |
 | 15 | Device Details shows reported TV software, the selected driver and profile, and whether information came from this connection or storage. |
 | 16 | Offline restart, per-model update, rollback, and authenticated release handoff exercised by fixtures. |
 | 17 | Automated results and physical-TV checks are tracked separately in [validation](validation.md). |

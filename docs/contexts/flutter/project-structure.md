@@ -52,10 +52,9 @@ no Riverpod, global container, or service locator.
   discovery, providers, pairing and errors. Public consumers use remote_core.dart.
 - remote_network/src: transport contracts/state, WebSocket implementation, SSDP
   models/search sessions, and Wake-on-LAN functions. No manufacturer framing.
-- remote_lg_webos/src: devices/session orchestration, connection/options/errors,
-  pairing/manifest, capability controllers and resolution, command channel, pointer
-  lifecycle/framing, providers/discovery, and SSAP protocol subcontexts for message
-  models, pending requests, subscriptions, and session coordination.
+- remote_driver_runtime/src/adapters: provider discovery, typed capability
+  controllers, and connection policy. Protocol sessions live in the sibling
+  SSAP, Remote v2, Samsung and ECP contexts.
 
 The public package entrypoints remain barrels. Internal files import the concrete
 contract they need. Capability controllers no longer receive the entire LG device
@@ -67,13 +66,13 @@ connection, or immutable connection options.
 | Change | Owning context |
 | --- | --- |
 | Add a TV metadata field | remote_core/src/device.dart; profile mapper if persisted |
-| Change pairing authorization | remote_lg_webos/src/devices/services and pairing constants |
-| Change SSAP request deadlines | remote_lg_webos/src/protocol/requests |
-| Change subscriptions/unsubscribe | remote_lg_webos/src/protocol/subscriptions |
-| Change LG volume serialization | remote_lg_webos/src/capabilities/volume |
-| Change pointer framing/lifetime | remote_lg_webos/src/pointer |
+| Change pairing authorization | remote_driver_runtime/src/adapters/lg_webos/devices/services and src/ssap/constants |
+| Change SSAP request deadlines | remote_driver_runtime/src/ssap/requests |
+| Change subscriptions/unsubscribe | remote_driver_runtime/src/ssap/subscriptions |
+| Change LG volume serialization | remote_driver_runtime/src/adapters/lg_webos/capabilities/volume |
+| Change pointer framing/lifetime | remote_driver_runtime/src/adapters/lg_webos/pointer |
 | Change a control's look or command | remote_ui/src/items (definition) and rendering/primitives |
-| Change manual form validation | remote_lg_webos/src/connection/models and device_editor_viewmodel.dart |
+| Change manual form validation | remote_driver_runtime/src/adapters/lg_webos/connection/models and device_editor_viewmodel.dart |
 | Change form state/errors | presentation/views/devices/viewmodels/device_editor_viewmodel.dart |
 | Change navigation | routes/app_routes.dart |
 | Change dependency wiring | app/app_bootstrap.dart |

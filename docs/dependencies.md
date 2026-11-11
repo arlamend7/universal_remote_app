@@ -91,7 +91,7 @@ Upstream development dependencies do not propagate into this workspace.
 | `pub_semver` | 2.2.1 | [pub.dev/pub_semver](https://pub.dev/packages/pub_semver) | `collection` |
 | `record_use` | 1.1.1 | [pub.dev/record_use](https://pub.dev/packages/record_use) | `collection`, `meta`, `pub_semver` |
 | `remote_core` | 0.1.0 | Repository-owned workspace | `test` |
-| `remote_lg_webos` | 0.1.0 | Repository-owned workspace | `remote_core`, `remote_network`, `test` |
+| `remote_driver_runtime` | 0.1.0 | Repository-owned workspace | `remote_core`, `remote_network`, `pointycastle`, `xml`, `test` |
 | `remote_network` | 0.1.0 | Repository-owned workspace | `test` |
 | `route_definer` | 4.0.0 | [DEVCOM Git revision 7546848](https://github.com/arlamend7/flutter_route_definer/commit/7546848c78ab81a208655ad7083f608942309b63) | `flutter`, `meta` |
 | `shelf` | 1.4.3 | [pub.dev/shelf](https://pub.dev/packages/shelf) | `async`, `collection`, `http_parser`, `path`, `stack_trace`, `stream_channel` |
@@ -110,8 +110,8 @@ Upstream development dependencies do not propagate into this workspace.
 | `test_api` | 0.7.12 | [pub.dev/test_api](https://pub.dev/packages/test_api) | `async`, `boolean_selector`, `collection`, `meta`, `source_span`, `stack_trace`, `stream_channel`, `string_scanner`, `term_glyph` |
 | `test_core` | 0.6.18 | [pub.dev/test_core](https://pub.dev/packages/test_core) | `analyzer`, `args`, `async`, `boolean_selector`, `collection`, `coverage`, `frontend_server_client`, `glob`, `io`, `meta`, `package_config`, `path`, `pool`, `source_map_stack_trace`, `source_maps`, `source_span`, `stack_trace`, `stream_channel`, `test_api`, `vm_service`, `yaml` |
 | `typed_data` | 1.4.0 | [pub.dev/typed_data](https://pub.dev/packages/typed_data) | `collection` |
-| `universal_remote_app` | 0.1.0+1 | Repository-owned workspace | `flutter`, `remote_core`, `remote_network`, `remote_lg_webos`, `flutter_secure_storage`, `route_definer`, `flutter_test` |
-| `universal_remote_workspace` | 0.0.0 | Repository-owned workspace | `test`, `remote_core`, `remote_lg_webos`, `remote_network` |
+| `universal_remote_app` | 0.1.0+1 | Repository-owned workspace | `flutter`, `remote_core`, `remote_network`, `remote_driver_runtime`, `remote_driver_manager`, `flutter_secure_storage`, `route_definer`, `flutter_test` |
+| `universal_remote_workspace` | 0.0.0 | Repository-owned workspace | `test`, `remote_core`, `remote_network` |
 | `vector_math` | 2.4.3 | [pub.dev/vector_math](https://pub.dev/packages/vector_math) | None |
 | `vm_service` | 15.4.0 | [pub.dev/vm_service](https://pub.dev/packages/vm_service) | None |
 | `watcher` | 1.2.1 | [pub.dev/watcher](https://pub.dev/packages/watcher) | `async`, `path` |
