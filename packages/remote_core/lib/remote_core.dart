@@ -41,3 +41,6 @@ export 'src/drivers/driver_operation.dart';
 export 'src/drivers/driver_runtime_requirements.dart';
 export 'src/drivers/driver_version.dart';
 export 'src/drivers/driver_bindings.dart';
+export 'src/devices/models/device_software_information.dart';
+export 'src/devices/models/device_information_source.dart';
+export 'src/devices/models/device_information_confidence.dart';

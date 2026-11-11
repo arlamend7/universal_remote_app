@@ -4,6 +4,8 @@ final class SavedDeviceMapper {
   const SavedDeviceMapper();
   RemoteDevice fromJson(Object? value) {
     final map = value as Map<String, dynamic>;
+    final metadata = (map['metadata'] as Map<String, dynamic>)
+        .cast<String, String>();
     return RemoteDevice(
       id: map['id'] as String,
       name: map['name'] as String,
@@ -18,8 +20,10 @@ final class SavedDeviceMapper {
           .cast<String>()
           .map(Uri.parse)
           .toList(),
-      metadata: (map['metadata'] as Map<String, dynamic>)
-          .cast<String, String>(),
+      metadata: metadata,
+      softwareInformation:
+          DeviceSoftwareInformation.fromJson(map['softwareInformation']) ??
+          DeviceSoftwareInformation.fromLegacyMetadata(metadata),
     );
   }
 
@@ -46,5 +50,7 @@ final class SavedDeviceMapper {
         .map((endpoint) => endpoint.toString())
         .toList(),
     'metadata': device.metadata,
+    if (device.softwareInformation case final information?)
+      'softwareInformation': information.toJson(),
   };
 }

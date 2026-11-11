@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'devices/models/device_software_information.dart';
+
 final class RemoteDevice {
   RemoteDevice({
     required this.id,
@@ -9,6 +11,7 @@ final class RemoteDevice {
     this.providerId = '',
     this.manufacturer,
     this.model,
+    this.softwareInformation,
     this.category = DeviceCategory.unknown,
     List<Uri> endpoints = const [],
     Map<String, String> metadata = const {},
@@ -26,6 +29,7 @@ final class RemoteDevice {
   final String providerId;
   final String? manufacturer;
   final String? model;
+  final DeviceSoftwareInformation? softwareInformation;
   final DeviceCategory category;
   final List<Uri> endpoints;
   final Map<String, String> metadata;
@@ -81,6 +85,7 @@ RemoteDevice copyDevice(
   RemoteDevice device, {
   String? name,
   String? model,
+  DeviceSoftwareInformation? softwareInformation,
   DeviceCategory? category,
   Set<RemoteCapability>? capabilities,
   List<Uri>? endpoints,
@@ -91,6 +96,7 @@ RemoteDevice copyDevice(
   providerId: device.providerId,
   manufacturer: device.manufacturer,
   model: model ?? device.model,
+  softwareInformation: softwareInformation ?? device.softwareInformation,
   category: category ?? device.category,
   stableIdentity: device.stableIdentity,
   endpoints: endpoints ?? device.endpoints,

@@ -7,10 +7,17 @@ final class DriverDeviceEvidence {
     String? osVersion,
     String? firmwareVersion,
   }) : providerId = device.providerId,
-       manufacturer = _known(device.manufacturer),
-       model = _known(device.model),
-       osVersion = _known(osVersion),
-       firmwareVersion = _known(firmwareVersion),
+       manufacturer =
+           _known(device.softwareInformation?.manufacturer) ??
+           _known(device.manufacturer),
+       model =
+           _known(device.softwareInformation?.model) ?? _known(device.model),
+       osVersion = _known(
+         device.softwareInformation?.operatingSystemVersion ?? osVersion,
+       ),
+       firmwareVersion = _known(
+         device.softwareInformation?.firmwareVersion ?? firmwareVersion,
+       ),
        endpoints = List.unmodifiable(device.endpoints);
 
   final String providerId;
