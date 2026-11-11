@@ -74,7 +74,7 @@ final class DriverUpdateService {
     }
     final provider = bundle.manifest.identity.providerId;
     final evidence = devices
-        .where((device) => device.providerId == provider)
+        .where((device) => _eligibleDevice(device, provider, record.id))
         .map(_evidence)
         .toList();
     if (evidence.isEmpty) {
@@ -119,9 +119,20 @@ final class DriverUpdateService {
       return false;
     }
     final candidate = DriverCandidate(release.manifest);
-    return evidence.every(
+    return evidence.any(
       (device) => _resolver.resolve(device, [candidate]).selected != null,
     );
+  }
+
+  static bool _eligibleDevice(
+    RemoteDevice device,
+    String provider,
+    String family,
+  ) {
+    final assignedFamily = device.metadata['managedDriverId'];
+    return device.providerId == provider &&
+        (assignedFamily == null || assignedFamily == family) &&
+        !device.metadata.containsKey('managedDriverPinnedVersion');
   }
 
   static DriverDeviceEvidence _evidence(RemoteDevice device) =>

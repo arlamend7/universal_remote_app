@@ -90,6 +90,61 @@ void main() {
   );
 
   test(
+    'updates only eligible televisions and keeps the other release offline',
+    () async {
+      final storage = await _storage();
+      final (first, next) = await _releases();
+      final modern = DriverPackage({
+        ...next.files,
+        'manifest.json': jsonEncode({
+          ...next.bundle.manifest.toJson(),
+          'compatibility': [
+            {
+              'id': 'modern',
+              'version': 1,
+              'models': ['Modern'],
+            },
+          ],
+        }),
+      });
+      final source = FixtureDriverRepository([first, modern]);
+      final manager = DriverManager(storage, source);
+      await manager.initialize();
+      await manager.install(first.identity);
+      var now = DateTime.utc(2026);
+      final updates = DriverUpdateService(manager, storage, now: () => now);
+      final catalog = await _updateCatalog(modern);
+      final older = RemoteDevice(
+        id: 'old',
+        name: 'Older TV',
+        providerId: first.identity.providerId,
+        model: 'Older',
+      );
+      final newer = RemoteDevice(
+        id: 'new',
+        name: 'Newer TV',
+        providerId: first.identity.providerId,
+        model: 'Modern',
+      );
+      await updates.check([older], () async => catalog);
+      expect(source.requests, 1);
+      now = now.add(const Duration(hours: 24));
+      await updates.check([older, newer], () async => catalog);
+      expect(source.requests, 2);
+
+      final offline = FixtureDriverRepository([]);
+      final restarted = DriverManager(storage, offline);
+      final drivers = ManagedDriverService(restarted, null);
+      await drivers.initialize(ProviderRegistry());
+      final oldBundle = await drivers.prepare(older, cancelled: () => false);
+      final newBundle = await drivers.prepare(newer, cancelled: () => false);
+      expect(oldBundle.manifest.identity.version, first.identity.version);
+      expect(newBundle.manifest.identity.version, modern.identity.version);
+      expect(offline.requests, 0);
+    },
+  );
+
+  test(
     'retains the exact catalog envelope and ETag for offline validation',
     () async {
       final storage = await _storage();
