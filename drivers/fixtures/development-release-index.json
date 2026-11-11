@@ -1,0 +1,8 @@
+[
+  {
+    "source": "example-tv",
+    "channel": "development",
+    "publishedAt": "2026-01-01T00:00:00Z",
+    "notes": "Fictional local test device."
+  }
+]

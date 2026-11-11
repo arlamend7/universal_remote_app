@@ -1,0 +1,93 @@
+name: Publish Universal Remote drivers
+
+on:
+  pull_request:
+    paths:
+      - 'drivers/**'
+      - 'packages/remote_driver_*/**'
+      - '.github/workflows/publish-drivers.yml'
+  push:
+    branches: ['feature/dynamic-driver-runtime']
+    paths:
+      - 'drivers/**'
+      - 'packages/remote_driver_*/**'
+      - '.github/workflows/publish-drivers.yml'
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: 'Catalog revision greater than the currently published revision'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install verified Flutter SDK
+        run: |
+          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter pub get --enforce-lockfile
+      - run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s drivers/tests
+      - name: Validate publication with an ephemeral key
+        run: |
+          openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$RUNNER_TEMP/test.pem"
+          PYTHONDONTWRITEBYTECODE=1 python3 drivers/tools/publish/build_site.py \
+            --index drivers/fixtures/development-release-index.json \
+            --output "$RUNNER_TEMP/driver-site" --key "$RUNNER_TEMP/test.pem" \
+            --key-id ci-fixture --revision 1
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: production-driver-catalog
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install verified Flutter SDK
+        run: |
+          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter pub get --enforce-lockfile
+      - uses: actions/configure-pages@v5
+      - name: Sign catalog and driver packages
+        env:
+          DRIVER_SIGNING_KEY: ${{ secrets.DRIVER_SIGNING_KEY_PEM }}
+          DRIVER_SIGNING_KEY_ID: ${{ vars.DRIVER_SIGNING_KEY_ID }}
+          DRIVER_CATALOG_REVISION: ${{ inputs.revision }}
+        run: |
+          set -eu
+          umask 077
+          key=$(mktemp "$RUNNER_TEMP/driver-signing.XXXXXX")
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$DRIVER_SIGNING_KEY" > "$key"
+          unset DRIVER_SIGNING_KEY
+          PYTHONDONTWRITEBYTECODE=1 python3 drivers/tools/publish/build_site.py \
+            --index drivers/releases.json --output "$RUNNER_TEMP/driver-site" \
+            --key "$key" --key-id "$DRIVER_SIGNING_KEY_ID" \
+            --revision "$DRIVER_CATALOG_REVISION"
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/driver-site
+      - name: Deploy signed driver catalog
+        id: deployment
+        uses: actions/deploy-pages@v4
