@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 import 'package:test/test.dart';
 
@@ -42,6 +43,33 @@ void main() {
       await server.close(force: true);
     }
   });
+  test('cancellation aborts a stalled WebSocket handshake', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    final seen = Completer<void>();
+    final cancellation = StreamController<void>();
+    final listener = server.listen((_) => seen.complete());
+    try {
+      final connecting = IoWebSocketTransport.connect(
+        Uri.parse('ws://127.0.0.1:${server.port}'),
+        timeout: const Duration(seconds: 20),
+        cancellation: cancellation.stream,
+      );
+      final rejected = expectLater(
+        connecting,
+        throwsA(
+          isA<RemoteException>().having((e) => e.code, 'code', 'cancelled'),
+        ),
+      );
+      await seen.future.timeout(const Duration(seconds: 2));
+      cancellation.add(null);
+      await rejected.timeout(const Duration(seconds: 2));
+    } finally {
+      await cancellation.close();
+      await listener.cancel();
+      await server.close(force: true);
+    }
+  });
+
   test('TLS rejects unknown certificates and accepts only the configured exact pin', () async {
     final folder = await Directory.systemTemp.createTemp('remote-tls-');
     final certificate = '${folder.path}/certificate.pem';

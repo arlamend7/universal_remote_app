@@ -30,3 +30,5 @@ Device profiles and dashboard data use the application preferences adapter. Pair
 ## Core metadata format
 
 Core schema version 1 defines stable numeric `major.minor.patch` package and runtime versions. A runtime requirement uses `>=minimum` with an optional exclusive `<upper` bound. Prerelease versions are currently unsupported. Profile revisions are positive integers. Platform OS and firmware evidence are separate opaque strings, interpreted later by the manager's comparison strategy. The metadata decoder rejects unknown fields and operation IDs. Recognizing an operation ID in core does not establish that a particular runtime build implements it.
+
+The shared WebSocket transport supports bounded, cancellable handshakes and exact certificate pins. It owns the connection after a successful handshake. Compatibility inputs are projected from already identified profiles, with absent manufacturer, model and version evidence represented as unknown. Discovery protocol selection and device identity correlation continue to use the existing registry and resolver.
