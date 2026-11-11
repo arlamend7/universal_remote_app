@@ -80,3 +80,9 @@ See [authoring](../../drivers/README.md), [publishing](publishing.md), and [vali
 Command IDs are matched to the declared capability before execution. Parameterized JSON send steps use single-field objects such as `{"$argument":"volume"}`. Only bounded scalar arguments can be substituted, and the runtime renders the complete request before opening a socket. Catalogs, volume, playback and content replies are decoded to the shared TV types. Read results feed the controller's state streams. Persistent sessions also feed protocol-originated volume, content and input updates into those streams.
 
 The TV API adapter distinguishes a declaration from a usable command set. A package cannot enable a control solely by listing the capability, and a failed optional read does not revoke independent write operations.
+
+### Software identification workflows
+
+An optional `workflows/identify-software.json` uses the `websocket.request` exchange after any declared authentication and before subscriptions. The reply's `software` object can carry normalized manufacturer, model, hardware model, OS, OS version, software version, firmware version, build and protocol version strings. The host assigns provenance and a timestamp. It preserves only those bounded fields. A TV that explicitly rejects the optional request can still connect. A transport failure follows the normal connection failure path.
+
+The compiled LG adapter preserves its legacy display value and records the firmware components when the response identifies them as firmware. The Android adapter records the authenticated Remote v2 protocol and leaves the OS version unknown. Roku separates the OS version from the build in its [device-info response](https://developer.roku.com/dev/docs/external-control-api). Samsung retains its existing discovery evidence.

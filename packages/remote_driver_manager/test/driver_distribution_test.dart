@@ -63,6 +63,10 @@ void main() {
           'authenticate',
           'authenticate',
         ),
+        'workflows/identify-software.json': _exchangeFile(
+          'request',
+          'identify',
+        ),
         'workflows/volume-up.json': _exchangeFile('request', 'up'),
         'workflows/volume-down.json': _exchangeFile('request', 'down'),
         'workflows/subscribe-volume.json': _exchangeFile(
@@ -91,6 +95,13 @@ void main() {
             _ => true,
           },
           if (request['command'] == 'pair') 'token': 'fixture-token',
+          if (request['command'] == 'identify')
+            'software': {
+              'model': 'Fixture Mk II',
+              'firmwareVersion': '04.12.03',
+              'source': 'discovery',
+              'token': 'excluded',
+            },
         },
       );
       final registry = ProviderRegistry();
@@ -118,7 +129,19 @@ void main() {
       await connecting;
       expect((await feedback.timeout(const Duration(seconds: 2))).volume, 52);
       await Future.wait([remote.volumeUp(), remote.volumeDown()]);
-      expect(sent, ['pair', 'authenticate', 'subscribe', 'up', 'down']);
+      expect(remote.device.model, 'Fixture Mk II');
+      final software = remote.device.softwareInformation!;
+      expect(software.firmwareVersion, '04.12.03');
+      expect(software.source, DeviceInformationSource.authenticatedSession);
+      expect(software.raw.keys, unorderedEquals(['model', 'firmwareVersion']));
+      expect(sent, [
+        'pair',
+        'authenticate',
+        'identify',
+        'subscribe',
+        'up',
+        'down',
+      ]);
       expect(sockets, 1);
       await remote.disconnect();
       await remote.connect();
@@ -126,10 +149,12 @@ void main() {
       expect(sent, [
         'pair',
         'authenticate',
+        'identify',
         'subscribe',
         'up',
         'down',
         'authenticate',
+        'identify',
         'subscribe',
         'up',
       ]);

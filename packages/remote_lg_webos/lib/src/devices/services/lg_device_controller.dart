@@ -16,10 +16,13 @@ import 'package:remote_lg_webos/src/pointer/services/lg_pointer_connection.dart'
 import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
+
 import 'package:remote_lg_webos/src/connection/models/lg_connection_options.dart';
 import 'package:remote_lg_webos/src/pairing/constants/default_lg_manifest.dart';
 import 'package:remote_lg_webos/src/protocol/services/ssap_client.dart';
 import 'package:remote_network/remote_network.dart';
+
+import '../functions/lg_software_information.dart';
 
 final class LgDeviceController extends TVRemoteBase
     implements DeviceWakeAddressSource {
@@ -353,7 +356,7 @@ final class LgDeviceController extends TVRemoteBase
   Future<void> _finishConnection(SsapClient client, int generation) async {
     await _resolve(client, generation);
     _requireCurrent(generation);
-    await _readDetails();
+    await _readDetails(generation);
     _requireCurrent(generation);
     if (client.isClosed) {
       throw const RemoteException(
@@ -429,16 +432,20 @@ final class LgDeviceController extends TVRemoteBase
   }
 
   /// Model and software version are optional; failures never block connecting.
-  Future<void> _readDetails() async {
+  Future<void> _readDetails(int generation) async {
     try {
       final info = await _commands
           .query('com.webos.service.update/getCurrentSWInformation')
           .timeout(requestTimeout);
-      final model = info['model_name'];
+      if (!_isCurrent(generation)) {
+        return;
+      }
+      final software = lgSoftwareInformation(info);
       final version = info['product_name'] ?? info['version'];
       _device = copyDevice(
         _device,
-        model: model is String && model.isNotEmpty ? model : null,
+        model: software?.model,
+        softwareInformation: software,
         metadata: {
           ..._device.metadata,
           if (version is String && version.isNotEmpty)

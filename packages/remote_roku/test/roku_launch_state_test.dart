@@ -22,7 +22,8 @@ void main() {
         '/query/device-info' =>
           '<device-info><serial-number>TEST01</serial-number><is-tv>true</is-tv>'
               '<model-name>Roku Test</model-name>'
-              '<software-version>14.1.0</software-version></device-info>',
+              '<software-version>14.1.0</software-version>'
+              '<software-build>09021</software-build></device-info>',
         '/query/apps' => '<apps><app id="12">Netflix</app></apps>',
         '/query/active-app' =>
           '<active-app><app id="12">Netflix</app></active-app>',
@@ -53,6 +54,11 @@ void main() {
   test('the model and software version come from device-info', () {
     expect(controller.device.model, 'Roku Test');
     expect(controller.device.metadata['softwareVersion'], '14.1.0');
+    final software = controller.device.softwareInformation!;
+    expect(software.source, DeviceInformationSource.protocolResponse);
+    expect(software.operatingSystemVersion, '14.1.0');
+    expect(software.buildNumber, '09021');
+    expect(software.firmwareVersion, isNull);
   });
 
   test('playback state reports only what the player says', () async {

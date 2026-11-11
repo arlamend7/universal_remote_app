@@ -108,10 +108,32 @@ final class RokuController extends TVRemoteBase {
     }
     _serial = serial;
     final version = rokuField(info, 'software-version');
+    final model = rokuField(info, 'model-name');
+    final modelNumber = rokuField(info, 'model-number');
+    final build = rokuField(info, 'software-build');
+    final vendor = rokuField(info, 'vendor-name');
     _device = copyDevice(
       device,
       category: isTv ? DeviceCategory.television : DeviceCategory.mediaPlayer,
-      model: rokuField(info, 'model-name'),
+      model: model,
+      softwareInformation: DeviceSoftwareInformation(
+        source: DeviceInformationSource.protocolResponse,
+        manufacturer: vendor,
+        model: model,
+        hardwareModel: modelNumber,
+        operatingSystem: 'Roku OS',
+        operatingSystemVersion: version,
+        buildNumber: build,
+        identifiedAt: DateTime.now(),
+        raw: {
+          if (vendor != null) 'vendor-name': vendor,
+          if (model != null) 'model-name': model,
+          if (modelNumber != null) 'model-number': modelNumber,
+          if (version != null) 'software-version': version,
+          if (build != null) 'software-build': build,
+          if (info.getElement('is-tv') != null) 'is-tv': isTv.toString(),
+        },
+      ),
       metadata: {
         ...device.metadata,
         if (version != null) 'softwareVersion': version,

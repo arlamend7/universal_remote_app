@@ -130,7 +130,7 @@ final class ManagedTvController extends TVRemoteBase
     _setInstalling(false);
     final host = device.endpoints.first.host;
     final endpoint = bundle.discovery.endpoint(host);
-    await _openSession(bundle, endpoint, cancellation);
+    final software = await _openSession(bundle, endpoint, cancellation);
     if (!identical(_cancellation, cancellation)) {
       return;
     }
@@ -138,6 +138,8 @@ final class ManagedTvController extends TVRemoteBase
     _bundle = bundle;
     _device = copyDevice(
       device,
+      model: software?.model,
+      softwareInformation: software,
       metadata: {
         ...device.metadata,
         'managedDriverId': bundle.manifest.identity.id,
@@ -146,7 +148,7 @@ final class ManagedTvController extends TVRemoteBase
     _setState(DeviceConnectionState.connected);
   }
 
-  Future<void> _openSession(
+  Future<DeviceSoftwareInformation?> _openSession(
     DriverBundle bundle,
     Uri endpoint,
     StreamController<void> cancellation,
@@ -158,7 +160,7 @@ final class ManagedTvController extends TVRemoteBase
     if (!bundle.requiresPersistentSession) {
       await connection.connect(cancellation: cancellation.stream);
       await connection.close();
-      return;
+      return null;
     }
     final session = _persistent = ManagedTvSession(
       connection,
@@ -169,7 +171,7 @@ final class ManagedTvController extends TVRemoteBase
         }
       },
     );
-    await session.open(
+    return session.open(
       credentials: _drivers.credentialScope(bundle, device),
       requestCode: _requestPairingCode,
       feedback: _feedback,

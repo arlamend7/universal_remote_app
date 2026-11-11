@@ -12,15 +12,16 @@ import 'security/paired_identity.dart';
 final class AndroidTvController extends TVRemoteBase
     implements PairingCodeReceiver {
   AndroidTvController(
-    this.device,
+    this._device,
     this.credentials,
     this._wake,
     this.canWake, {
     this.bindings,
   });
 
+  RemoteDevice _device;
   @override
-  final RemoteDevice device;
+  RemoteDevice get device => _device;
   final CredentialStore credentials;
   final DriverBindings? bindings;
   final Future<void> Function() _wake;
@@ -139,6 +140,15 @@ final class AndroidTvController extends TVRemoteBase
       }
     });
     _verifiedPeerIdentity = identity.fingerprint;
+    _device = copyDevice(
+      device,
+      softwareInformation: DeviceSoftwareInformation(
+        source: DeviceInformationSource.authenticatedSession,
+        operatingSystem: 'Android TV',
+        protocolVersion: 'Remote v2',
+        identifiedAt: DateTime.now(),
+      ),
+    );
     _setState(DeviceConnectionState.connected);
   }
 

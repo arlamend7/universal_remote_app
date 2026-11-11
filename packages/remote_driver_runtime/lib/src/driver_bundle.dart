@@ -80,7 +80,8 @@ final class DriverBundle {
             (id) => !commands.containsKey(id) && exchanges.containsKey(id),
           ) ||
       exchanges.containsKey('authenticate') ||
-      exchanges.containsKey('pair');
+      exchanges.containsKey('pair') ||
+      exchanges.containsKey('identify-software');
 
   static void _validateSession(
     Map<String, DriverExchange> exchanges,
@@ -88,6 +89,13 @@ final class DriverBundle {
   ) {
     final auth = exchanges['authenticate'];
     final pair = exchanges['pair'];
+    final identify = exchanges['identify-software'];
+    if (identify != null &&
+        identify.operation != DriverOperation.webSocketRequest) {
+      throw const FormatException(
+        'Invalid driver software identification workflow.',
+      );
+    }
     if ((auth != null &&
             auth.operation != DriverOperation.webSocketAuthenticate) ||
         (pair != null &&
