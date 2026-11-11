@@ -13,7 +13,7 @@ The application currently creates compiled providers in [AppBootstrap](../../app
 | `remote_ui` | Present typed catalog and capability data. Catalog browsing reads metadata without downloading driver packages. |
 | `universal_remote_app` | Compose dependencies, connect lifecycle events, supply local storage and credentials, and use the existing provider registry. |
 
-The current runtime dependency graph has no package cycles. Network and UI packages depend on core, compiled providers depend on core and network, and the app composes them. The runtime depends on core and network. The manager uses core, network and runtime. The Flutter app compiles independently of the driver source tree.
+The current runtime dependency graph has no package cycles. Network and UI packages depend on core, compiled providers depend on core and network, and the app composes them. The runtime depends on core and network. The LG adapter uses the runtime’s compiled SSAP session. The manager uses core, network and runtime. The Flutter app compiles independently of the driver source tree.
 
 ## Lifecycle and trust
 

@@ -16,10 +16,9 @@ import 'package:remote_lg_webos/src/pointer/services/lg_pointer_connection.dart'
 import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_runtime/ssap.dart';
 
 import 'package:remote_lg_webos/src/connection/models/lg_connection_options.dart';
-import 'package:remote_lg_webos/src/pairing/constants/default_lg_manifest.dart';
-import 'package:remote_lg_webos/src/protocol/services/ssap_client.dart';
 import 'package:remote_network/remote_network.dart';
 
 import '../functions/lg_software_information.dart';

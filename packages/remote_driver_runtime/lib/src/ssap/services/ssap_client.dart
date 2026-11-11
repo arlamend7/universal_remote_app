@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../../pairing/constants/default_lg_manifest.dart';
+import '../constants/default_lg_manifest.dart';
 import '../models/ssap_message.dart';
 import '../requests/ssap_pending_request.dart';
 import '../subscriptions/ssap_subscription.dart';
@@ -25,6 +25,9 @@ final class SsapClient {
   final TextTransport transport;
   final Duration requestTimeout;
   late final StreamSubscription<String> _listener;
+  static const _pendingLimit = 64;
+  static const _subscriptionLimit = 32;
+  static const _frameLimit = 2 * 1024 * 1024;
   final _pending = <String, SsapPendingRequest>{};
   final _subscriptions = <String, SsapSubscription>{};
   final _closedEvents = StreamController<void>.broadcast();
@@ -77,6 +80,14 @@ final class SsapClient {
         const RemoteException('disconnected', 'Connect to the TV first.'),
       );
     }
+    if (_pending.length >= _pendingLimit) {
+      return Future.error(
+        const RemoteException(
+          'busy',
+          'The TV session has too many pending requests.',
+        ),
+      );
+    }
     final id = _nextId();
     final frame = jsonEncode({
       'id': id,
@@ -84,6 +95,14 @@ final class SsapClient {
       if (path != null) 'uri': _uri(path),
       'payload': payload,
     });
+    if (frame.length > _frameLimit) {
+      return Future.error(
+        const RemoteException(
+          'protocol',
+          'The TV request exceeds the message limit.',
+        ),
+      );
+    }
     final pending = SsapPendingRequest(
       registration: registration,
       timeout: timeout ?? requestTimeout,
@@ -120,6 +139,14 @@ final class SsapClient {
         const RemoteException('disconnected', 'Connect to the TV first.'),
       );
     }
+    if (_subscriptions.length >= _subscriptionLimit) {
+      return Stream.error(
+        const RemoteException(
+          'busy',
+          'The TV session has too many subscriptions.',
+        ),
+      );
+    }
     final id = _nextId();
     final subscription = SsapSubscription(
       id: id,
@@ -137,6 +164,9 @@ final class SsapClient {
       return;
     }
     try {
+      if (frame.length > _frameLimit) {
+        throw const FormatException('TV response exceeds the message limit.');
+      }
       _dispatch(SsapMessage.parse(frame));
     } on FormatException {
       _terminate(

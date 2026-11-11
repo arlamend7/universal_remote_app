@@ -1,7 +1,6 @@
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_runtime/ssap.dart';
 import 'package:remote_network/remote_network.dart';
-
-import '../../protocol/services/ssap_client.dart';
 
 /// Matches the current peer address to a reported interface before taking its MAC.
 final class LgWakeAddressReader {

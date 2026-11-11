@@ -1,6 +1,6 @@
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_runtime/ssap.dart';
 
-import '../../protocol/services/ssap_client.dart';
 import '../constants/lg_ssap_actions.dart';
 
 /// Capability controllers depend on a session channel, never the device owner.

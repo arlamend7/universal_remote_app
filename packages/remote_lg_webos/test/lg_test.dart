@@ -186,6 +186,26 @@ void main() {
       }
     },
   );
+  test('oversized SSAP responses terminate the session', () async {
+    final transport = FakeTransport();
+    final client = SsapClient(transport);
+    addTearDown(client.close);
+    final pending = client.request('audio/getVolume');
+    final assertion = expectLater(
+      pending,
+      throwsA(
+        isA<RemoteException>().having(
+          (error) => error.code,
+          'code',
+          'protocol',
+        ),
+      ),
+    );
+    transport.incoming.add(' ' * (2 * 1024 * 1024 + 1));
+    await assertion;
+    expect(client.isClosed, isTrue);
+  });
+
   test('pointer navigation uses blank-line separators and click for OK', () {
     expect(encodeLgNavigation(NavigationKey.up), 'type:button\nname:UP\n\n');
     expect(
@@ -208,15 +228,7 @@ void main() {
           device: testDevice(),
           credentials: credentials,
           options: const LgConnectionOptions(allowInsecure: true),
-          bindings: managed
-              ? DriverBindings({
-                  'volume-up': 'audio/volumeUp',
-                  'volume-down': 'ssap://unauthorized',
-                  'set-volume': 'audio/setVolume',
-                  'set-mute': 'audio/setMute',
-                  'power-off': 'system/turnOff',
-                })
-              : null,
+          bindings: managed ? await _managedLgBindings() : null,
           connector: (uri) async => uri.path == '/pointer' ? pointer : main,
         );
         try {
@@ -251,6 +263,49 @@ void main() {
           expect(
             (main.sent.last['payload'] as Map<String, dynamic>)['inputId'],
             'HDMI_2',
+          );
+          await owner.turnOffScreen();
+          expect(
+            main.sent.last['uri'],
+            'ssap://com.webos.service.tvpower/power/turnOffScreen',
+          );
+          await owner.turnOnScreen();
+          expect(
+            main.sent.last['uri'],
+            'ssap://com.webos.service.tvpower/power/turnOnScreen',
+          );
+          expect((await owner.channels()).single.number, '7');
+          await owner.selectChannel('channel-7');
+          expect(main.sent.last['uri'], 'ssap://tv/openChannel');
+          await owner.channelUp();
+          expect(main.sent.last['uri'], 'ssap://tv/channelUp');
+          await owner.sendMedia(MediaAction.pause);
+          expect(main.sent.last['uri'], 'ssap://media.controls/pause');
+          await owner.sendText('search');
+          expect(
+            main.sent.last['uri'],
+            'ssap://com.webos.service.ime/insertText',
+          );
+          await owner.sendEnter();
+          expect(
+            main.sent.last['uri'],
+            'ssap://com.webos.service.ime/sendEnterKey',
+          );
+          expect((await owner.currentContent()).appId, 'com.webos.app.hdmi2');
+          expect(owner.currentInput?.id, 'HDMI_2');
+          expect((await owner.watchVolume().first).volume, 30);
+          final accessory = (await owner.bluetoothAccessories()).single;
+          await owner.toggleBluetoothAccessory(accessory.id);
+          expect(
+            main.sent.last['uri'],
+            'ssap://com.webos.service.btaudiosrc/connect',
+          );
+          await owner.click();
+          expect(pointer.frames.last, 'type:click\n\n');
+          expect(owner.device.softwareInformation?.firmwareVersion, '04.50.56');
+          expect(
+            owner.device.softwareInformation?.operatingSystemVersion,
+            isNull,
           );
           expect(owner.canWake, isFalse);
           await expectLater(owner.wake(), throwsA(isA<RemoteException>()));
@@ -431,4 +486,12 @@ void main() {
       }
     },
   );
+}
+
+Future<DriverBindings> _managedLgBindings() async {
+  const path = 'drivers/providers/lg-webos/1.1.0/bindings.json';
+  final rootFile = File(path);
+  final file = await rootFile.exists() ? rootFile : File('../../$path');
+  final values = jsonDecode(await file.readAsString()) as Map<String, Object?>;
+  return DriverBindings(values.cast<String, String>());
 }
