@@ -56,7 +56,7 @@ void main() {
     expect(styles('transport'), isNot(contains('up')));
     expect(
       styles('up'),
-      containsAll(['directionPad', 'crossPad', 'arrowPad', 'up', 'left', 'ok']),
+      containsAll(['directionPad', 'arrowPad', 'up', 'left', 'ok']),
     );
     expect(styles('up'), isNot(contains('home')));
     expect(styles('home'), containsAll(['home', 'back', 'apps', 'menu']));

@@ -96,7 +96,13 @@ void main() {
             findsNothing,
           );
         }
-        final starter = tester.getRect(find.byType(Slider));
+        final starter = tester.getRect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is GridRemoteItem &&
+                widget.item.definitionId == 'volumeRocker',
+          ),
+        );
         expect(starter.width, greaterThan(66));
         if (configuration == (const Size(390, 844), 1.0)) {
           await captureDesign(tester, capture, '39-phone-starter');

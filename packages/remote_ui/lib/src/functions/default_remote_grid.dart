@@ -6,7 +6,7 @@ import '../layout/models/grid_layout.dart';
 GridLayout defaultRemoteGrid() => GridLayout([
   // Top-right control
   _item('currentActivity', 0, 0, 3, 1),
-  
+
   _item('mute', 3, 0, 1, 1),
 
   // Main controls
@@ -22,13 +22,7 @@ GridLayout defaultRemoteGrid() => GridLayout([
   // Reserved area for optional shortcuts
 ], configuredRows: 6);
 
-GridItem _item(
-  String definitionId,
-  int x,
-  int y,
-  int w,
-  int h,
-) => GridItem(
+GridItem _item(String definitionId, int x, int y, int w, int h) => GridItem(
   id: 'default-$definitionId',
   definitionId: definitionId,
   x: x,

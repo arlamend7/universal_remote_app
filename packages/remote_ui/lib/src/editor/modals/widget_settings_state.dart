@@ -232,7 +232,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
         padding: const EdgeInsets.only(top: 12),
         child: BorderShapePicker(
           radius: style.cornerRadius,
-          onChanged: (value) => _appearance(style.copyWith(cornerRadius: value)),
+          onChanged: (value) =>
+              _appearance(style.copyWith(cornerRadius: value)),
         ),
       ),
     ], expanded: true),

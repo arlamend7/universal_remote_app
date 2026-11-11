@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_network/remote_network.dart';
+import 'package:remote_ui/remote_ui.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/data/network/services/platform_hardware_address_resolver.dart';
 import 'package:universal_remote_app/app/app_dependencies.dart';
@@ -66,6 +67,23 @@ void main() {
           },
         );
         await dependencies.savedDevices.save(tv);
+        if (scenario == 'no-feedback') {
+          final layout = defaultRemoteGrid();
+          await dependencies.grids.save(
+            tv,
+            layout.withItems([
+              ...layout.items,
+              GridItem(
+                id: 'test-volume-slider',
+                definitionId: 'volumeSlider',
+                x: 0,
+                y: 5,
+                w: 4,
+                h: 1,
+              ),
+            ]),
+          );
+        }
         await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
         await tester.tap(find.text('LG TV'));
         if (!replacing) {

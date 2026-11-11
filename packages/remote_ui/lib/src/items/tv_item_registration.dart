@@ -105,7 +105,7 @@ final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
       TvItems.right,
       TvItems.down,
       TvItems.left,
-      TvItems.ok
+      TvItems.ok,
     ],
   ),
   RemoteItemDefinition(
