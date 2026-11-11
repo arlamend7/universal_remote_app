@@ -58,3 +58,31 @@ class DriverPublicationTest(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(b"Roku packages must remain local", result.stderr)
             self.assertFalse((root / "site").exists())
+
+    def test_production_index_builds_only_the_three_approved_packages(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            key = root / "fixture.pem"
+            site = root / "site"
+            subprocess.run(
+                ["openssl", "genpkey", "-algorithm", "EC", "-pkeyopt",
+                 "ec_paramgen_curve:P-256", "-out", str(key)],
+                check=True,
+            )
+            subprocess.run(
+                ["python3", str(DRIVERS / "tools/publish/build_site.py"),
+                 "--index", str(DRIVERS / "releases.json"), "--output", str(site),
+                 "--key", str(key), "--key-id", "fixture", "--revision", "1"],
+                check=True,
+            )
+            envelope = json.loads((site / "catalog.json").read_bytes())
+            payload = json.loads(b64decode(envelope["payload"]))
+            releases = payload["releases"]
+            self.assertEqual(
+                {release["manifest"]["providerId"] for release in releases},
+                {"lg.webos", "android.tv", "samsung.tizen"},
+            )
+            for release in releases:
+                package = (site / release["package"]).read_bytes()
+                self.assertEqual(sha256(package).hexdigest(), release["sha256"])
+                self.assertEqual(release["channel"], "stable")

@@ -8,6 +8,7 @@ import '../distribution/driver_release.dart';
 import '../lifecycle/driver_manager.dart';
 import '../lifecycle/driver_update_service.dart';
 import '../resolution/driver_candidate.dart';
+import '../resolution/driver_match.dart';
 import '../resolution/driver_resolver.dart';
 import 'managed_tv_provider.dart';
 
@@ -159,9 +160,10 @@ final class ManagedDriverService {
     void Function()? onInstalling,
     Stream<void>? cancellation,
     void Function(double)? progress,
+    Future<DriverMatch?> Function(List<DriverMatch>)? choose,
   }) async {
     final evidence = _evidence(device);
-    var result = _resolver.resolve(evidence, _candidates(device.providerId));
+    var result = _resolver.resolve(evidence, _deviceCandidates(device));
     if (result.selected?.candidate.installed != true &&
         !result.requiresSelection &&
         !cancelled()) {
@@ -172,18 +174,24 @@ final class ManagedDriverService {
           rethrow;
         }
       }
-      result = _resolver.resolve(evidence, _candidates(device.providerId));
+      result = _resolver.resolve(evidence, _deviceCandidates(device));
     }
     if (cancelled()) {
       throw const RemoteException('cancelled', 'Driver connection cancelled.');
     }
-    if (result.requiresSelection) {
+    final chosen = result.requiresSelection
+        ? await choose?.call(result.alternatives)
+        : result.selected;
+    if (cancelled()) {
+      throw const RemoteException('cancelled', 'Driver connection cancelled.');
+    }
+    if (result.requiresSelection && !result.alternatives.contains(chosen)) {
       throw const RemoteException(
         'driverAmbiguous',
-        'Multiple driver families match this TV.',
+        'Choose a compatible TV driver.',
       );
     }
-    final candidate = result.selected?.candidate;
+    final candidate = chosen?.candidate;
     if (candidate == null) {
       throw const RemoteException(
         'driverUnavailable',
@@ -200,6 +208,15 @@ final class ManagedDriverService {
       cancellation: cancellation,
       progress: progress,
     );
+  }
+
+  Iterable<DriverCandidate> _deviceCandidates(RemoteDevice device) {
+    final preferred = device.metadata['managedDriverId'];
+    final candidates = _candidates(device.providerId).toList();
+    final selected = candidates.where(
+      (candidate) => candidate.identity.id == preferred,
+    );
+    return selected.isEmpty ? candidates : selected;
   }
 
   Iterable<DriverRelease> get _releases =>

@@ -18,6 +18,9 @@ class PairingProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = model.connection.controller;
+    if (controller is ManagedTvController && controller.choices.isNotEmpty) {
+      return _driverChoices(controller);
+    }
     if (model.state == DeviceConnectionState.pairing &&
         controller is PairingCodeReceiver) {
       return PairingCodeCard(
@@ -43,6 +46,31 @@ class PairingProgressCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _driverChoices(ManagedTvController controller) => AppSheet(
+    title: 'Choose a TV driver',
+    onClose: model.disconnect,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final match in controller.choices)
+          ListTile(
+            title: Text(match.candidate.manifest.name),
+            subtitle: Text(
+              '${match.candidate.identity.id} · ${match.candidate.identity.version}',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => controller.chooseDriver(match),
+          ),
+      ],
+    ),
+    footer: AppSheetActions(
+      primary: OutlinedButton(
+        onPressed: model.disconnect,
+        child: const Text('Cancel connection'),
+      ),
+    ),
+  );
 
   Widget _body(bool installing, double? progress) => Column(
     mainAxisSize: MainAxisSize.min,

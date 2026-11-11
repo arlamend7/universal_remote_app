@@ -281,6 +281,9 @@ class ConnectionController implements RemotePanelSession {
           if (session.controller.device.metadata['softwareVersion']
               case final version?)
             'softwareVersion': version,
+          if (session.controller.device.metadata['managedDriverId']
+              case final id?)
+            'managedDriverId': id,
           if (identity != null) 'verifiedPeerIdentity': identity,
           if (discoveryIdentity != null) 'discoveryIdentity': discoveryIdentity,
           'lastConnectedAt': DateTime.now().toUtc().toIso8601String(),

@@ -13,7 +13,7 @@ The application currently creates compiled providers in [AppBootstrap](../../app
 | `remote_ui` | Present typed catalog and capability data. Catalog browsing reads metadata without downloading driver packages. |
 | `universal_remote_app` | Compose dependencies, connect lifecycle events, supply local storage and credentials, and use the existing provider registry. |
 
-The current runtime dependency graph has no package cycles. Network and UI packages depend on core, compiled providers depend on core and network, and the app composes them. The planned runtime depends on core and network. The planned manager may use core, network and runtime. The Flutter app compiles independently of the driver source tree.
+The current runtime dependency graph has no package cycles. Network and UI packages depend on core, compiled providers depend on core and network, and the app composes them. The runtime depends on core and network. The manager uses core, network and runtime. The Flutter app compiles independently of the driver source tree.
 
 ## Lifecycle and trust
 
@@ -61,7 +61,7 @@ The local HTTP fixture uses ephemeral P-256 keys and verifies signatures with Op
 
 The app loads its installed driver inventory and verified catalog before using the existing provider registry. Nearby searches refresh metadata concurrently. A new service target learned after a scan starts is used in the next scan. Manual IP runs the existing local probes first and refreshes the catalog when the probes find no match. Managed providers can identify manual IP automatically when their catalog declares an SSDP target. Known Bonjour-only TVs can be selected by provider in manual setup.
 
-The first connection installs only the selected driver. Cancellation prevents a pending download from activating its package, and the existing secure connection attempt can be cancelled. The current installation indicator is indeterminate. The app keeps the resolved bundle for the session. The initial generic controller exposes relative volume and power off when their named commands are present. The compiled manufacturer integrations retain their provider IDs and existing priority.
+The first connection installs only the selected driver. Download progress comes from verified catalog package sizes. Cancelling a connection releases its transfer subscription. The last cancellation aborts the HTTP transfer, and cancellation before inventory activation keeps the package inactive. The app asks which driver to use if more than one family is equally suitable, remembers the selected family on the saved device, and keeps the resolved bundle for the session. The initial generic controller exposes relative volume and power off when their named commands are present. The compiled manufacturer adapters retain their provider IDs and load managed command mappings where available. A background install after the first successful compiled connection makes the mappings available on reconnect.
 
 To enable distribution on Android, iOS or macOS, set `DRIVER_CATALOG_BASE_URL` to the HTTPS base URL with a trailing slash and `DRIVER_TRUSTED_KEYS` to a JSON object keyed by signing key ID. Each value is the Base64 encoding of a 65-byte uncompressed P-256 public point. Private keys remain outside the app. The platform verifies DER-encoded ECDSA signatures over SHA-256.
 
@@ -72,3 +72,5 @@ Startup and foreground resume can request a check. The manager persists the next
 ## Driver Explorer
 
 Settings → Drivers reads the signed cache and the local active and rollback inventory. It displays provider releases, versions, runtime requirements, profile constraints and declared capabilities. Browsing does not issue repository requests. Runtime compatibility applies to the installed app; device support still requires live verification.
+
+See [authoring](../../drivers/README.md), [publishing](publishing.md), and [validation](validation.md) for the commands and release gates.

@@ -3,14 +3,16 @@ import 'dart:async';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
+import '../resolution/driver_match.dart';
 import 'managed_driver_service.dart';
 
 /// Maps the supported, named driver commands to the television contract.
 final class ManagedTvController extends TVRemoteBase {
-  ManagedTvController(this.device, this._drivers);
+  ManagedTvController(this._device, this._drivers);
 
   @override
-  final RemoteDevice device;
+  RemoteDevice get device => _device;
+  RemoteDevice _device;
   final ManagedDriverService _drivers;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   final _changes = StreamController<void>.broadcast();
@@ -18,6 +20,17 @@ final class ManagedTvController extends TVRemoteBase {
 
   bool get installing => _installing;
   double? installProgress;
+  List<DriverMatch> choices = const [];
+  Completer<DriverMatch?>? _selection;
+
+  void chooseDriver(DriverMatch match) {
+    final selection = _selection;
+    if (selection != null &&
+        !selection.isCompleted &&
+        choices.contains(match)) {
+      selection.complete(match);
+    }
+  }
 
   @override
   Stream<void> get capabilityChanges => _changes.stream;
@@ -88,6 +101,7 @@ final class ManagedTvController extends TVRemoteBase {
       device,
       cancelled: () => !identical(_cancellation, cancellation),
       onInstalling: () => _setInstalling(true),
+      choose: _choose,
       cancellation: cancellation.stream,
       progress: (value) {
         if (identical(_cancellation, cancellation)) {
@@ -110,7 +124,29 @@ final class ManagedTvController extends TVRemoteBase {
     }
     _endpoint = endpoint;
     _bundle = bundle;
+    _device = copyDevice(
+      device,
+      metadata: {
+        ...device.metadata,
+        'managedDriverId': bundle.manifest.identity.id,
+      },
+    );
     _setState(DeviceConnectionState.connected);
+  }
+
+  Future<DriverMatch?> _choose(List<DriverMatch> alternatives) async {
+    final selection = _selection = Completer<DriverMatch?>();
+    choices = List.unmodifiable(alternatives);
+    _setState(DeviceConnectionState.pairing);
+    try {
+      return await selection.future;
+    } finally {
+      if (identical(_selection, selection)) {
+        _selection = null;
+        choices = const [];
+        _setState(DeviceConnectionState.connecting);
+      }
+    }
   }
 
   Future<void> _command(String id) async {
@@ -150,6 +186,12 @@ final class ManagedTvController extends TVRemoteBase {
       return;
     }
     _cancellation = null;
+    final selection = _selection;
+    _selection = null;
+    choices = const [];
+    if (selection != null && !selection.isCompleted) {
+      selection.complete(null);
+    }
     _setInstalling(false);
     _bundle = null;
     _endpoint = null;

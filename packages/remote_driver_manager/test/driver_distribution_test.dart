@@ -13,14 +13,15 @@ import 'fixture_driver_signer.dart';
 Future<String> _signCatalog(
   FixtureDriverSigner signer,
   Map<String, Object?> release,
-  int revision,
-) async {
+  int revision, {
+  Map<String, Object?>? alternative,
+}) async {
   final payload = utf8.encode(
     jsonEncode({
       'schemaVersion': 1,
       'revision': revision,
       'publishedAt': '2026-01-01T00:00:00Z',
-      'releases': [release],
+      'releases': [release, if (alternative != null) alternative],
     }),
   );
   return jsonEncode({
@@ -64,7 +65,20 @@ void main() {
         'signature': base64Encode(await signer.sign(bytes)),
         'channel': 'stable',
       };
-      final envelope = await _signCatalog(signer, release, 2);
+      final alternative = {
+        ...release,
+        'manifest': {
+          ...manifest as Map<String, Object?>,
+          'id': 'example.alternate',
+        },
+        'package': 'packages/example.alternate/1.0.0/driver.zip',
+      };
+      final envelope = await _signCatalog(
+        signer,
+        release,
+        2,
+        alternative: alternative,
+      );
       var body = envelope;
       var corruptPackage = false;
       var honorEtag = true;
@@ -104,7 +118,7 @@ void main() {
       expect(catalogRequests, 2);
       expect(packageRequests, 0);
 
-      final identity = results.first.releases.single.manifest.identity;
+      final identity = results.first.releases.first.manifest.identity;
       final packages = HttpDriverPackageRepository(
         source,
         catalogs,
@@ -143,8 +157,21 @@ void main() {
       ).discover();
       final tv = discovered.devices.single;
       expect(packageRequests, 1);
-      final remote = registry.createController(tv) as TVRemoteBase;
-      await remote.connect();
+      final remote = registry.createController(tv) as ManagedTvController;
+      final asking = remote.connectionStates.firstWhere(
+        (state) => state == DeviceConnectionState.pairing,
+      );
+      final connecting = remote.connect();
+      await asking.timeout(const Duration(seconds: 2));
+      expect(remote.choices, hasLength(2));
+      expect(packageRequests, 1);
+      remote.chooseDriver(
+        remote.choices.singleWhere(
+          (match) => match.candidate.identity.id == identity.id,
+        ),
+      );
+      await connecting;
+      expect(remote.device.metadata['managedDriverId'], identity.id);
       await remote.volumeUp();
       await remote.dispose();
       expect(commands, ['volumeUp']);
