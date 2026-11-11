@@ -14,6 +14,7 @@ final class DriverBundle {
     this.capabilities,
     this.commands,
     this.exchanges,
+    this.bindings,
   );
 
   factory DriverBundle.parse(Map<String, String> files) {
@@ -32,9 +33,15 @@ final class DriverBundle {
       throw const FormatException('Capabilities must match the manifest.');
     }
     final ids = capabilities.values.expand((value) => value).toSet();
-    final commands = _commands(files, ids, manifest);
+    final bindings = _bindings(files, ids, manifest);
+    final commands = _commands(
+      files,
+      ids.difference(bindings?.commands.keys.toSet() ?? const {}),
+      manifest,
+    );
     final exchanges = _exchanges(files, manifest);
-    final expectedCount = 3 + commands.length + exchanges.length;
+    final expectedCount =
+        3 + commands.length + exchanges.length + (bindings == null ? 0 : 1);
     if (files.length != expectedCount) {
       throw const FormatException(
         'The driver bundle contains unexpected files.',
@@ -46,6 +53,7 @@ final class DriverBundle {
       Map.unmodifiable(capabilities),
       Map.unmodifiable(commands),
       Map.unmodifiable(exchanges),
+      bindings,
     );
   }
 
@@ -57,9 +65,37 @@ final class DriverBundle {
   final Map<RemoteCapability, List<String>> capabilities;
   final Map<String, DriverCommand> commands;
   final Map<String, DriverExchange> exchanges;
+  final DriverBindings? bindings;
 
   static bool _oversized(String content) =>
       utf8.encode(content).length > maximumFileBytes;
+
+  static DriverBindings? _bindings(
+    Map<String, String> files,
+    Set<String> ids,
+    DriverManifest manifest,
+  ) {
+    final declared = manifest.runtime.operations.contains(
+      DriverOperation.compiledBindings,
+    );
+    if (!declared && !files.containsKey('bindings.json')) {
+      return null;
+    }
+    final values = _object(files, 'bindings.json');
+    if (!declared ||
+        values.isEmpty ||
+        values.keys.any((key) => !ids.contains(key)) ||
+        values.values.any(
+          (value) =>
+              value is! String ||
+              value.isEmpty ||
+              value.length > 128 ||
+              value.trim() != value,
+        )) {
+      throw const FormatException('Invalid compiled driver bindings.');
+    }
+    return DriverBindings(values.cast<String, String>());
+  }
 
   static Map<String, DriverCommand> _commands(
     Map<String, String> files,

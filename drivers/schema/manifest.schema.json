@@ -72,7 +72,8 @@
           "websocket.unsubscribe",
           "websocket.authenticate",
           "websocket.pair",
-          "Unknown required driver operation."
+          "Unknown required driver operation.",
+          "compiled.bindings"
         ]
       },
       "minItems": 0,

@@ -18,12 +18,14 @@ class ConnectionController implements RemotePanelSession {
     this.wakeLearner,
     this.removeDashboards,
     this.autoReconnect,
+    this.onConnected,
     this.pinFirstCertificate,
     this.wakeRetryDelay = const Duration(seconds: 2),
   });
   final DeviceWakeLearner? wakeLearner;
   final Future<void> Function(Iterable<String>)? removeDashboards;
   final bool Function()? autoReconnect;
+  final Future<void> Function(RemoteDevice)? onConnected;
 
   /// Pins the certificate of a TV that has none yet and returns the updated
   /// device. Returns null when the device is already pinned or not applicable.
@@ -285,6 +287,7 @@ class ConnectionController implements RemotePanelSession {
         },
       ),
     );
+    unawaited(onConnected?.call(session.controller.device));
     _updated();
     unawaited(
       wakeLearner?.learn(

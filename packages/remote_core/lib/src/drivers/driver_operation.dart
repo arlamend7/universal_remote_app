@@ -8,7 +8,8 @@ enum DriverOperation {
   webSocketSubscribe('websocket.subscribe'),
   webSocketUnsubscribe('websocket.unsubscribe'),
   webSocketAuthenticate('websocket.authenticate'),
-  webSocketPair('websocket.pair');
+  webSocketPair('websocket.pair'),
+  compiledBindings('compiled.bindings');
 
   const DriverOperation(this.id);
   final String id;

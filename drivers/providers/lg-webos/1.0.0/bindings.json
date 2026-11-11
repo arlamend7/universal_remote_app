@@ -1,0 +1,7 @@
+{
+  "volume-up": "audio/volumeUp",
+  "volume-down": "audio/volumeDown",
+  "set-volume": "audio/setVolume",
+  "set-mute": "audio/setMute",
+  "power-off": "system/turnOff"
+}

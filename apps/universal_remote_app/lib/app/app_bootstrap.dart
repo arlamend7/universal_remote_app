@@ -56,10 +56,17 @@ abstract final class AppBootstrap {
         : null;
     final CredentialStore credentials =
         sessionCredentials ?? protectedCredentials;
-    final providers = registry ?? _providers(credentials);
+    ManagedDriverService? managedDrivers;
+    DriverBindings? bindings(RemoteDevice device) =>
+        managedDrivers?.bindingsFor(device);
+    final providers = registry ?? _providers(credentials, bindings);
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
-    final drivers = await _initializeDrivers(driverService, providers, logger);
+    final drivers = managedDrivers = await _initializeDrivers(
+      driverService,
+      providers,
+      logger,
+    );
     final saved = SavedDevicesController(
       SavedDeviceRepository(preferences),
       credentials,
@@ -94,6 +101,9 @@ abstract final class AppBootstrap {
       logger,
       autoReconnect: () => settings.autoReconnect.value,
       removeDashboards: grids.removeForDevice,
+      onConnected: drivers == null
+          ? null
+          : (device) => _prepareBindings(drivers, providers, device, logger),
       pinFirstCertificate: (device, code) async {
         final unpinned = providers
             .networkConfiguration(device)
@@ -150,6 +160,22 @@ abstract final class AppBootstrap {
     );
   }
 
+  static Future<void> _prepareBindings(
+    ManagedDriverService drivers,
+    ProviderRegistry providers,
+    RemoteDevice device,
+    DiagnosticLogger logger,
+  ) async {
+    if (!providers.providerFor(device).supportsManagedBindings) {
+      return;
+    }
+    try {
+      await drivers.prepareBindings(device);
+    } on Exception {
+      logger.record(AppLogLevel.warning, 'drivers.bindingsUnavailable');
+    }
+  }
+
   static Future<void> _checkDriverUpdates(
     ManagedDriverService drivers,
     ProviderRegistry providers,
@@ -188,9 +214,17 @@ abstract final class AppBootstrap {
       Platform.isIOS ? IosBonjour().search : const MdnsDiscovery().search,
     );
 
-  static ProviderRegistry _providers(CredentialStore credentials) {
+  static ProviderRegistry _providers(
+    CredentialStore credentials,
+    DriverBindingsLookup bindings,
+  ) {
     final providers = ProviderRegistry()
-      ..registerDefinition(LgWebOsProvider(credentials: credentials).definition)
+      ..registerDefinition(
+        LgWebOsProvider(
+          credentials: credentials,
+          bindings: bindings,
+        ).definition,
+      )
       ..registerDefinition(
         AndroidTvProvider(credentials: credentials).definition,
       )

@@ -1,1 +1,7 @@
-[]
+[
+  {
+    "source": "lg-webos/1.0.0",
+    "channel": "stable",
+    "notes": "Managed SSAP volume, mute and power mappings. Existing pairing and pointer engine."
+  }
+]

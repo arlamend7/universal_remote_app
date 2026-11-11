@@ -196,56 +196,77 @@ void main() {
       expect(encodeLgNavigation(key).endsWith('\n\n'), isTrue);
     }
   });
-  test('device pairs, persists, verifies capabilities and sends actual app/input IDs', () async {
-    final credentials = MemoryCredentials();
-    final main = FakeTransport();
-    final pointer = FakeTransport();
-    standardResponses(main);
-    final owner = LgDeviceController(
-      device: testDevice(),
-      credentials: credentials,
-      options: const LgConnectionOptions(allowInsecure: true),
-      connector: (uri) async => uri.path == '/pointer' ? pointer : main,
+  for (final managed in [false, true]) {
+    test(
+      'device pairs and sends equivalent SSAP commands (managed: $managed)',
+      () async {
+        final credentials = MemoryCredentials();
+        final main = FakeTransport();
+        final pointer = FakeTransport();
+        standardResponses(main);
+        final owner = LgDeviceController(
+          device: testDevice(),
+          credentials: credentials,
+          options: const LgConnectionOptions(allowInsecure: true),
+          bindings: managed
+              ? DriverBindings({
+                  'volume-up': 'audio/volumeUp',
+                  'volume-down': 'ssap://unauthorized',
+                  'set-volume': 'audio/setVolume',
+                  'set-mute': 'audio/setMute',
+                  'power-off': 'system/turnOff',
+                })
+              : null,
+          connector: (uri) async => uri.path == '/pointer' ? pointer : main,
+        );
+        try {
+          await owner.connect();
+          expect(owner.state, DeviceConnectionState.connected);
+          expect(credentials.values[testDevice().id], 'secret');
+          await owner.setVolume(40);
+          expect(
+            (main.sent.last['payload'] as Map<String, dynamic>)['volume'],
+            40,
+          );
+          await owner.setMuted(true);
+          expect(
+            (main.sent.last['payload'] as Map<String, dynamic>)['mute'],
+            true,
+          );
+          await owner.volumeUp();
+          expect(main.sent.last['uri'], 'ssap://audio/volumeUp');
+          await owner.volumeDown();
+          expect(main.sent.last['uri'], 'ssap://audio/volumeDown');
+          await owner.powerOff();
+          expect(main.sent.last['uri'], 'ssap://system/turnOff');
+          await owner.press(NavigationKey.home);
+          expect(pointer.frames.single, 'type:button\nname:HOME\n\n');
+          expect((await owner.applications()).single.id, 'device.actual.app');
+          await owner.launchApplication('device.actual.app');
+          expect(
+            (main.sent.last['payload'] as Map<String, dynamic>)['id'],
+            'device.actual.app',
+          );
+          await owner.selectInput('HDMI_2');
+          expect(
+            (main.sent.last['payload'] as Map<String, dynamic>)['inputId'],
+            'HDMI_2',
+          );
+          expect(owner.canWake, isFalse);
+          await expectLater(owner.wake(), throwsA(isA<RemoteException>()));
+          expect(
+            owner.evidence
+                .firstWhere((e) => e.capability == RemoteCapability.power)
+                .availability,
+            CapabilityAvailability.known,
+          );
+        } finally {
+          await owner.dispose();
+        }
+      },
     );
-    try {
-      await owner.connect();
-      expect(owner.state, DeviceConnectionState.connected);
-      expect(credentials.values[testDevice().id], 'secret');
-      await owner.setVolume(40);
-      expect((main.sent.last['payload'] as Map<String, dynamic>)['volume'], 40);
-      await owner.setMuted(true);
-      expect((main.sent.last['payload'] as Map<String, dynamic>)['mute'], true);
-      await owner.volumeUp();
-      expect(main.sent.last['uri'], 'ssap://audio/volumeUp');
-      await owner.volumeDown();
-      expect(main.sent.last['uri'], 'ssap://audio/volumeDown');
-      await owner.powerOff();
-      expect(main.sent.last['uri'], 'ssap://system/turnOff');
-      await owner.press(NavigationKey.home);
-      expect(pointer.frames.single, 'type:button\nname:HOME\n\n');
-      expect((await owner.applications()).single.id, 'device.actual.app');
-      await owner.launchApplication('device.actual.app');
-      expect(
-        (main.sent.last['payload'] as Map<String, dynamic>)['id'],
-        'device.actual.app',
-      );
-      await owner.selectInput('HDMI_2');
-      expect(
-        (main.sent.last['payload'] as Map<String, dynamic>)['inputId'],
-        'HDMI_2',
-      );
-      expect(owner.canWake, isFalse);
-      await expectLater(owner.wake(), throwsA(isA<RemoteException>()));
-      expect(
-        owner.evidence
-            .firstWhere((e) => e.capability == RemoteCapability.power)
-            .availability,
-        CapabilityAvailability.known,
-      );
-    } finally {
-      await owner.dispose();
-    }
-  });
+  }
+
   test(
     'absolute volume rejection disables only the absolute command',
     () async {

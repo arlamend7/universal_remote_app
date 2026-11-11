@@ -125,6 +125,7 @@ final class DriverRuntime {
         case DriverOperation.webSocketUnsubscribe:
         case DriverOperation.webSocketAuthenticate:
         case DriverOperation.webSocketPair:
+        case DriverOperation.compiledBindings:
           throw StateError('Unexpected driver command step.');
       }
     }

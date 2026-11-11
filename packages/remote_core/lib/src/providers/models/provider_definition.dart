@@ -10,6 +10,7 @@ final class ProviderDefinition<T extends RemoteBase> {
     this.manualSetup,
     this.wake,
     this.connection,
+    this.supportsManagedBindings = false,
   }) {
     if (identifier.id.trim().isEmpty) {
       throw ArgumentError('Provider ID must be nonempty.');
@@ -22,4 +23,5 @@ final class ProviderDefinition<T extends RemoteBase> {
   final ManualDeviceProvider? manualSetup;
   final DeviceWakeProvider? wake;
   final DeviceConnectionPolicy? connection;
+  final bool supportsManagedBindings;
 }

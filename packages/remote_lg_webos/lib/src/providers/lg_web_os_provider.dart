@@ -19,8 +19,10 @@ final class LgWebOsProvider
     required this.credentials,
     this.options = const LgConnectionOptions(),
     TransportConnector? connector,
+    this.bindings,
   }) : _connector = connector;
   final CredentialStore credentials;
+  final DriverBindingsLookup? bindings;
   final LgConnectionOptions options;
   final TransportConnector? _connector;
   @override
@@ -121,6 +123,7 @@ final class LgWebOsProvider
     manualSetup: this,
     wake: this,
     connection: this,
+    supportsManagedBindings: true,
   );
 
   /// A user-generated profile ID is mandatory: IP addresses are endpoints,
@@ -168,6 +171,7 @@ final class LgWebOsProvider
             trustedCertificateDer: configured.trustedCertificateDer,
           )),
       options: configured,
+      bindings: bindings?.call(device),
     );
   }
 }

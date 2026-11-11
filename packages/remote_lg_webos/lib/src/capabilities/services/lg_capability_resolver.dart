@@ -24,6 +24,7 @@ final class LgCapabilityResolver {
     required this.endpoint,
     required this.options,
     required this.isCurrent,
+    this.bindings,
   });
   final LgCommandChannel commands;
   final LgPointerConnection pointer;
@@ -31,6 +32,7 @@ final class LgCapabilityResolver {
   final SsapClient client;
   final Uri endpoint;
   final LgConnectionOptions options;
+  final DriverBindings? bindings;
   final bool Function() isCurrent;
   Future<void> resolve() async {
     await Future.wait([
@@ -78,13 +80,13 @@ final class LgCapabilityResolver {
     // A power-off probe would be destructive; keep its evidence driver-known.
     registry.enable(
       RemoteCapability.power,
-      LgPowerController(commands, options),
+      LgPowerController(commands, options, bindings: bindings),
       CapabilityAvailability.known,
     );
   }
 
   Future<void> _volume() async {
-    final controller = LgVolumeController(commands);
+    final controller = LgVolumeController(commands, bindings: bindings);
     try {
       await controller.readVolume();
       _volumeCommands(controller);

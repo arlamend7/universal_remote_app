@@ -66,6 +66,6 @@ final class LocalDriverSource {
 
   static const _folders = {'commands', 'workflows', 'compatibility'};
   static final _filePath = RegExp(
-    r'^(?:manifest|discovery|capabilities|(?:commands|workflows)/[a-z][a-z0-9_-]{0,63})\.json$',
+    r'^(?:manifest|discovery|capabilities|bindings|(?:commands|workflows)/[a-z][a-z0-9_-]{0,63})\.json$',
   );
 }

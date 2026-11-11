@@ -6,12 +6,17 @@ import 'package:remote_lg_webos/src/connection/models/lg_connection_options.dart
 import 'package:remote_network/remote_network.dart';
 
 final class LgPowerController {
-  LgPowerController(this.channel, this.options);
+  LgPowerController(this.channel, this.options, {this.bindings});
+  final DriverBindings? bindings;
   final LgConnectionOptions options;
   final LgCommandChannel channel;
   bool get canWake => normalizeMacAddress(options.macAddress) != null;
   Future<void> powerOff() async {
-    await channel.send(RemoteCapability.power, 'system/turnOff');
+    const path = 'system/turnOff';
+    await channel.send(
+      RemoteCapability.power,
+      bindings?.select('power-off', path) ?? path,
+    );
   }
 
   Future<void> wake() async {

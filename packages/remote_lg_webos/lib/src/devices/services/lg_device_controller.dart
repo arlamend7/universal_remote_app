@@ -28,6 +28,7 @@ final class LgDeviceController extends TVRemoteBase
     required this.credentials,
     required this.connector,
     this.options = const LgConnectionOptions(),
+    this.bindings,
     this.registrationManifest = defaultLgManifest,
     this.pairingTimeout = const Duration(seconds: 45),
     this.requestTimeout = const Duration(seconds: 8),
@@ -38,6 +39,7 @@ final class LgDeviceController extends TVRemoteBase
   final CredentialStore credentials;
   final TransportConnector connector;
   final LgConnectionOptions options;
+  final DriverBindings? bindings;
   final Map<String, Object?> registrationManifest;
   final Duration pairingTimeout;
   final Duration requestTimeout;
@@ -420,6 +422,7 @@ final class LgDeviceController extends TVRemoteBase
       client: client,
       endpoint: device.endpoints.first,
       options: options,
+      bindings: bindings,
       isCurrent: () => !_disposed && generation == _generation,
     );
     await resolver.resolve();

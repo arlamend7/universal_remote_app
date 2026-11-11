@@ -40,3 +40,4 @@ export 'src/drivers/driver_manifest.dart';
 export 'src/drivers/driver_operation.dart';
 export 'src/drivers/driver_runtime_requirements.dart';
 export 'src/drivers/driver_version.dart';
+export 'src/drivers/driver_bindings.dart';

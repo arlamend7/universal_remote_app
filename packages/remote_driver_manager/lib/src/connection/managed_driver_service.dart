@@ -61,9 +61,11 @@ final class ManagedDriverService {
 
   void _register(ProviderRegistry registry) {
     final ids = {
-      for (final bundle in _installed) bundle.manifest.identity.providerId,
+      for (final bundle in _installed)
+        if (!_compiled(bundle.manifest)) bundle.manifest.identity.providerId,
       for (final release in _releases)
-        if (release.discovery != null) release.manifest.identity.providerId,
+        if (release.discovery != null && !_compiled(release.manifest))
+          release.manifest.identity.providerId,
     };
     for (final id in ids) {
       if (id == ProviderIdentity.roku.storageId || registry.isRegistered(id)) {
@@ -80,12 +82,14 @@ final class ManagedDriverService {
   Iterable<({DriverManifest manifest, DriverDiscoveryRules rules})>
   descriptions(String providerId) sync* {
     for (final bundle in _installed) {
-      if (bundle.manifest.identity.providerId == providerId) {
+      if (bundle.manifest.identity.providerId == providerId &&
+          !_compiled(bundle.manifest)) {
         yield (manifest: bundle.manifest, rules: bundle.discovery);
       }
     }
     for (final release in _releases) {
       if (release.manifest.identity.providerId == providerId &&
+          !_compiled(release.manifest) &&
           release.discovery != null) {
         yield (manifest: release.manifest, rules: release.discovery!);
       }
@@ -94,28 +98,64 @@ final class ManagedDriverService {
 
   Iterable<DriverCandidate> _candidates(String providerId) sync* {
     for (final bundle in _installed) {
-      if (bundle.manifest.identity.providerId == providerId) {
+      if (bundle.manifest.identity.providerId == providerId &&
+          !_compiled(bundle.manifest)) {
         yield DriverCandidate(bundle.manifest, installed: true);
       }
     }
     for (final release in _releases) {
       if (release.manifest.identity.providerId == providerId &&
+          !_compiled(release.manifest) &&
           manager.inventory[release.manifest.identity.id]?.enabled != false) {
         yield DriverCandidate(release.manifest);
       }
     }
   }
 
+  DriverBindings? bindingsFor(RemoteDevice device) {
+    final candidates = _installed
+        .where((bundle) => _compiled(bundle.manifest))
+        .map((bundle) => DriverCandidate(bundle.manifest, installed: true));
+    final match = _resolver.resolve(_evidence(device), candidates).selected;
+    return match == null
+        ? null
+        : manager.active(match.candidate.identity.id)?.bindings;
+  }
+
+  Future<void> prepareBindings(RemoteDevice device) async {
+    if (bindingsFor(device) != null) {
+      return;
+    }
+    _catalog ??= await catalogs.refresh();
+    final candidates = _releases
+        .where(
+          (release) =>
+              _compiled(release.manifest) &&
+              manager.inventory[release.manifest.identity.id]?.enabled != false,
+        )
+        .map((release) => DriverCandidate(release.manifest));
+    final match = _resolver.resolve(_evidence(device), candidates).selected;
+    if (match != null) {
+      await manager.install(match.candidate.identity);
+    }
+  }
+
+  static bool _compiled(DriverManifest manifest) =>
+      manifest.runtime.operations.contains(DriverOperation.compiledBindings);
+
+  static DriverDeviceEvidence _evidence(RemoteDevice device) =>
+      DriverDeviceEvidence.fromDevice(
+        device,
+        osVersion: device.metadata['osVersion'],
+        firmwareVersion: device.metadata['firmwareVersion'],
+      );
+
   Future<DriverBundle> prepare(
     RemoteDevice device, {
     required bool Function() cancelled,
     void Function()? onInstalling,
   }) async {
-    final evidence = DriverDeviceEvidence.fromDevice(
-      device,
-      osVersion: device.metadata['osVersion'],
-      firmwareVersion: device.metadata['firmwareVersion'],
-    );
+    final evidence = _evidence(device);
     var result = _resolver.resolve(evidence, _candidates(device.providerId));
     if (result.selected?.candidate.installed != true &&
         !result.requiresSelection &&
