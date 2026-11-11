@@ -1,10 +1,12 @@
 import 'package:remote_core/remote_core.dart';
 
 import '../../protocol/services/ssap_client.dart';
+import '../constants/lg_ssap_actions.dart';
 
 /// Capability controllers depend on a session channel, never the device owner.
 final class LgCommandChannel {
-  LgCommandChannel({required this.onUnavailable});
+  LgCommandChannel({required this.onUnavailable, this.bindings});
+  final DriverBindings? bindings;
   final void Function(RemoteCapability) onUnavailable;
   SsapClient? _client;
   void attach(SsapClient client) {
@@ -26,7 +28,11 @@ final class LgCommandChannel {
       throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
     try {
-      return await client.request(path, payload: payload, timeout: timeout);
+      return await client.request(
+        _boundPath(path),
+        payload: payload,
+        timeout: timeout,
+      );
     } on RemoteException catch (error) {
       if (identical(client, _client)) {
         _handleFailure(capability, error);
@@ -41,7 +47,7 @@ final class LgCommandChannel {
     if (client == null) {
       throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
-    return client.request(path);
+    return client.request(_boundPath(path));
   }
 
   Stream<Map<String, Object?>> subscribe(
@@ -53,13 +59,18 @@ final class LgCommandChannel {
       throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
     try {
-      yield* client.subscribe(path);
+      yield* client.subscribe(_boundPath(path));
     } on RemoteException catch (error) {
       if (capability != null && identical(client, _client)) {
         _handleFailure(capability, error);
       }
       rethrow;
     }
+  }
+
+  String _boundPath(String path) {
+    final action = lgSsapActions[path];
+    return action == null ? path : bindings?.select(action, path) ?? path;
   }
 
   void _handleFailure(RemoteCapability capability, RemoteException error) {

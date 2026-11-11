@@ -51,7 +51,10 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Stream<void> get capabilityChanges => _capabilityChanges.stream;
   final _capabilities = LgCapabilityRegistry();
-  late final _commands = LgCommandChannel(onUnavailable: _disable);
+  late final _commands = LgCommandChannel(
+    onUnavailable: _disable,
+    bindings: bindings,
+  );
   late final _pointer = LgPointerConnection(
     connector: connector,
     onUnavailable: _pointerUnavailable,
@@ -354,7 +357,7 @@ final class LgDeviceController extends TVRemoteBase
   }
 
   Future<void> _finishConnection(SsapClient client, int generation) async {
-    await _resolve(client, generation);
+    await _resolve(generation);
     _requireCurrent(generation);
     await _readDetails(generation);
     _requireCurrent(generation);
@@ -417,15 +420,13 @@ final class LgDeviceController extends TVRemoteBase
     );
   }
 
-  Future<void> _resolve(SsapClient client, int generation) async {
+  Future<void> _resolve(int generation) async {
     final resolver = LgCapabilityResolver(
       commands: _commands,
       pointer: _pointer,
       registry: _capabilities,
-      client: client,
       endpoint: device.endpoints.first,
       options: options,
-      bindings: bindings,
       isCurrent: () => !_disposed && generation == _generation,
     );
     await resolver.resolve();

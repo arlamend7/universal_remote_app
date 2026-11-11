@@ -4,7 +4,6 @@ import '../../commands/services/lg_command_channel.dart';
 import '../../connection/functions/lg_connection_error.dart';
 import '../../connection/models/lg_connection_options.dart';
 import '../../pointer/services/lg_pointer_connection.dart';
-import '../../protocol/services/ssap_client.dart';
 import '../accessories/lg_bluetooth_accessory_controller.dart';
 import '../applications/lg_application_controller.dart';
 import '../inputs/lg_input_controller.dart';
@@ -20,19 +19,15 @@ final class LgCapabilityResolver {
     required this.commands,
     required this.pointer,
     required this.registry,
-    required this.client,
     required this.endpoint,
     required this.options,
     required this.isCurrent,
-    this.bindings,
   });
   final LgCommandChannel commands;
   final LgPointerConnection pointer;
   final LgCapabilityRegistry registry;
-  final SsapClient client;
   final Uri endpoint;
   final LgConnectionOptions options;
-  final DriverBindings? bindings;
   final bool Function() isCurrent;
   Future<void> resolve() async {
     await Future.wait([
@@ -80,13 +75,13 @@ final class LgCapabilityResolver {
     // A power-off probe would be destructive; keep its evidence driver-known.
     registry.enable(
       RemoteCapability.power,
-      LgPowerController(commands, options, bindings: bindings),
+      LgPowerController(commands, options),
       CapabilityAvailability.known,
     );
   }
 
   Future<void> _volume() async {
-    final controller = LgVolumeController(commands, bindings: bindings);
+    final controller = LgVolumeController(commands);
     try {
       await controller.readVolume();
       _volumeCommands(controller);
@@ -167,7 +162,7 @@ final class LgCapabilityResolver {
   Future<void> _navigation() =>
       _probe(RemoteCapability.navigation, pointer, _openPointer);
   Future<void> _openPointer() async {
-    final response = await client.request(
+    final response = await commands.query(
       'com.webos.service.networkinput/getPointerInputSocket',
     );
     if (!isCurrent()) {

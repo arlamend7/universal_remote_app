@@ -144,22 +144,6 @@
               "type": "object"
             }
           }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "operation",
-            "payload"
-          ],
-          "properties": {
-            "operation": {
-              "const": "Unknown required driver operation."
-            },
-            "payload": {
-              "type": "object"
-            }
-          }
         }
       ]
     }

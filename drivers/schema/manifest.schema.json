@@ -165,6 +165,71 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 128
+          },
+          "hardwareModel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "softwareVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "buildNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "protocolVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "disabledCapabilities": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 256,
+            "items": {
+              "enum": [
+                "volume",
+                "volumeFeedback",
+                "mute",
+                "navigation",
+                "power",
+                "applications",
+                "inputs",
+                "media",
+                "channels",
+                "currentContent",
+                "pointer",
+                "textInput",
+                "channelSelection",
+                "climate",
+                "lighting",
+                "wake",
+                "voice",
+                "gameMode",
+                "watch",
+                "currentInput",
+                "trackNavigation",
+                "seek",
+                "playbackMetadata",
+                "absoluteVolume",
+                "accessorySettings",
+                "bluetoothAccessories",
+                "playbackToggle",
+                "numericKeys",
+                "specialKeys",
+                "tvSettings",
+                "playbackScan",
+                "liveTvKey",
+                "screenPower",
+                "captionsKey",
+                "instantReplay",
+                "channelCatalog"
+              ]
+            }
           }
         }
       },

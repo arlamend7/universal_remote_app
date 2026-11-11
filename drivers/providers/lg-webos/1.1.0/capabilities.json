@@ -1,0 +1,72 @@
+{
+  "volume": [
+    "volume-up",
+    "volume-down"
+  ],
+  "absoluteVolume": [
+    "set-volume"
+  ],
+  "volumeFeedback": [
+    "read-volume",
+    "read-mute"
+  ],
+  "mute": [
+    "set-mute"
+  ],
+  "power": [
+    "power-off"
+  ],
+  "screenPower": [
+    "screen-on",
+    "screen-off"
+  ],
+  "navigation": [
+    "open-pointer"
+  ],
+  "pointer": [
+    "open-pointer"
+  ],
+  "applications": [
+    "list-applications",
+    "launch-application",
+    "open-application-url"
+  ],
+  "inputs": [
+    "list-inputs",
+    "select-input"
+  ],
+  "currentInput": [
+    "read-foreground"
+  ],
+  "currentContent": [
+    "read-foreground",
+    "read-current-channel"
+  ],
+  "channels": [
+    "channel-up",
+    "channel-down"
+  ],
+  "channelSelection": [
+    "list-channels",
+    "select-channel"
+  ],
+  "media": [
+    "media-play",
+    "media-pause",
+    "media-stop",
+    "media-rewind",
+    "media-fast-forward"
+  ],
+  "textInput": [
+    "send-text",
+    "send-enter"
+  ],
+  "accessorySettings": [
+    "launch-application"
+  ],
+  "bluetoothAccessories": [
+    "list-accessories",
+    "connect-accessory",
+    "disconnect-accessory"
+  ]
+}

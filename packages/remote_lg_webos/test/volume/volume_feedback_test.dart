@@ -97,6 +97,28 @@ void main() {
     },
   );
 
+  test('driver bindings cannot redirect an approved SSAP action', () async {
+    final transport = FakeTransport();
+    final client = SsapClient(transport);
+    addTearDown(client.close);
+    final channel = LgCommandChannel(
+      onUnavailable: (_) {},
+      bindings: DriverBindings({
+        'read-volume': 'system/turnOff',
+        'volume-up': 'system/turnOff',
+      }),
+    )..attach(client);
+    transport.respond = (request) =>
+        transport.reply(request, {'volume': 12, 'mute': false});
+    final remote = LgVolumeController(channel);
+    expect((await remote.readVolume()).volume, 12);
+    await remote.volumeUp();
+    expect(transport.sent.map((request) => request['uri']), [
+      'ssap://audio/getVolume',
+      'ssap://audio/volumeUp',
+    ]);
+  });
+
   test('a denied volume write still revokes the control', () async {
     final transport = FakeTransport();
     final client = SsapClient(transport);
