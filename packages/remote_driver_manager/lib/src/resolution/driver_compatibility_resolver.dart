@@ -3,14 +3,19 @@ import 'package:remote_network/remote_network.dart';
 
 import 'driver_candidate.dart';
 import 'driver_match.dart';
+import 'compare_device_version.dart';
 
 /// The platform comparator returns null when a version cannot be compared.
 typedef DeviceVersionComparator = int? Function(String left, String right);
 
 final class DriverCompatibilityResolver {
   DriverCompatibilityResolver({
-    Map<String, DeviceVersionComparator> osVersions = const {},
-    Map<String, DeviceVersionComparator> firmwareVersions = const {},
+    Map<String, DeviceVersionComparator> osVersions = const {
+      'Roku OS': compareThreePartDeviceVersion,
+    },
+    Map<String, DeviceVersionComparator> firmwareVersions = const {
+      'webOS': compareThreePartDeviceVersion,
+    },
   }) : _osVersions = Map.unmodifiable(osVersions),
        _firmwareVersions = Map.unmodifiable(firmwareVersions);
 
@@ -36,6 +41,15 @@ final class DriverCompatibilityResolver {
         (model == null || !profile.models.any((name) => _same(name, model)))) {
       return null;
     }
+    final details = [
+      (profile.hardwareModel, device.hardwareModel),
+      (profile.softwareVersion, device.softwareVersion),
+      (profile.buildNumber, device.buildNumber),
+      (profile.protocolVersion, device.protocolVersion),
+    ];
+    if (details.any((pair) => pair.$1 != null && pair.$1 != pair.$2)) {
+      return null;
+    }
     final platform = candidate.manifest.platform;
     if (!_matches(profile.osVersion, device.osVersion, _osVersions[platform]) ||
         !_matches(
@@ -50,10 +64,11 @@ final class DriverCompatibilityResolver {
     return DriverMatch(
       candidate,
       profile,
-      modelMatched: profile.models.isNotEmpty,
+      modelMatched: profile.models.isNotEmpty || profile.hardwareModel != null,
       firmwareExact: firmware != null && !range,
       firmwareRange: range,
       osMatched: profile.osVersion != null,
+      matchedDetails: details.where((pair) => pair.$1 != null).length,
     );
   }
 

@@ -116,6 +116,10 @@ final class DriverManifest {
       'models',
       'osVersion',
       'firmwareVersion',
+      'hardwareModel',
+      'softwareVersion',
+      'buildNumber',
+      'protocolVersion',
       'disabledCapabilities',
     });
     return DriverCompatibility(
@@ -124,6 +128,10 @@ final class DriverManifest {
       models: _list(value, 'models').map(_model),
       osVersion: _optionalString(value, 'osVersion'),
       firmwareVersion: _optionalString(value, 'firmwareVersion'),
+      hardwareModel: _optionalString(value, 'hardwareModel'),
+      softwareVersion: _optionalString(value, 'softwareVersion'),
+      buildNumber: _optionalString(value, 'buildNumber'),
+      protocolVersion: _optionalString(value, 'protocolVersion'),
       disabledCapabilities: value.containsKey('disabledCapabilities')
           ? _list(value, 'disabledCapabilities').map(_capability)
           : const [],
@@ -137,6 +145,12 @@ final class DriverManifest {
     if (profile.osVersion != null) 'osVersion': profile.osVersion,
     if (profile.firmwareVersion != null)
       'firmwareVersion': profile.firmwareVersion,
+    if (profile.hardwareModel != null) 'hardwareModel': profile.hardwareModel,
+    if (profile.softwareVersion != null)
+      'softwareVersion': profile.softwareVersion,
+    if (profile.buildNumber != null) 'buildNumber': profile.buildNumber,
+    if (profile.protocolVersion != null)
+      'protocolVersion': profile.protocolVersion,
     if (profile.disabledCapabilities.isNotEmpty)
       'disabledCapabilities': profile.disabledCapabilities
           .map((capability) => capability.name)

@@ -18,10 +18,19 @@ final class DriverDeviceEvidence {
        firmwareVersion = _known(
          device.softwareInformation?.firmwareVersion ?? firmwareVersion,
        ),
+       hardwareModel = _known(device.softwareInformation?.hardwareModel),
+       softwareVersion =
+           device.softwareInformation?.source ==
+               DeviceInformationSource.legacyCache
+           ? null
+           : _known(device.softwareInformation?.softwareVersion),
+       buildNumber = _known(device.softwareInformation?.buildNumber),
+       protocolVersion = _known(device.softwareInformation?.protocolVersion),
        endpoints = List.unmodifiable(device.endpoints);
 
   final String providerId;
   final String? manufacturer, model, osVersion, firmwareVersion;
+  final String? hardwareModel, softwareVersion, buildNumber, protocolVersion;
   final List<Uri> endpoints;
 
   static String? _known(String? value) {

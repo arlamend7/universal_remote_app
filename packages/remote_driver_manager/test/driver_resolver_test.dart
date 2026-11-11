@@ -39,6 +39,7 @@ DriverCandidate _candidate(
   bool installed = false,
   String runtime = '>=1.0.0',
   String provider = 'example.tv',
+  String platform = 'ExampleOS',
   List<DriverCompatibility>? profiles,
   List<DriverOperation> operations = const [DriverOperation.webSocketConnect],
 }) => DriverCandidate(
@@ -50,7 +51,7 @@ DriverCandidate _candidate(
     ),
     name: 'Example TV',
     manufacturer: 'Example',
-    platform: 'ExampleOS',
+    platform: platform,
     runtime: DriverRuntimeRequirements.parse(runtime, operations),
     capabilities: const [],
     compatibility: profiles ?? [_generic],
@@ -97,6 +98,46 @@ void main() {
       );
       expect(generic.selected?.isGeneric, isTrue);
     }
+  });
+
+  test('only recognized firmware formats satisfy a platform range', () {
+    final driver = _candidate(
+      '1.0.0',
+      platform: 'webOS',
+      profiles: [
+        _generic,
+        DriverCompatibility(
+          id: 'three-part',
+          version: 1,
+          models: const [],
+          firmwareVersion: '>=04.09.00 <05.00.00',
+          protocolVersion: 'SSAP',
+        ),
+      ],
+    );
+    String? resolve(String firmware, String? protocol) {
+      final device = RemoteDevice(
+        id: 'fixture',
+        providerId: 'example.tv',
+        name: 'Fixture',
+        endpoints: const [],
+        softwareInformation: DeviceSoftwareInformation(
+          source: DeviceInformationSource.authenticatedSession,
+          firmwareVersion: firmware,
+          protocolVersion: protocol,
+        ),
+      );
+      return DriverCompatibilityResolver()
+          .resolve(driver, DriverDeviceEvidence.fromDevice(device))
+          ?.profile
+          .id;
+    }
+
+    expect(resolve('04.10.00', 'SSAP'), 'three-part');
+    expect(resolve('04.09.00', 'SSAP'), 'three-part');
+    expect(resolve('05.00.00', 'SSAP'), 'generic');
+    expect(resolve('04.10.00-build', 'SSAP'), 'generic');
+    expect(resolve('04.10.00', null), 'generic');
   });
 
   test('chooses an installed driver locally and finds a compatible update', () {
