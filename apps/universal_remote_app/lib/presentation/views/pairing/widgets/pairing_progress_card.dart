@@ -31,7 +31,10 @@ class PairingProgressCard extends StatelessWidget {
     return AppSheet(
       title: installing ? 'Installing TV driver…' : _title,
       onClose: model.disconnect,
-      child: _body(installing),
+      child: _body(
+        installing,
+        controller is ManagedTvController ? controller.installProgress : null,
+      ),
       footer: AppSheetActions(
         primary: OutlinedButton(
           onPressed: model.disconnect,
@@ -41,13 +44,13 @@ class PairingProgressCard extends StatelessWidget {
     );
   }
 
-  Widget _body(bool installing) => Column(
+  Widget _body(bool installing, double? progress) => Column(
     mainAxisSize: MainAxisSize.min,
     spacing: 16,
     children: [
-      const SizedBox.square(
+      SizedBox.square(
         dimension: 28,
-        child: CircularProgressIndicator(strokeWidth: 2),
+        child: CircularProgressIndicator(strokeWidth: 2, value: progress),
       ),
       if (!installing)
         Text(

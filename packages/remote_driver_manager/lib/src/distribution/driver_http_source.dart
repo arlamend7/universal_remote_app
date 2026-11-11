@@ -27,6 +27,8 @@ final class DriverHttpSource {
     String path, {
     required int maximum,
     String? etag,
+    Future<void>? cancelled,
+    void Function(int)? onBytes,
   }) async {
     final target = base.resolve(path);
     if (target.origin != base.origin ||
@@ -40,7 +42,16 @@ final class DriverHttpSource {
       ..connectionTimeout = _timeout
       ..autoUncompress = false;
     try {
-      return await _read(client, target, maximum, etag).timeout(_timeout);
+      return await Future.any([
+        _read(client, target, maximum, etag, onBytes),
+        if (cancelled != null)
+          cancelled.then<Never>(
+            (_) => throw const RemoteException(
+              'cancelled',
+              'Driver download cancelled.',
+            ),
+          ),
+      ]).timeout(_timeout);
     } finally {
       client.close(force: true);
     }
@@ -51,6 +62,7 @@ final class DriverHttpSource {
     Uri target,
     int maximum,
     String? etag,
+    void Function(int)? onBytes,
   ) async {
     final request = await client.getUrl(target);
     request.followRedirects = false;
@@ -81,6 +93,7 @@ final class DriverHttpSource {
         );
       }
       content.add(chunk);
+      onBytes?.call(content.length);
     }
     return (
       bytes: content.takeBytes(),

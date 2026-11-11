@@ -17,6 +17,7 @@ final class ManagedTvController extends TVRemoteBase {
   bool _installing = false;
 
   bool get installing => _installing;
+  double? installProgress;
 
   @override
   Stream<void> get capabilityChanges => _changes.stream;
@@ -87,6 +88,13 @@ final class ManagedTvController extends TVRemoteBase {
       device,
       cancelled: () => !identical(_cancellation, cancellation),
       onInstalling: () => _setInstalling(true),
+      cancellation: cancellation.stream,
+      progress: (value) {
+        if (identical(_cancellation, cancellation)) {
+          installProgress = value;
+          _changes.add(null);
+        }
+      },
     );
     if (!identical(_cancellation, cancellation)) {
       return;
@@ -124,6 +132,9 @@ final class ManagedTvController extends TVRemoteBase {
       return;
     }
     _installing = value;
+    if (!value) {
+      installProgress = null;
+    }
     _changes.add(null);
   }
 

@@ -2,15 +2,10 @@ import 'package:remote_ui/remote_ui.dart';
 
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
-import 'package:remote_android_tv/remote_android_tv.dart';
-import 'package:remote_lg_webos/remote_lg_webos.dart';
 import 'package:remote_network/remote_network.dart';
-import 'package:remote_roku/remote_roku.dart';
-import 'package:remote_samsung_tizen/remote_samsung_tizen.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
 import '../data/drivers/platform_driver_configuration.dart';
@@ -32,6 +27,7 @@ import '../domains/discovery/services/discovery_controller.dart';
 import '../domains/settings/services/settings_controller.dart';
 import '../domains/connection/services/connection_controller.dart';
 import 'app_dependencies.dart';
+import 'built_in_providers.dart';
 
 /// Composition root only: validation and platform operations live in adapters.
 abstract final class AppBootstrap {
@@ -59,7 +55,8 @@ abstract final class AppBootstrap {
     ManagedDriverService? managedDrivers;
     DriverBindings? bindings(RemoteDevice device) =>
         managedDrivers?.bindingsFor(device);
-    final providers = registry ?? _providers(credentials, bindings);
+    final providers =
+        registry ?? BuiltInProviders.create(credentials, bindings);
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
     final drivers = managedDrivers = await _initializeDrivers(
@@ -73,7 +70,7 @@ abstract final class AppBootstrap {
     );
     final discoveryManager = DiscoveryManager(
       protocols,
-      providers.definitions.map((definition) => definition.identifier),
+      const [],
       registeredIdentifiers: () =>
           providers.definitions.map((definition) => definition.identifier),
       savedProfiles: () => saved.registered.expand(
@@ -213,33 +210,4 @@ abstract final class AppBootstrap {
       DiscoveryProtocol.bonjour,
       Platform.isIOS ? IosBonjour().search : const MdnsDiscovery().search,
     );
-
-  static ProviderRegistry _providers(
-    CredentialStore credentials,
-    DriverBindingsLookup bindings,
-  ) {
-    final providers = ProviderRegistry()
-      ..registerDefinition(
-        LgWebOsProvider(
-          credentials: credentials,
-          bindings: bindings,
-        ).definition,
-      )
-      ..registerDefinition(
-        AndroidTvProvider(
-          credentials: credentials,
-          bindings: bindings,
-        ).definition,
-      )
-      ..registerDefinition(
-        SamsungProvider(
-          credentials: credentials,
-          bindings: bindings,
-        ).definition,
-      );
-    if (!kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP')) {
-      providers.registerDefinition(RokuProvider(bindings: bindings).definition);
-    }
-    return providers;
-  }
 }

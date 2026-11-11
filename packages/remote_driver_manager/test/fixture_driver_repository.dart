@@ -8,7 +8,11 @@ final class FixtureDriverRepository implements DriverPackageRepository {
   int requests = 0;
 
   @override
-  Future<DriverPackage> fetch(DriverIdentity identity) async {
+  Future<DriverPackage> fetch(
+    DriverIdentity identity, {
+    Stream<void>? cancellation,
+    void Function(double)? progress,
+  }) async {
     requests++;
     return packages.firstWhere(
       (package) => package.identity.version == identity.version,

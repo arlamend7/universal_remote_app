@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -7,6 +8,7 @@ import '../lifecycle/driver_package.dart';
 import '../lifecycle/driver_package_repository.dart';
 import 'driver_catalog_repository.dart';
 import 'driver_http_source.dart';
+import 'driver_package_download.dart';
 import 'driver_signature_verifier.dart';
 import 'stored_driver_zip.dart';
 
@@ -23,20 +25,43 @@ final class HttpDriverPackageRepository implements DriverPackageRepository {
   final DriverSignatureVerifier _verify;
   final bool _includeDevelopment;
   final _downloading =
-      <(String, String, DriverVersion), Future<DriverPackage>>{};
+      <(String, String, DriverVersion), DriverPackageDownload>{};
 
   @override
-  Future<DriverPackage> fetch(DriverIdentity identity) {
+  Future<DriverPackage> fetch(
+    DriverIdentity identity, {
+    Stream<void>? cancellation,
+    void Function(double)? progress,
+  }) {
     final key = (identity.id, identity.providerId, identity.version);
-    return _downloading.putIfAbsent(
-      key,
-      () => _fetch(identity).whenComplete(() {
-        _downloading.remove(key);
-      }),
+    final active = _downloading[key];
+    if (active != null && !active.cancelled) {
+      return active.join(cancellation: cancellation, progress: progress);
+    }
+    final download = DriverPackageDownload(
+      (cancelled, report) => _fetch(identity, cancelled, report),
     );
+    _downloading[key] = download;
+    void remove() {
+      if (identical(_downloading[key], download)) {
+        _downloading.remove(key);
+      }
+    }
+
+    unawaited(
+      download.result.then<void>(
+        (_) => remove(),
+        onError: (Object _) => remove(),
+      ),
+    );
+    return download.join(cancellation: cancellation, progress: progress);
   }
 
-  Future<DriverPackage> _fetch(DriverIdentity identity) async {
+  Future<DriverPackage> _fetch(
+    DriverIdentity identity,
+    Future<void> cancelled,
+    void Function(double) report,
+  ) async {
     final catalog = await _catalog.cached() ?? await _catalog.refresh();
     final release = catalog.releases.where((release) {
       final candidate = release.manifest.identity;
@@ -51,7 +76,12 @@ final class HttpDriverPackageRepository implements DriverPackageRepository {
         'The driver release is unavailable.',
       );
     }
-    final response = await _source.read(release.path, maximum: release.size);
+    final response = await _source.read(
+      release.path,
+      maximum: release.size,
+      cancelled: cancelled,
+      onBytes: (received) => report(received / release.size),
+    );
     final bytes = response.bytes!;
     if (bytes.length != release.size ||
         sha256.convert(bytes).toString() != release.sha256 ||

@@ -21,7 +21,11 @@ final class LocalDriverPackageRepository implements DriverPackageRepository {
   }
 
   @override
-  Future<DriverPackage> fetch(DriverIdentity identity) async {
+  Future<DriverPackage> fetch(
+    DriverIdentity identity, {
+    Stream<void>? cancellation,
+    void Function(double)? progress,
+  }) async {
     final available = package.identity;
     if (identity.id != available.id ||
         identity.providerId != available.providerId ||

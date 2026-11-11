@@ -60,6 +60,8 @@ final class DriverManager {
   Future<DriverBundle> install(
     DriverIdentity identity, {
     bool Function()? cancelled,
+    Stream<void>? cancellation,
+    void Function(double)? progress,
     DriverVersion? expectedActive,
   }) => _serialize(() async {
     _requireInitialized();
@@ -73,7 +75,13 @@ final class DriverManager {
       );
     }
     final local = await _validLocal(identity.id, identity.version);
-    final package = local ?? await _repository.fetch(identity);
+    final package =
+        local ??
+        await _repository.fetch(
+          identity,
+          cancellation: cancellation,
+          progress: progress,
+        );
     _checkCancellation(cancelled);
     if (!_sameIdentity(identity, package.identity)) {
       throw const RemoteException(

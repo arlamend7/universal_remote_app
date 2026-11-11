@@ -157,6 +157,8 @@ final class ManagedDriverService {
     RemoteDevice device, {
     required bool Function() cancelled,
     void Function()? onInstalling,
+    Stream<void>? cancellation,
+    void Function(double)? progress,
   }) async {
     final evidence = _evidence(device);
     var result = _resolver.resolve(evidence, _candidates(device.providerId));
@@ -192,7 +194,12 @@ final class ManagedDriverService {
       return manager.active(candidate.identity.id)!;
     }
     onInstalling?.call();
-    return manager.install(candidate.identity, cancelled: cancelled);
+    return manager.install(
+      candidate.identity,
+      cancelled: cancelled,
+      cancellation: cancellation,
+      progress: progress,
+    );
   }
 
   Iterable<DriverRelease> get _releases =>
