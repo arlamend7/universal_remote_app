@@ -1,5 +1,4 @@
-import 'package:remote_android_tv/src/protocol/android_app_links.dart';
-import 'package:remote_android_tv/src/protocol/android_key_codes.dart';
+import 'package:remote_driver_runtime/remote_v2.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:test/test.dart';
 

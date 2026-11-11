@@ -1,6 +1,6 @@
 import 'package:remote_core/remote_core.dart';
 
-import '../security/discover_peer_identity.dart';
+import 'package:remote_driver_runtime/remote_v2.dart';
 
 final class AndroidTvIdentifier
     implements ProviderIdentifier, UnicastProbe, AddressIdentifier {

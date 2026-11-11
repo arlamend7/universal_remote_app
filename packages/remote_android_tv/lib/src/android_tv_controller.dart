@@ -2,12 +2,7 @@ import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
 
-import 'protocol/android_app_links.dart';
-import 'protocol/android_key_codes.dart';
-import 'protocol/android_pairing.dart';
-import 'protocol/android_remote_session.dart';
-import 'security/client_identity.dart';
-import 'security/paired_identity.dart';
+import 'package:remote_driver_runtime/remote_v2.dart';
 
 final class AndroidTvController extends TVRemoteBase
     implements PairingCodeReceiver {

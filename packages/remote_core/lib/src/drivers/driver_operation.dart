@@ -9,7 +9,8 @@ enum DriverOperation {
   webSocketUnsubscribe('websocket.unsubscribe'),
   webSocketAuthenticate('websocket.authenticate'),
   webSocketPair('websocket.pair'),
-  compiledBindings('compiled.bindings');
+  compiledBindings('compiled.bindings'),
+  remoteV2Session('remote-v2.session');
 
   const DriverOperation(this.id);
   final String id;

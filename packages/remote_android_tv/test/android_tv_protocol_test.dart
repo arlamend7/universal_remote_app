@@ -2,14 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:remote_android_tv/src/protocol/android_pairing.dart';
-import 'package:remote_android_tv/src/protocol/android_key_codes.dart';
-import 'package:remote_android_tv/src/protocol/android_remote_session.dart';
-import 'package:remote_android_tv/src/protocol/framed_socket.dart';
-import 'package:remote_android_tv/src/protocol/wire_message.dart';
-import 'package:remote_android_tv/src/security/client_identity.dart';
-import 'package:remote_android_tv/src/security/paired_identity.dart';
-import 'package:remote_android_tv/src/security/pairing_proof.dart';
+import 'package:remote_driver_runtime/remote_v2.dart';
 import 'package:test/test.dart';
 import 'package:remote_core/remote_core.dart';
 

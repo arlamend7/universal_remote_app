@@ -12,3 +12,5 @@ Baseline `f259d52`. The [TV API matrix](tv-api.md) lists all existing capability
 | Models and persistence | Generic Remote v2 profile; negotiated features control availability. Pairing credentials are keyed by saved device ID. | Preserve identity and credentials; only apply restrictive profiles with evidence. |
 
 The current managed mappings cover navigation, media, volume keys and power. The binary engine remains necessary. See the [capability audit](../../provider-capability-audit.md).
+
+The 1.1.0 source package requires `remote-v2.session`. The compiled binary framing, pairing, certificate proof, IME and audio state live in the driver runtime. The Android adapter still owns discovery and the typed TV controller. The TLS fixtures exercise approval, cancellation, certificate mismatch and credential reuse. The source package stays outside the publishing index pending full device parity validation.

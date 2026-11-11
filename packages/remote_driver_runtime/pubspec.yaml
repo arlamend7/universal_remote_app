@@ -6,6 +6,7 @@ resolution: workspace
 environment:
   sdk: ^3.13.4
 dependencies:
+  pointycastle: 4.0.0
   remote_core: ^0.1.0
   remote_network: ^0.1.0
 dev_dependencies:

@@ -137,6 +137,7 @@ final class DriverRuntime {
         case DriverOperation.webSocketAuthenticate:
         case DriverOperation.webSocketPair:
         case DriverOperation.compiledBindings:
+        case DriverOperation.remoteV2Session:
           throw StateError('Unexpected driver command step.');
       }
     }

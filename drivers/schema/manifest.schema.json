@@ -73,7 +73,8 @@
           "websocket.authenticate",
           "websocket.pair",
           "Unknown required driver operation.",
-          "compiled.bindings"
+          "compiled.bindings",
+          "remote-v2.session"
         ]
       },
       "minItems": 0,
