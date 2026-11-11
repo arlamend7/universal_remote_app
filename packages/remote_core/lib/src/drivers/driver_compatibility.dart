@@ -1,3 +1,5 @@
+import '../device.dart';
+
 /// Device version evidence stays opaque until the manager applies the
 /// comparison strategy for the platform.
 final class DriverCompatibility {
@@ -7,7 +9,9 @@ final class DriverCompatibility {
     required Iterable<String> models,
     this.osVersion,
     this.firmwareVersion,
-  }) : models = Set.unmodifiable(models) {
+    Iterable<RemoteCapability> disabledCapabilities = const [],
+  }) : models = Set.unmodifiable(models),
+       disabledCapabilities = Set.unmodifiable(disabledCapabilities) {
     if (_idFormat.firstMatch(id)?.end != id.length ||
         version < 1 ||
         version > 999999999 ||
@@ -24,6 +28,7 @@ final class DriverCompatibility {
   final int version;
   final Set<String> models;
   final String? osVersion, firmwareVersion;
+  final Set<RemoteCapability> disabledCapabilities;
 
   static bool _validLabel(String value) =>
       value.isNotEmpty && value.length <= 128 && value.trim() == value;

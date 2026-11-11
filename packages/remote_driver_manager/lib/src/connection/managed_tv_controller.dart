@@ -47,6 +47,7 @@ final class ManagedTvController extends TVRemoteBase
   // ignore: close_sinks
   StreamController<void>? _cancellation;
   DriverBundle? _bundle;
+  DriverCompatibility? _profile;
   ManagedTvSession? _persistent;
   Completer<String?>? _pairingCode;
   final _rejectedSubscriptions = <String>{};
@@ -70,13 +71,25 @@ final class ManagedTvController extends TVRemoteBase
         CapabilityEvidence(
           capability,
           CapabilitySource.driver,
-          DriverTvCapabilities.supports(bundle, capability)
-              ? CapabilityAvailability.known
-              : CapabilityAvailability.advertised,
-          reason: _subscriptionReason(capability),
+          _disabled(capability)
+              ? CapabilityAvailability.unavailable
+              : _availability(bundle, capability),
+          reason: _disabled(capability)
+              ? 'Disabled by the TV software compatibility profile.'
+              : _subscriptionReason(capability),
         ),
     ];
   }
+
+  CapabilityAvailability _availability(
+    DriverBundle bundle,
+    RemoteCapability capability,
+  ) => DriverTvCapabilities.supports(bundle, capability)
+      ? CapabilityAvailability.known
+      : CapabilityAvailability.advertised;
+
+  bool _disabled(RemoteCapability capability) =>
+      _profile?.disabledCapabilities.contains(capability) == true;
 
   String? _subscriptionReason(RemoteCapability capability) {
     final event = switch (capability) {
@@ -128,21 +141,31 @@ final class ManagedTvController extends TVRemoteBase
       return;
     }
     _setInstalling(false);
+    final bootstrapProfile = _drivers.profileFor(bundle, device);
     final host = device.endpoints.first.host;
     final endpoint = bundle.discovery.endpoint(host);
     final software = await _openSession(bundle, endpoint, cancellation);
     if (!identical(_cancellation, cancellation)) {
       return;
     }
-    _endpoint = endpoint;
-    _bundle = bundle;
-    _device = copyDevice(
+    final identified = copyDevice(
       device,
       model: software?.model,
       softwareInformation: software,
+    );
+    final profile = software == null
+        ? bootstrapProfile
+        : _drivers.profileFor(bundle, identified);
+    _endpoint = endpoint;
+    _bundle = bundle;
+    _profile = profile;
+    _device = copyDevice(
+      identified,
       metadata: {
         ...device.metadata,
         'managedDriverId': bundle.manifest.identity.id,
+        'managedDriverProfile': profile.id,
+        'managedDriverProfileVersion': profile.version.toString(),
       },
     );
     _setState(DeviceConnectionState.connected);
@@ -255,7 +278,8 @@ final class ManagedTvController extends TVRemoteBase
     if (bundle == null || endpoint == null || cancellation == null) {
       throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
-    if (!DriverTvCapabilities.provides(bundle, capability, id)) {
+    if (_disabled(capability) ||
+        !DriverTvCapabilities.provides(bundle, capability, id)) {
       throw _unavailable;
     }
     final exchange = bundle.exchanges[id];
@@ -308,6 +332,7 @@ final class ManagedTvController extends TVRemoteBase
   bool _has(RemoteCapability capability, String id) {
     final bundle = _bundle;
     return bundle != null &&
+        !_disabled(capability) &&
         DriverTvCapabilities.provides(bundle, capability, id);
   }
 
@@ -350,6 +375,7 @@ final class ManagedTvController extends TVRemoteBase
     }
     _setInstalling(false);
     _bundle = null;
+    _profile = null;
     _currentInput = null;
     _reportedApplicationIds = null;
     _inputs.add(null);

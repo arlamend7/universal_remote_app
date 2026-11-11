@@ -21,7 +21,11 @@ final class DriverManifest {
     if (![name, manufacturer, platform].every(_validLabel) ||
         this.compatibility.isEmpty ||
         this.compatibility.map((profile) => profile.id).toSet().length !=
-            this.compatibility.length) {
+            this.compatibility.length ||
+        this.compatibility.any(
+          (profile) =>
+              !this.capabilities.containsAll(profile.disabledCapabilities),
+        )) {
       throw const FormatException('Invalid driver manifest metadata.');
     }
   }
@@ -112,6 +116,7 @@ final class DriverManifest {
       'models',
       'osVersion',
       'firmwareVersion',
+      'disabledCapabilities',
     });
     return DriverCompatibility(
       id: _string(value, 'id'),
@@ -119,6 +124,9 @@ final class DriverManifest {
       models: _list(value, 'models').map(_model),
       osVersion: _optionalString(value, 'osVersion'),
       firmwareVersion: _optionalString(value, 'firmwareVersion'),
+      disabledCapabilities: value.containsKey('disabledCapabilities')
+          ? _list(value, 'disabledCapabilities').map(_capability)
+          : const [],
     );
   }
 
@@ -129,6 +137,10 @@ final class DriverManifest {
     if (profile.osVersion != null) 'osVersion': profile.osVersion,
     if (profile.firmwareVersion != null)
       'firmwareVersion': profile.firmwareVersion,
+    if (profile.disabledCapabilities.isNotEmpty)
+      'disabledCapabilities': profile.disabledCapabilities
+          .map((capability) => capability.name)
+          .toList(),
   };
 
   static String _model(Object? value) {

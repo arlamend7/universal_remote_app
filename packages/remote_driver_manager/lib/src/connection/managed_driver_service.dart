@@ -177,6 +177,19 @@ final class ManagedDriverService {
   static bool _compiled(DriverManifest manifest) =>
       manifest.runtime.operations.contains(DriverOperation.compiledBindings);
 
+  DriverCompatibility profileFor(DriverBundle bundle, RemoteDevice device) {
+    final match = _resolver.resolve(_evidence(device), [
+      DriverCandidate(bundle.manifest, installed: true),
+    ]).selected;
+    if (match == null) {
+      throw const RemoteException(
+        'driverIncompatible',
+        'This driver has no profile for the TV’s reported software.',
+      );
+    }
+    return match.profile;
+  }
+
   static DriverDeviceEvidence _evidence(RemoteDevice device) =>
       DriverDeviceEvidence.fromDevice(
         device,

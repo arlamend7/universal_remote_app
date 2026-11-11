@@ -48,7 +48,23 @@ void main() {
       final package = DriverPackage({
         'manifest.json': jsonEncode({
           ...fixture.package.bundle.manifest.toJson(),
-          'capabilities': ['volume'],
+          'capabilities': ['volume', 'power'],
+          'compatibility': [
+            ...fixture.package.bundle.manifest.compatibility.map(
+              (profile) => {
+                'id': profile.id,
+                'version': profile.version,
+                'models': <String>[],
+              },
+            ),
+            {
+              'id': 'fixture-firmware',
+              'version': 2,
+              'models': ['Fixture Mk II'],
+              'firmwareVersion': '04.12.03',
+              'disabledCapabilities': ['power'],
+            },
+          ],
           'operations': [
             'websocket.request',
             'websocket.authenticate',
@@ -57,7 +73,9 @@ void main() {
           ],
         }),
         'discovery.json': fixture.package.files['discovery.json']!,
-        'capabilities.json': '{"volume":["volume-up","volume-down"]}',
+        'capabilities.json':
+            '{"volume":["volume-up","volume-down"],"power":["power-off"]}',
+        'workflows/power-off.json': _exchangeFile('request', 'power-off'),
         'workflows/pair.json': _exchangeFile('pair', 'pair'),
         'workflows/authenticate.json': _exchangeFile(
           'authenticate',
@@ -130,6 +148,27 @@ void main() {
       expect((await feedback.timeout(const Duration(seconds: 2))).volume, 52);
       await Future.wait([remote.volumeUp(), remote.volumeDown()]);
       expect(remote.device.model, 'Fixture Mk II');
+      expect(
+        remote.device.metadata['managedDriverProfile'],
+        'fixture-firmware',
+      );
+      expect(remote.device.metadata['managedDriverProfileVersion'], '2');
+      expect(
+        remote.evidence
+            .singleWhere((entry) => entry.capability == RemoteCapability.power)
+            .availability,
+        CapabilityAvailability.unavailable,
+      );
+      await expectLater(
+        remote.powerOff(),
+        throwsA(
+          isA<RemoteException>().having(
+            (error) => error.code,
+            'code',
+            'unsupported',
+          ),
+        ),
+      );
       final software = remote.device.softwareInformation!;
       expect(software.firmwareVersion, '04.12.03');
       expect(software.source, DeviceInformationSource.authenticatedSession);
