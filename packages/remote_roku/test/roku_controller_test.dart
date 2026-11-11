@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_roku/src/roku_controller.dart';
-import 'package:remote_roku/src/roku_ecp_client.dart';
+import 'package:remote_driver_runtime/roku_ecp.dart';
 import 'package:test/test.dart';
 
 void main() {

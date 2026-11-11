@@ -139,6 +139,7 @@ final class DriverRuntime {
         case DriverOperation.compiledBindings:
         case DriverOperation.remoteV2Session:
         case DriverOperation.samsungSession:
+        case DriverOperation.rokuEcp:
           throw StateError('Unexpected driver command step.');
       }
     }

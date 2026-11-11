@@ -75,7 +75,8 @@
           "Unknown required driver operation.",
           "compiled.bindings",
           "remote-v2.session",
-          "samsung.session"
+          "samsung.session",
+          "roku.ecp"
         ]
       },
       "minItems": 0,

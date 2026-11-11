@@ -13,7 +13,8 @@ enum DriverOperation {
   webSocketPair('websocket.pair'),
   compiledBindings('compiled.bindings'),
   remoteV2Session('remote-v2.session', provider: ProviderIdentity.androidTv),
-  samsungSession('samsung.session', provider: ProviderIdentity.samsungTizen);
+  samsungSession('samsung.session', provider: ProviderIdentity.samsungTizen),
+  rokuEcp('roku.ecp', provider: ProviderIdentity.roku);
 
   const DriverOperation(this.id, {this.provider});
   final String id;

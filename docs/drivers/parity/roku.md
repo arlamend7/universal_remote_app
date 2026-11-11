@@ -12,3 +12,5 @@ Baseline `f259d52`. The [TV API matrix](tv-api.md) lists all existing capability
 | Models and release | Tuner and audio permissions depend on device flags and TV/player category. Existing development gate and publisher exclusion. | Preserve both release guards and serial-based identity. |
 
 Managed bindings currently cover volume and power keys. See the [capability audit](../../provider-capability-audit.md).
+
+The development-only 1.1.0 source package requires `roku.ecp`. The driver runtime shares the bounded ECP HTTP client and XML decoding. The adapter retains serial identity checks and Roku TV versus player capability rules. The app opt-in and publishing denylist still apply.

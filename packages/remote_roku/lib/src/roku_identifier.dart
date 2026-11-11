@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:remote_core/remote_core.dart';
 
 import 'roku_endpoint.dart';
-import 'roku_ecp_client.dart';
+
+import 'package:remote_driver_runtime/roku_ecp.dart';
+
 import 'roku_serial.dart';
 
 final class RokuIdentifier

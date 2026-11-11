@@ -4,7 +4,9 @@ import 'package:remote_core/remote_core.dart';
 import 'package:xml/xml.dart';
 
 import 'roku_app_catalog.dart';
-import 'roku_ecp_client.dart';
+
+import 'package:remote_driver_runtime/roku_ecp.dart';
+
 import 'roku_serial.dart';
 import 'roku_channel_data.dart';
 
