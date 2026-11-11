@@ -29,3 +29,19 @@ Before migration, compare each provider with the same fixtures on both paths. Ke
 ## Capability parity follow-up
 
 The follow-up migration starts from `f259d52`. Use the [TV API parity matrix](parity/tv-api.md) and the provider audits as the baseline before changing ownership of compiled behavior. [Device software resolution](device-version-resolution.md) defines the evidence boundary for compatibility checks.
+
+### Follow-up status
+
+| Phase | Outcome |
+| --- | --- |
+| 9 | Shared SSAP runtime, expanded LG source package and authenticated LG profile checks. The LG adapter still owns pointer, wake, discovery and device capability logic. |
+| 10 | Shared binary Remote v2 runtime with pinned TLS and pairing fixtures. Android still uses its compiled typed adapter for control and discovery. |
+| 11 | Shared Samsung channel, token and transport code with authorization and reconnect fixtures. Samsung still uses its compiled typed adapter. |
+| 12 | Shared bounded Roku ECP client with the development-only gate. Roku still uses its compiled typed adapter for identity and capabilities. |
+| 13 | Concurrent local releases, exact bundle resolution, per-TV compatible pins, and rollback of the default. |
+| 14 | Adapter removal remains gated by functional parity. The independent provider adapters still own required behavior. |
+| 15 | Device Details shows reported TV software, the selected driver and profile, and whether information came from this connection or storage. |
+| 16 | Offline restart, per-model update, rollback, and authenticated release handoff exercised by fixtures. |
+| 17 | Automated results and physical-TV checks are tracked separately in [validation](validation.md). |
+
+No physical hardware results are recorded for this follow-up. The candidate source bundles are available for development. Production distribution continues to use the checked-in publishing index.
