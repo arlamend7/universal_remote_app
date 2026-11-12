@@ -68,5 +68,16 @@ so the comparison is not vacuous.
 ## Not done / remaining
 
 - Physical-TV verification for every provider and for the LG family split.
-- The app seed is empty until the first real publication is refreshed into
-  `apps/universal_remote_app/assets/driver-seed` with the production public key.
+## Publication (2026-11-12)
+
+- GitHub Pages publish run `43140753709` (attempt 2) built, signed, deployed
+  and re-verified the live site: `v2/catalog.json` revision 1, key ID
+  `universal-remote-1`, six integrations (four stable, two development).
+- The app seed was generated from the live site and independently verified
+  with the production public key (catalog signature, package SHA-256 and
+  package signatures): `lg.webos.22-plus`, `lg.webos.legacy`,
+  `android.tv.remote-v2`, `samsung.tizen.supported`. Development-channel
+  integrations are excluded. `bundled_seed_test.dart` installs the bundled
+  seed offline through full verification; the debug APK contains it.
+- The private signing key is kept outside git (`.secrets/`, ignored) and in
+  the `github-pages` environment secret.

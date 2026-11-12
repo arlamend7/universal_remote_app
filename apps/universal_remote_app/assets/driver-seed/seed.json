@@ -1,5 +1,10 @@
 {
-  "catalog": null,
-  "revision": 0,
-  "objects": []
+  "catalog": "catalog.json",
+  "revision": 1,
+  "objects": [
+    "62e7472b67eafafa1a89e2f30aa02729093a6471948567ad17dd473aaea68566",
+    "8d689435fcb49e386613dc4b5c374da0bcf40b40231d8be2ca41cebf94426065",
+    "abd658486273653bec7cf24c537d7447624b21cf8ee0acfc548419fdb46a77dc",
+    "d5f139ce10e5e25cc44584220d40fc7ba4fa2aeef30c752de013cdd0b5639f1f"
+  ]
 }
