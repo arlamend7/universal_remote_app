@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 2,
+  "integrationId": "samsung.tizen.supported",
+  "providerId": "samsung.tizen",
+  "name": "Samsung Tizen",
+  "manufacturer": "Samsung",
+  "platform": "Tizen",
+  "engine": "samsung-channel",
+  "priority": 0,
+  "requiredRuntime": {
+    "api": 2,
+    "operations": [
+      "network.wake-on-lan",
+      "samsung-channel.applications",
+      "samsung-channel.key",
+      "samsung-channel.launch"
+    ]
+  },
+  "credentialScope": "device",
+  "compatibility": {
+    "versionScheme": "dotted-numeric"
+  },
+  "profiles": [
+    {
+      "id": "bootstrap",
+      "stage": "bootstrap"
+    }
+  ],
+  "capabilities": [
+    "navigation",
+    "numericKeys",
+    "specialKeys",
+    "tvSettings",
+    "inputs",
+    "mute",
+    "applications",
+    "volume",
+    "channels",
+    "media",
+    "power"
+  ],
+  "replaces": [
+    "samsung-tizen"
+  ]
+}

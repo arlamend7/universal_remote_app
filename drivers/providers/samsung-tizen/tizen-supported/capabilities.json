@@ -1,0 +1,101 @@
+{
+  "navigation": {
+    "alternatives": [
+      [
+        "navigation-up",
+        "navigation-down",
+        "navigation-left",
+        "navigation-right",
+        "navigation-enter",
+        "navigation-back",
+        "navigation-home"
+      ]
+    ]
+  },
+  "numericKeys": {
+    "alternatives": [
+      [
+        "key-digit0",
+        "key-digit1",
+        "key-digit2",
+        "key-digit3",
+        "key-digit4",
+        "key-digit5",
+        "key-digit6",
+        "key-digit7",
+        "key-digit8",
+        "key-digit9"
+      ]
+    ]
+  },
+  "specialKeys": {
+    "alternatives": [
+      [
+        "key-menu",
+        "key-info",
+        "key-guide"
+      ]
+    ]
+  },
+  "tvSettings": {
+    "alternatives": [
+      [
+        "key-settings"
+      ]
+    ]
+  },
+  "inputs": {
+    "alternatives": [
+      [
+        "open-input-picker"
+      ]
+    ]
+  },
+  "mute": {
+    "alternatives": [
+      [
+        "toggle-mute"
+      ]
+    ]
+  },
+  "applications": {
+    "alternatives": [
+      [
+        "list-applications",
+        "launch-application"
+      ]
+    ]
+  },
+  "volume": {
+    "alternatives": [
+      [
+        "volume-up",
+        "volume-down"
+      ]
+    ]
+  },
+  "channels": {
+    "alternatives": [
+      [
+        "channel-up",
+        "channel-down"
+      ]
+    ]
+  },
+  "media": {
+    "alternatives": [
+      [
+        "media-play",
+        "media-pause",
+        "media-stop"
+      ]
+    ]
+  },
+  "power": {
+    "alternatives": [
+      [
+        "power-off"
+      ]
+    ]
+  }
+}

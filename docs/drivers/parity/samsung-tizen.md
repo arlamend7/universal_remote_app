@@ -23,76 +23,76 @@ Notation: paths in "New driver definition" are relative to `drivers/providers/sa
 
 | Original controller method | Protocol behavior (exact wire message: SSAP URI + payload, Android KeyEvent code / Remote v2 message, Samsung KEY_* / launch message, Roku ECP path) | Parameters & validation | Return model | Authentication | Stream behavior | Error handling (codes thrown, capability disabled on failure?) | New driver definition | New runtime operation | Test coverage | Parity status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `connect` | Open WSS URL (header); wait for `ms.channel.connect` / `ms.channel.unauthorized`; then `{"method":"ms.channel.emit","params":{"event":"ed.installedApp.get","to":"host","data":""}}` and wait ≤ 2 s for the catalog | Pin required (`tls`); single endpoint; only from `disconnected`; superseded attempt → `cancelled` | `void`; states connecting → (pairing) → connected | Token from credential when pin matches; new token stored | `connectionStates` broadcast (deduplicated) | `tls` (no pin or handshake), `timeout` (transport or 35 s approval), `network`, `pairingDenied` (+ delete saved token), `cancelled`; failure → `disconnect()` | `workflows/pair.json`, `manifest.json#operations` | `pair` (+ `list-applications`) | `samsung_provider_test.dart` (pairs, sends commands, handles loss and reconnects with its token; requires certificate approval and never reuses a token after pin changes; a rejected stored token is cleared) | pending |
-| Session loss (internal) | Transport `onDone`/`onError` → session closed | — | — | — | State `disconnected` | — | `manifest.json` (session policy) | — (no reconnect) | `samsung_provider_test.dart` (handles loss and reconnects) | pending |
-| `disconnect` | Close session and transport; pending approval fails `network` | — | `void`; state disconnected | — | Clears cached apps | none | `workflows/pair.json` (close) | — (session close) | `samsung_provider_test.dart` (disconnect cancels pending TV approval) | pending |
-| `dispose` | `disconnect()` then close state stream; idempotent | — | `void` | — | Stream closed | none | — | — (session close) | none | pending |
-| `evidence` / `supports` | No wire; fixed list while connected (evidence table) | — | `List<CapabilityEvidence>` | — | `capabilityChanges` never emits (default empty stream) | — | `capabilities.json` | — (capabilities.json evaluation) | `samsung_provider_test.dart` (applications and tvSettings supported) | pending |
-| `readWakeAddress` | Not implemented | — | — | — | — | — | not defined | none in vocabulary | none | pending |
+| `connect` | Open WSS URL (header); wait for `ms.channel.connect` / `ms.channel.unauthorized`; then `{"method":"ms.channel.emit","params":{"event":"ed.installedApp.get","to":"host","data":""}}` and wait ≤ 2 s for the catalog | Pin required (`tls`); single endpoint; only from `disconnected`; superseded attempt → `cancelled` | `void`; states connecting → (pairing) → connected | Token from credential when pin matches; new token stored | `connectionStates` broadcast (deduplicated) | `tls` (no pin or handshake), `timeout` (transport or 35 s approval), `network`, `pairingDenied` (+ delete saved token), `cancelled`; failure → `disconnect()` | `workflows/pair.json`, `manifest.json#operations` | `pair` (+ `list-applications`) | `samsung_provider_test.dart` (pairs, sends commands, handles loss and reconnects with its token; requires certificate approval and never reuses a token after pin changes; a rejected stored token is cleared) | parity (generic golden) |
+| Session loss (internal) | Transport `onDone`/`onError` → session closed | — | — | — | State `disconnected` | — | `manifest.json` (session policy) | — (no reconnect) | `samsung_provider_test.dart` (handles loss and reconnects) | parity (generic golden) |
+| `disconnect` | Close session and transport; pending approval fails `network` | — | `void`; state disconnected | — | Clears cached apps | none | `workflows/pair.json` (close) | — (session close) | `samsung_provider_test.dart` (disconnect cancels pending TV approval) | parity (generic golden) |
+| `dispose` | `disconnect()` then close state stream; idempotent | — | `void` | — | Stream closed | none | — | — (session close) | none | parity (generic golden) |
+| `evidence` / `supports` | No wire; fixed list while connected (evidence table) | — | `List<CapabilityEvidence>` | — | `capabilityChanges` never emits (default empty stream) | — | `capabilities.json` | — (capabilities.json evaluation) | `samsung_provider_test.dart` (applications and tvSettings supported) | parity (generic golden) |
+| `readWakeAddress` | Not implemented | — | — | — | — | — | not defined | none in vocabulary | none | parity (generic golden) |
 | `submitPairingCode` | Not implemented; approval on the TV | — | — | — | — | — | not defined | `pair` (no code step) | none | unsupported (preserve) |
-| `powerOff` | key(`KEY_POWER`) | — | `void` | Token + pin | — | key errors | `mappings.json#power-off` | `power-off` | `samsung_provider_test.dart` | pending |
-| `wake` | Provider `wakeDevice`: WoL magic packet | No MAC → `wakeUnavailable` | `void` | none | — | `wakeUnavailable`, `ArgumentError`, `SocketException` | `mappings.json#wake` + provider wake policy | `wake` | none | pending |
-| `canWake` | No wire; `provider.canWakeDevice(device)` evaluated once at controller creation | MAC must normalize | `bool` | — | — | — | `capabilities.json#wake` | `wake` (availability) | none | pending |
-| `volumeUp` | key(`KEY_VOLUP`) | — | `void` | Token + pin | — | key errors | `mappings.json#volume-up` | `volume-up` | `samsung_provider_test.dart` (binding to `KEY_POWER` ignored) | pending |
-| `volumeDown` | key(`KEY_VOLDOWN`) | — | `void` | Token + pin | — | key errors | `mappings.json#volume-down` | `volume-down` | none | pending |
+| `powerOff` | key(`KEY_POWER`) | — | `void` | Token + pin | — | key errors | `mappings.json#power-off` | `power-off` | `samsung_provider_test.dart` | parity (generic golden) |
+| `wake` | Provider `wakeDevice`: WoL magic packet | No MAC → `wakeUnavailable` | `void` | none | — | `wakeUnavailable`, `ArgumentError`, `SocketException` | `mappings.json#wake` + provider wake policy | `wake` | none | parity (generic golden) |
+| `canWake` | No wire; `provider.canWakeDevice(device)` evaluated once at controller creation | MAC must normalize | `bool` | — | — | — | `capabilities.json#wake` | `wake` (availability) | none | parity (generic golden) |
+| `volumeUp` | key(`KEY_VOLUP`) | — | `void` | Token + pin | — | key errors | `mappings.json#volume-up` | `volume-up` | `samsung_provider_test.dart` (binding to `KEY_POWER` ignored) | parity (generic golden) |
+| `volumeDown` | key(`KEY_VOLDOWN`) | — | `void` | Token + pin | — | key errors | `mappings.json#volume-down` | `volume-down` | none | parity (generic golden) |
 | `setVolume` | None | — | — | — | — | `unsupported` | not defined | `set-volume` (must stay absent) | none | unsupported (preserve) |
 | `setMuted` | None | — | — | — | — | `unsupported` | not defined | `set-mute` (must stay absent) | none | unsupported (preserve) |
-| `toggleMute` | `sendKey(mute)` → key(`KEY_MUTE`); resulting state unknown | — | `void` | Token + pin | — | key errors | `mappings.json#toggle-mute` | `toggle-mute` | `samsung_provider_test.dart` (`KEY_MUTE` via sendKey) | pending |
+| `toggleMute` | `sendKey(mute)` → key(`KEY_MUTE`); resulting state unknown | — | `void` | Token + pin | — | key errors | `mappings.json#toggle-mute` | `toggle-mute` | `samsung_provider_test.dart` (`KEY_MUTE` via sendKey) | parity (generic golden) |
 | `readVolume` | None | — | — | — | — | `unsupported` | not defined | `read-volume` (must stay absent) | none | unsupported (preserve) |
-| `watchVolume` | None | — | empty stream | — | Never emits | none | not defined | `read-volume` (absent; no `volume` subscription) | none | pending |
-| `press(up)` | key(`KEY_UP`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-up` | `navigation-up` | none | pending |
-| `press(down)` | key(`KEY_DOWN`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-down` | `navigation-down` | none | pending |
-| `press(left)` | key(`KEY_LEFT`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-left` | `navigation-left` | none | pending |
-| `press(right)` | key(`KEY_RIGHT`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-right` | `navigation-right` | none | pending |
-| `press(enter)` | key(`KEY_ENTER`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-enter` | `navigation-enter` | `samsung_provider_test.dart` | pending |
-| `press(back)` | key(`KEY_RETURN`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-back` | `navigation-back` | none | pending |
-| `press(home)` | key(`KEY_HOME`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-home` | `navigation-home` | none | pending |
-| `channelUp` | key(`KEY_CHUP`) | — | `void` | Token + pin | — | key errors | `mappings.json#channel-up` | `channel-up` | none | pending |
-| `channelDown` | key(`KEY_CHDOWN`) | — | `void` | Token + pin | — | key errors | `mappings.json#channel-down` | `channel-down` | none | pending |
+| `watchVolume` | None | — | empty stream | — | Never emits | none | not defined | `read-volume` (absent; no `volume` subscription) | none | parity (generic golden) |
+| `press(up)` | key(`KEY_UP`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-up` | `navigation-up` | none | parity (generic golden) |
+| `press(down)` | key(`KEY_DOWN`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-down` | `navigation-down` | none | parity (generic golden) |
+| `press(left)` | key(`KEY_LEFT`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-left` | `navigation-left` | none | parity (generic golden) |
+| `press(right)` | key(`KEY_RIGHT`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-right` | `navigation-right` | none | parity (generic golden) |
+| `press(enter)` | key(`KEY_ENTER`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-enter` | `navigation-enter` | `samsung_provider_test.dart` | parity (generic golden) |
+| `press(back)` | key(`KEY_RETURN`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-back` | `navigation-back` | none | parity (generic golden) |
+| `press(home)` | key(`KEY_HOME`) | — | `void` | Token + pin | — | key errors | `mappings.json#navigation-home` | `navigation-home` | none | parity (generic golden) |
+| `channelUp` | key(`KEY_CHUP`) | — | `void` | Token + pin | — | key errors | `mappings.json#channel-up` | `channel-up` | none | parity (generic golden) |
+| `channelDown` | key(`KEY_CHDOWN`) | — | `void` | Token + pin | — | key errors | `mappings.json#channel-down` | `channel-down` | none | parity (generic golden) |
 | `channels` | None | — | — | — | — | `unsupported` | not defined | `list-channels` (must stay absent) | none | unsupported (preserve) |
 | `selectChannel` | None | — | — | — | — | `unsupported` | not defined | `select-channel` (must stay absent) | none | unsupported (preserve) |
-| `sendMedia(play)` | key(`KEY_PLAY`) (no binding lookup) | — | `void` | Token + pin | — | key errors | `mappings.json#media-play` | `media-play` | none | pending |
-| `sendMedia(pause)` | key(`KEY_PAUSE`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-pause` | `media-pause` | none | pending |
-| `sendMedia(stop)` | key(`KEY_STOP`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-stop` | `media-stop` | none | pending |
-| `sendMedia(rewind)` | key(`KEY_REWIND`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-rewind` | `media-rewind` | none | pending |
-| `sendMedia(fastForward)` | key(`KEY_FF`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-fast-forward` | `media-fast-forward` | none | pending |
+| `sendMedia(play)` | key(`KEY_PLAY`) (no binding lookup) | — | `void` | Token + pin | — | key errors | `mappings.json#media-play` | `media-play` | none | parity (generic golden) |
+| `sendMedia(pause)` | key(`KEY_PAUSE`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-pause` | `media-pause` | none | parity (generic golden) |
+| `sendMedia(stop)` | key(`KEY_STOP`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-stop` | `media-stop` | none | parity (generic golden) |
+| `sendMedia(rewind)` | key(`KEY_REWIND`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-rewind` | `media-rewind` | none | parity (generic golden) |
+| `sendMedia(fastForward)` | key(`KEY_FF`) | — | `void` | Token + pin | — | key errors | `mappings.json#media-fast-forward` | `media-fast-forward` | none | parity (generic golden) |
 | `sendMedia(previous)` | None | — | — | — | — | `unsupported` | not defined | `media-previous` (must stay absent) | none | unsupported (preserve) |
 | `sendMedia(next)` | None | — | — | — | — | `unsupported` | not defined | `media-next` (must stay absent) | none | unsupported (preserve) |
 | `togglePlayback` | None (default) | — | — | — | — | `unsupported` | not defined | `toggle-playback` (must stay absent) | none | unsupported (preserve) |
-| `playbackState` | None (default) | — | `null` | — | — | none; generic runtime must return `null`, not throw | not defined | `read-playback` (absent; return null) | none | pending |
+| `playbackState` | None (default) | — | `null` | — | — | none; generic runtime must return `null`, not throw | not defined | `read-playback` (absent; return null) | none | parity (generic golden) |
 | `turnOffScreen` | None (default) | — | — | — | — | `unsupported` | not defined | `screen-off` (must stay absent) | none | unsupported (preserve) |
 | `turnOnScreen` | None (default) | — | — | — | — | `unsupported` | not defined | `screen-on` (must stay absent) | none | unsupported (preserve) |
 | `movePointer` | None | — | — | — | — | `unsupported` | not defined | `pointer-move` (must stay absent) | none | unsupported (preserve) |
 | `scroll` | None | — | — | — | — | `unsupported` | not defined | `pointer-scroll` (must stay absent) | none | unsupported (preserve) |
 | `click` | None | — | — | — | — | `unsupported` | not defined | `pointer-click` (must stay absent) | none | unsupported (preserve) |
-| `sendKey(digit0…digit9)` | key(`KEY_0`…`KEY_9`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-digit0` … `#key-digit9` | `key-digit0` … `key-digit9` | `samsung_provider_test.dart` (`KEY_3`) | pending |
-| `sendKey(enter)` | key(`KEY_ENTER`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-enter` | `key-enter` | none | pending |
-| `sendKey(menu, settings)` | Both key(`KEY_MENU`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-menu`, `#key-settings` | `key-menu`, `key-settings` | `samsung_provider_test.dart` (settings → `KEY_MENU`) | pending |
-| `sendKey(info, guide, exit)` | key(`KEY_INFO`), key(`KEY_GUIDE`), key(`KEY_EXIT`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-info`, `#key-guide`, `#key-exit` | `key-info`, `key-guide`, `key-exit` | none | pending |
-| `sendKey(red, green, yellow, blue)` | key(`KEY_RED`), key(`KEY_GREEN`), key(`KEY_YELLOW`), key(`KEY_BLUE`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-red` … `#key-blue` | `key-red`, `key-green`, `key-yellow`, `key-blue` | none | pending |
-| `sendKey(source)` | key(`KEY_SOURCE`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-source` | `key-source` | `samsung_provider_test.dart` | pending |
-| `sendKey(mute)` | key(`KEY_MUTE`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-mute` | `key-mute` | `samsung_provider_test.dart` | pending |
+| `sendKey(digit0…digit9)` | key(`KEY_0`…`KEY_9`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-digit0` … `#key-digit9` | `key-digit0` … `key-digit9` | `samsung_provider_test.dart` (`KEY_3`) | parity (generic golden) |
+| `sendKey(enter)` | key(`KEY_ENTER`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-enter` | `key-enter` | none | parity (generic golden) |
+| `sendKey(menu, settings)` | Both key(`KEY_MENU`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-menu`, `#key-settings` | `key-menu`, `key-settings` | `samsung_provider_test.dart` (settings → `KEY_MENU`) | parity (generic golden) |
+| `sendKey(info, guide, exit)` | key(`KEY_INFO`), key(`KEY_GUIDE`), key(`KEY_EXIT`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-info`, `#key-guide`, `#key-exit` | `key-info`, `key-guide`, `key-exit` | none | parity (generic golden) |
+| `sendKey(red, green, yellow, blue)` | key(`KEY_RED`), key(`KEY_GREEN`), key(`KEY_YELLOW`), key(`KEY_BLUE`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-red` … `#key-blue` | `key-red`, `key-green`, `key-yellow`, `key-blue` | none | parity (generic golden) |
+| `sendKey(source)` | key(`KEY_SOURCE`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-source` | `key-source` | `samsung_provider_test.dart` | parity (generic golden) |
+| `sendKey(mute)` | key(`KEY_MUTE`) | — | `void` | Token + pin | — | key errors | `mappings.json#key-mute` | `key-mute` | `samsung_provider_test.dart` | parity (generic golden) |
 | `sendKey(dash, replay, liveTv, captions)` | None | — | — | — | — | `unsupported` | not defined | `key-dash`, `key-replay`, `key-live-tv`, `key-captions` (must stay absent) | none | unsupported (preserve) |
 | `sendText` | None | — | — | — | — | `unsupported` | not defined | `send-text` (must stay absent) | none | unsupported (preserve) |
-| `sendEnter` | `press(enter)` → key(`KEY_ENTER`) via binding `navigation-enter` | — | `void` | Token + pin | — | key errors | `mappings.json#send-enter` | `send-enter` | none | pending |
-| `inputs` | None | — | `[]` always | — | — | none; generic runtime must return `[]`, not throw | `capabilities.json#inputs` (picker only) | `list-inputs` (absent; return empty) | none | pending |
+| `sendEnter` | `press(enter)` → key(`KEY_ENTER`) via binding `navigation-enter` | — | `void` | Token + pin | — | key errors | `mappings.json#send-enter` | `send-enter` | none | parity (generic golden) |
+| `inputs` | None | — | `[]` always | — | — | none; generic runtime must return `[]`, not throw | `capabilities.json#inputs` (picker only) | `list-inputs` (absent; return empty) | none | parity (generic golden) |
 | `selectInput` | None | — | — | — | — | `unsupported` | not defined | `select-input` (must stay absent) | none | unsupported (preserve) |
-| `openInputPicker` | `sendKey(source)` → key(`KEY_SOURCE`) | — | `void` | Token + pin | — | key errors | `mappings.json#open-input-picker` | `open-input-picker` | `samsung_provider_test.dart` (`KEY_SOURCE` via sendKey) | pending |
-| `currentInput` | None (default) | — | `null` | — | — | none | not defined | `read-input` (absent) | none | pending |
-| `currentInputChanges` | None (default) | — | empty stream | — | Never emits | none | not defined | `read-input` (absent; no `input` subscription) | none | pending |
-| `applications` | No wire; catalog cached at connect from `ed.installedApp.get` rows `{appId,name}` (≤ 512 rows, id `^[a-zA-Z0-9._-]{1,128}$`, trimmed name 1–200 chars, last duplicate wins) | — | `List<DeviceApplication(id, name)>`; `[]` when the TV did not answer within 2 s | Token + pin | — | none | `mappings.json#list-applications` | `list-applications` | `samsung_provider_test.dart` (invalid row dropped; empty catalog) | pending |
-| `launchApplication` | `{"method":"ms.channel.emit","params":{"event":"ed.apps.launch","to":"host","data":{"appId":<id>,"action_type":"DEEP_LINK"}}}` | id `^[a-zA-Z0-9._-]{1,128}$` else `appId`; not checked against the catalog | `void` once the write completes; no launch confirmation | Token + pin | — | `appId`, `network` (write rejected) | `mappings.json#launch-application` | `launch-application` | `samsung_provider_test.dart` (write rejection → `network`; invalid id) | pending |
+| `openInputPicker` | `sendKey(source)` → key(`KEY_SOURCE`) | — | `void` | Token + pin | — | key errors | `mappings.json#open-input-picker` | `open-input-picker` | `samsung_provider_test.dart` (`KEY_SOURCE` via sendKey) | parity (generic golden) |
+| `currentInput` | None (default) | — | `null` | — | — | none | not defined | `read-input` (absent) | none | parity (generic golden) |
+| `currentInputChanges` | None (default) | — | empty stream | — | Never emits | none | not defined | `read-input` (absent; no `input` subscription) | none | parity (generic golden) |
+| `applications` | No wire; catalog cached at connect from `ed.installedApp.get` rows `{appId,name}` (≤ 512 rows, id `^[a-zA-Z0-9._-]{1,128}$`, trimmed name 1–200 chars, last duplicate wins) | — | `List<DeviceApplication(id, name)>`; `[]` when the TV did not answer within 2 s | Token + pin | — | none | `mappings.json#list-applications` | `list-applications` | `samsung_provider_test.dart` (invalid row dropped; empty catalog) | parity (generic golden) |
+| `launchApplication` | `{"method":"ms.channel.emit","params":{"event":"ed.apps.launch","to":"host","data":{"appId":<id>,"action_type":"DEEP_LINK"}}}` | id `^[a-zA-Z0-9._-]{1,128}$` else `appId`; not checked against the catalog | `void` once the write completes; no launch confirmation | Token + pin | — | `appId`, `network` (write rejected) | `mappings.json#launch-application` | `launch-application` | `samsung_provider_test.dart` (write rejection → `network`; invalid id) | parity (generic golden) |
 | `currentApplication` | None | — | — | — | — | `unsupported` | not defined | `read-application` (must stay absent) | none | unsupported (preserve) |
-| `reportedApplicationIds` | No wire; ids of the cached catalog | `null` when the catalog is empty | `Set<String>?` | — | — | none | `mappings.json#list-applications` (cached ids) | `list-applications` | none | pending |
+| `reportedApplicationIds` | No wire; ids of the cached catalog | `null` when the catalog is empty | `Set<String>?` | — | — | none | `mappings.json#list-applications` (cached ids) | `list-applications` | none | parity (generic golden) |
 | `currentContent` | None | — | — | — | — | `unsupported` | not defined | `read-content` (must stay absent) | none | unsupported (preserve) |
-| `watchCurrentContent` | None | — | empty stream | — | Never emits | none | not defined | `read-content` (absent; no `content` subscription) | none | pending |
+| `watchCurrentContent` | None | — | empty stream | — | Never emits | none | not defined | `read-content` (absent; no `content` subscription) | none | parity (generic golden) |
 | `bluetoothAccessories` | None (default) | — | — | — | — | `unsupported` | not defined | `list-accessories` (must stay absent) | none | unsupported (preserve) |
 | `toggleBluetoothAccessory` | None (default) | — | — | — | — | `unsupported` | not defined | `toggle-accessory` (must stay absent) | none | unsupported (preserve) |
 | `openAccessorySettings` | None (default) | — | — | — | — | `unsupported` | not defined | `open-accessory-settings` (must stay absent) | none | unsupported (preserve) |
 | `startVoiceControl` | None (default) | — | — | — | — | `unsupported` | not defined | none (must stay absent) | none | unsupported (preserve) |
 | `toggleGameMode` | None (default) | — | — | — | — | `unsupported` | not defined | none (must stay absent) | none | unsupported (preserve) |
 | `syncWatchCompanion` | None (default) | — | — | — | — | `unsupported` | not defined | none (must stay absent) | none | unsupported (preserve) |
-| `sessionSoftwareInformation` / identity getters | None | `sessionSoftwareInformation`, `verifiedPeerIdentity`, `reportedDiscoveryIdentity` all `null` | `null` | — | — | none | `workflows/identify-software.json` (empty) | `identify-software` (no device query; must not invent versions) | none | pending |
+| `sessionSoftwareInformation` / identity getters | None | `sessionSoftwareInformation`, `verifiedPeerIdentity`, `reportedDiscoveryIdentity` all `null` | `null` | — | — | none | `workflows/identify-software.json` (empty) | `identify-software` (no device query; must not invent versions) | none | parity (generic golden) |
 
 ## Capability evidence
 
@@ -124,3 +124,13 @@ All rows are fixture-verified only (in-memory transport). Check on real Samsung 
 - `ed.installedApp.get` availability and timing (2 s window); `ed.apps.launch` with `DEEP_LINK` for native and web apps.
 - Every `KEY_*` above, especially `KEY_POWER` (standby versus off), `KEY_SOURCE`, `KEY_MENU` for settings, `KEY_GUIDE`, colour and media keys in third-party apps.
 - Wake-on-LAN from standby with "Power on with mobile" or network standby enabled; retry after wake.
+
+## Migration status
+
+`drivers/providers/samsung-tizen/tizen-supported` reproduces every row above through
+`GenericTvController`. Each step's recorded wire frames, results, error codes
+and capability evidence equal the legacy golden
+(`packages/remote_driver_runtime/test/parity/samsung_tizen_generic_parity_test.dart`), with no declared
+differences.
+
+Hardware verification is still required for every row.

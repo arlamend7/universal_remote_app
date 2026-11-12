@@ -1,0 +1,179 @@
+{
+  "power-off": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_POWER"
+  },
+  "volume-up": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_VOLUP"
+  },
+  "volume-down": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_VOLDOWN"
+  },
+  "channel-up": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_CHUP"
+  },
+  "channel-down": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_CHDOWN"
+  },
+  "navigation-up": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_UP"
+  },
+  "navigation-down": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_DOWN"
+  },
+  "navigation-left": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_LEFT"
+  },
+  "navigation-right": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_RIGHT"
+  },
+  "navigation-enter": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_ENTER"
+  },
+  "navigation-back": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_RETURN"
+  },
+  "navigation-home": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_HOME"
+  },
+  "media-play": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_PLAY"
+  },
+  "media-pause": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_PAUSE"
+  },
+  "media-stop": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_STOP"
+  },
+  "media-rewind": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_REWIND"
+  },
+  "media-fast-forward": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_FF"
+  },
+  "key-digit0": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_0"
+  },
+  "key-digit1": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_1"
+  },
+  "key-digit2": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_2"
+  },
+  "key-digit3": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_3"
+  },
+  "key-digit4": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_4"
+  },
+  "key-digit5": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_5"
+  },
+  "key-digit6": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_6"
+  },
+  "key-digit7": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_7"
+  },
+  "key-digit8": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_8"
+  },
+  "key-digit9": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_9"
+  },
+  "key-enter": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_ENTER"
+  },
+  "key-menu": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_MENU"
+  },
+  "key-info": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_INFO"
+  },
+  "key-guide": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_GUIDE"
+  },
+  "key-exit": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_EXIT"
+  },
+  "key-red": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_RED"
+  },
+  "key-green": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_GREEN"
+  },
+  "key-yellow": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_YELLOW"
+  },
+  "key-blue": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_BLUE"
+  },
+  "key-source": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_SOURCE"
+  },
+  "key-settings": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_MENU"
+  },
+  "key-mute": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_MUTE"
+  },
+  "toggle-mute": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_MUTE"
+  },
+  "send-enter": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_ENTER"
+  },
+  "open-input-picker": {
+    "kind": "samsung-channel.key",
+    "key": "KEY_SOURCE"
+  },
+  "list-applications": {
+    "kind": "samsung-channel.applications"
+  },
+  "launch-application": {
+    "kind": "samsung-channel.launch"
+  },
+  "wake": {
+    "kind": "network.wake-on-lan"
+  }
+}
