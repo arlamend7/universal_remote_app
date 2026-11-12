@@ -256,9 +256,10 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
             '${_text('Connection protocol', 'Protocolo de conexão')} · ${endpoint.scheme}',
           ),
         ],
-        if (device.metadata['osversion'] case final value?)
+        if (device.softwareInformation?.operatingSystemVersion
+            case final value?)
           Text('${_text('OS version', 'Versão do sistema')} · $value'),
-        if (device.metadata['firmwareversion'] case final value?)
+        if (device.softwareInformation?.firmwareVersion case final value?)
           Text('${_text('Firmware', 'Firmware')} · $value'),
       ],
     ),

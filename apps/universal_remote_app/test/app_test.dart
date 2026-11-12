@@ -140,6 +140,10 @@ void main() {
       expect(find.text('TV connected!'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 450));
       await tester.pumpAndSettle();
+      expect(find.text('Supported controls'), findsOneWidget);
+      expect(find.text('Directional pad'), findsNothing);
+      await tester.tap(find.text('Start controlling'));
+      await tester.pumpAndSettle();
       expect(find.byTooltip('OK'), findsOneWidget);
       final ok = tester.widget<ActionButton>(
         find
