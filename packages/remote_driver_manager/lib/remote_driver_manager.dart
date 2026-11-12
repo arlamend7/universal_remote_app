@@ -54,3 +54,4 @@ export 'src/selection/integration_candidate.dart';
 export 'src/selection/integration_resolver.dart';
 export 'src/selection/integration_selection.dart';
 export 'src/selection/selection_stage.dart';
+export 'src/selection/managed_integration_planner.dart';

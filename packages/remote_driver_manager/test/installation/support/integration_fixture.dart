@@ -33,7 +33,11 @@ final class IntegrationFixture {
     'compatibility': {'versionScheme': 'dotted-numeric'},
     'profiles': [
       for (final (index, id) in profiles.indexed)
-        {'id': id, 'stage': index == 0 ? 'bootstrap' : 'identified'},
+        {
+          'id': id,
+          'stage': index == 0 ? 'bootstrap' : 'identified',
+          if (index > 0) 'compatibility': {'osVersion': '>=9'},
+        },
     ],
     'capabilities': ['volume'],
     'replaces': ['example-tv'],
@@ -55,10 +59,21 @@ final class IntegrationFixture {
       },
     }),
     'mappings.json': jsonEncode({
-      'volume-up': {'kind': 'json-websocket.request', 'command': command},
+      'volume-up': {
+        'kind': 'json-websocket.request',
+        'message': {'type': command},
+      },
       'volume-down': {
         'kind': 'json-websocket.request',
-        'command': 'volumeDown',
+        'message': {'type': 'volumeDown'},
+      },
+    }),
+    'connection.json': jsonEncode({
+      'pairing': {
+        'message': {'type': 'pair'},
+      },
+      'authentication': {
+        'message': {'type': 'hello'},
       },
     }),
   });
@@ -67,9 +82,10 @@ final class IntegrationFixture {
     Uint8List bytes, {
     String lastUpdatedAt = '2026-11-11T21:25:00Z',
     String channel = 'stable',
+    List<String> profiles = const ['bootstrap'],
   }) async {
     final hash = IntegrationPackage.digest(bytes);
-    final json = manifest(lastUpdatedAt: lastUpdatedAt);
+    final json = manifest(lastUpdatedAt: lastUpdatedAt, profiles: profiles);
     return {
       'id': json['integrationId'],
       'providerId': json['providerId'],

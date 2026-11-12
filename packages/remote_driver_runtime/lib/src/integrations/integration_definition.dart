@@ -6,6 +6,7 @@ import '../engines/contracts/protocol_engine.dart';
 import '../engines/contracts/protocol_engine_registry.dart';
 import 'compiled_mapping.dart';
 import 'operation_table.dart';
+import 'session_policy.dart';
 
 /// A package's JSON compiled against the engines of this runtime.
 ///
@@ -17,6 +18,7 @@ final class IntegrationDefinition {
     required this.manifest,
     required this.engine,
     required this.connection,
+    required this.session,
     required this.capabilities,
     required Map<String, CompiledMapping> mappings,
     required Map<String, Map<String, CompiledMapping>> overrides,
@@ -55,12 +57,13 @@ final class IntegrationDefinition {
     };
     final capabilities = _capabilities(_json(files, 'capabilities.json'));
     _checkCapabilities(manifest, capabilities, mappings);
+    final connection = {..._json(files, 'connection.json', optional: true)};
+    final session = SessionPolicy.fromJson(connection.remove('session'));
     return IntegrationDefinition._(
       manifest: manifest,
       engine: engine,
-      connection: engine.compileConnection(
-        _json(files, 'connection.json', optional: true),
-      ),
+      connection: engine.compileConnection(connection),
+      session: session,
       capabilities: capabilities,
       mappings: mappings,
       overrides: overrides,
@@ -73,6 +76,9 @@ final class IntegrationDefinition {
 
   /// The validated `connection.json` section passed to the engine session.
   final Map<String, Object?> connection;
+
+  /// Generic session behaviour from `connection.json#session`.
+  final SessionPolicy session;
 
   /// Capability declarations in their declared (probe) order.
   final List<CapabilityDeclaration> capabilities;
