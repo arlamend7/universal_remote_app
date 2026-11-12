@@ -54,6 +54,17 @@ import Security
       PreferencesChannel.register(with: registrar)
       registerDiscovery(registrar.messenger())
       registerDrivers(registrar.messenger())
+      let networkSettings = FlutterMethodChannel(
+        name: "br.net.devcom.universal_remote/network_settings",
+        binaryMessenger: registrar.messenger())
+      networkSettings.setMethodCallHandler { call, result in
+        guard call.method == "open",
+              let url = URL(string: UIApplication.openSettingsURLString) else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        UIApplication.shared.open(url) { _ in result(nil) }
+      }
       let display = FlutterMethodChannel(
         name: "br.net.devcom.universal_remote/display", binaryMessenger: registrar.messenger())
       display.setMethodCallHandler { call, result in

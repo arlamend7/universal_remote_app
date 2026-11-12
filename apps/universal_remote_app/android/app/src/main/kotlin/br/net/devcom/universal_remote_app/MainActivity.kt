@@ -1,6 +1,8 @@
 package br.net.devcom.universal_remote_app
 
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.net.wifi.WifiManager
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
@@ -15,6 +17,19 @@ class MainActivity : FlutterActivity() {
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         preferencesChannel = PreferencesChannel(applicationContext, messenger)
         DriverChannel.register(applicationContext, messenger)
+        MethodChannel(messenger, "br.net.devcom.universal_remote/network_settings")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "open") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                try {
+                    startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
+                    result.success(null)
+                } catch (_: Exception) {
+                    result.error("settings", "Network settings unavailable", null)
+                }
+            }
         MethodChannel(messenger, "br.net.devcom.universal_remote/display")
             .setMethodCallHandler { call, result ->
                 val enabled = call.arguments as? Boolean

@@ -7,12 +7,15 @@ import 'package:remote_ui/remote_ui.dart';
 
 import '../../devices/widgets/discovery_progress.dart';
 import '../../devices/modals/edit_device.dart';
+import '../../../../domains/discovery/models/connection_issue_type.dart';
 import '../widgets/discovery_details.dart';
+import '../widgets/discovery_issue.dart';
 import '../viewmodels/discovery_viewmodel.dart';
 import 'device_discovery_sheet.dart';
 
 class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
   bool _detailsVisible = false;
+  bool _offlineDismissed = false;
   late final model = DiscoveryViewModel(widget.dependencies);
   @override
   void initState() {
@@ -50,7 +53,21 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     children: [
       if (model.searching)
         DiscoveryProgress(protocols: model.searchingProtocols),
-      if (model.error != null) _message(Icons.info_outline, model.error!),
+      if (widget.dependencies.discovery.issue.value case final issue?)
+        DiscoveryIssue(
+          type: issue,
+          retry: _search,
+          dismiss: () => Navigator.pop(context),
+        )
+      else if (model.error != null)
+        _message(Icons.info_outline, model.error!),
+      if (widget.dependencies.discovery.catalogOffline.value &&
+          !_offlineDismissed)
+        DiscoveryIssue(
+          type: ConnectionIssueType.internetUnavailable,
+          retry: widget.dependencies.discovery.refreshCatalog,
+          dismiss: () => setState(() => _offlineDismissed = true),
+        ),
       if (!model.searching && model.cancelled)
         _message(Icons.pause_circle_outline, 'Search cancelled.'),
       if (_showEmpty) _empty(),
@@ -100,6 +117,11 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     ],
   );
 
+  Future<void> _search() {
+    setState(() => _offlineDismissed = false);
+    return model.search();
+  }
+
   Widget _actions() => AppSheetActions(
     secondary: OutlinedButton.icon(
       onPressed: model.adding ? null : _connectByIp,
@@ -111,7 +133,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           ? null
           : model.searching
           ? model.cancel
-          : model.search,
+          : _search,
       icon: Icon(model.searching ? Icons.close : Icons.refresh, size: 18),
       label: Text(model.searching ? 'Cancel search' : 'Search again'),
     ),

@@ -13,6 +13,8 @@ final class DiscoveryViewModel extends ChangeNotifier {
     dependencies.discovery.unresolved.addListener(notifyListeners);
     dependencies.discovery.busy.addListener(notifyListeners);
     dependencies.discovery.error.addListener(notifyListeners);
+    dependencies.discovery.catalogOffline.addListener(notifyListeners);
+    dependencies.discovery.issue.addListener(notifyListeners);
     dependencies.discovery.statuses.addListener(notifyListeners);
     dependencies.savedDevices.devices.addListener(notifyListeners);
   }
@@ -132,6 +134,8 @@ final class DiscoveryViewModel extends ChangeNotifier {
     dependencies.discovery.unresolved.removeListener(notifyListeners);
     dependencies.discovery.busy.removeListener(notifyListeners);
     dependencies.discovery.error.removeListener(notifyListeners);
+    dependencies.discovery.catalogOffline.removeListener(notifyListeners);
+    dependencies.discovery.issue.removeListener(notifyListeners);
     dependencies.discovery.statuses.removeListener(notifyListeners);
     dependencies.savedDevices.devices.removeListener(notifyListeners);
     super.dispose();
