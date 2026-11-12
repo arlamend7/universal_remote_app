@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mappings.schema.json",
+  "title": "Operation mappings (mappings.json)",
+  "description": "Binds generic runtime operations to typed engine calls. Engine-specific parameters are validated by the compiled engine (validate_integration.dart), never executed as code.",
+  "type": "object",
+  "maxProperties": 256,
+  "propertyNames": {"type": "string", "pattern": "^(subscribe-(volume|content|input)|[a-z][a-z0-9-]{0,63})$"},
+  "additionalProperties": {
+    "type": "object",
+    "required": ["kind"],
+    "maxProperties": 16,
+    "properties": {
+      "kind": {"type": "string", "pattern": "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*$"}
+    }
+  }
+}

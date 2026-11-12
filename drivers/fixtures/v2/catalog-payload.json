@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 2,
+  "revision": 42,
+  "publishedAt": "2026-11-11T21:30:00Z",
+  "integrations": [
+    {
+      "id": "example.json-websocket",
+      "providerId": "example.smarttv",
+      "name": "Example JSON WebSocket TV",
+      "manufacturer": "Example",
+      "platform": "Example OS",
+      "engine": "json-websocket",
+      "channel": "development",
+      "lastUpdatedAt": "2026-11-11T21:25:00Z",
+      "requiredRuntime": {"api": 2, "operations": ["json-websocket.request"]},
+      "compatibility": {"osVersion": ">=7", "versionScheme": "dotted-numeric"},
+      "profiles": [
+        {"id": "bootstrap", "stage": "bootstrap"},
+        {"id": "example-os-9", "stage": "identified", "compatibility": {"osVersion": ">=9"}, "disabledCapabilities": ["mute"]}
+      ],
+      "capabilities": ["volume", "mute"],
+      "conditionalCapabilities": ["mute"],
+      "discovery": {"targets": {"ssdp": ["urn:example:device:tv:1"]}, "port": 7443, "path": "/remote"},
+      "package": "packages/objects/0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0/driver.zip",
+      "sha256": "0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0",
+      "size": 2048,
+      "signature": "Zml4dHVyZS1zaWduYXR1cmUtbm90LXZlcmlmaWVk",
+      "replaces": ["example-tv"]
+    }
+  ]
+}

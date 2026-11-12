@@ -1,0 +1,5 @@
+{
+  "volume-up": {"kind": "json-websocket.request", "command": "volumeUp"},
+  "volume-down": {"kind": "json-websocket.request", "command": "volumeDown"},
+  "toggle-mute": {"kind": "json-websocket.request", "command": "toggleMute"}
+}

@@ -24,3 +24,6 @@ export 'src/connection/managed_driver_service.dart';
 export 'src/connection/managed_tv_controller.dart';
 export 'src/lifecycle/driver_update_service.dart';
 export 'src/lifecycle/local_driver_package_repository.dart';
+export 'src/catalog/catalog_integration.dart';
+export 'src/catalog/integration_catalog.dart';
+export 'src/catalog/signed_catalog_envelope.dart';

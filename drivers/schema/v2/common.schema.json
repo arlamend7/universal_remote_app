@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "Shared integration definitions",
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z][a-z0-9._-]{0,79}$"},
+    "label": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^\\S(.*\\S)?$"},
+    "utcTimestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "capability": {
+      "type": "string",
+      "enum": ["volume", "volumeFeedback", "mute", "navigation", "power", "applications", "inputs", "media", "channels", "currentContent", "pointer", "textInput", "channelSelection", "climate", "lighting", "wake", "voice", "gameMode", "watch", "currentInput", "trackNavigation", "seek", "playbackMetadata", "absoluteVolume", "accessorySettings", "bluetoothAccessories", "playbackToggle", "numericKeys", "specialKeys", "tvSettings", "playbackScan", "liveTvKey", "screenPower", "captionsKey", "instantReplay", "channelCatalog"]
+    },
+    "versionRange": {"type": "string", "minLength": 1, "maxLength": 128},
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "osVersion": {"$ref": "#/$defs/versionRange"},
+        "firmwareVersion": {"$ref": "#/$defs/versionRange"},
+        "models": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/label"}},
+        "versionScheme": {"enum": ["dotted-numeric", "exact"]}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stage"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "stage": {"enum": ["bootstrap", "identified"]},
+        "compatibility": {"$ref": "#/$defs/compatibility"},
+        "disabledCapabilities": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/capability"}},
+        "mappingOverrides": {"type": "object", "maxProperties": 256}
+      }
+    },
+    "requiredRuntime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api", "operations"],
+      "properties": {
+        "api": {"type": "integer", "minimum": 1, "maximum": 999},
+        "operations": {"type": "array", "minItems": 1, "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/identifier"}}
+      }
+    }
+  }
+}

@@ -1,12 +1,11 @@
-import 'dart:convert';
-
+import '../catalog/signed_catalog_envelope.dart';
 import 'driver_release.dart';
 import 'driver_signature_verifier.dart';
 
 final class DriverCatalog {
   DriverCatalog._(this.revision, this.publishedAt, this.keyId, this.releases);
 
-  static const maximumBytes = 2 * 1024 * 1024;
+  static const maximumBytes = SignedCatalogEnvelope.maximumBytes;
 
   final int revision;
   final DateTime publishedAt;
@@ -17,29 +16,8 @@ final class DriverCatalog {
     String envelope,
     DriverSignatureVerifier verifySignature,
   ) async {
-    if (envelope.length > maximumBytes) {
-      throw const FormatException('Driver catalog exceeds the size limit.');
-    }
-    final signed = jsonDecode(envelope);
-    if (signed is! Map<String, Object?> || signed.length != 3) {
-      throw const FormatException('Invalid signed driver catalog envelope.');
-    }
-    final key = signed['keyId'];
-    final payload = signed['payload'];
-    final signature = signed['signature'];
-    if (key is! String ||
-        _key.firstMatch(key)?.end != key.length ||
-        payload is! String ||
-        signature is! String ||
-        signature.isEmpty ||
-        signature.length > 512) {
-      throw const FormatException('Invalid driver catalog signature metadata.');
-    }
-    final bytes = base64Decode(payload);
-    if (!await verifySignature(key, bytes, base64Decode(signature))) {
-      throw const FormatException('The driver catalog signature is invalid.');
-    }
-    return _decode(jsonDecode(utf8.decode(bytes)), key);
+    final opened = await SignedCatalogEnvelope.open(envelope, verifySignature);
+    return _decode(opened.decodePayload(), opened.keyId);
   }
 
   static DriverCatalog _decode(Object? value, String key) {
@@ -70,6 +48,4 @@ final class DriverCatalog {
     }
     return DriverCatalog._(revision, timestamp, key, List.unmodifiable(parsed));
   }
-
-  static final _key = RegExp(r'^[a-z][a-z0-9_-]{0,63}$');
 }

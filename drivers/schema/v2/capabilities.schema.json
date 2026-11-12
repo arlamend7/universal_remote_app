@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "capabilities.schema.json",
+  "title": "Capability declarations (capabilities.json)",
+  "description": "Each capability lists alternative operation sets; the runtime enables it only when one complete set is mapped to a validated engine call.",
+  "type": "object",
+  "maxProperties": 64,
+  "propertyNames": {"$ref": "common.schema.json#/$defs/capability"},
+  "additionalProperties": {"$ref": "#/$defs/declaration"},
+  "$defs": {
+    "operationSet": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "common.schema.json#/$defs/identifier"}},
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact", "equals"],
+      "properties": {
+        "fact": {"$ref": "common.schema.json#/$defs/identifier"},
+        "equals": {"type": "string", "maxLength": 128},
+        "otherwise": {"$ref": "#/$defs/condition"}
+      }
+    },
+    "declaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["alternatives"],
+      "properties": {
+        "alternatives": {"type": "array", "minItems": 1, "maxItems": 16, "items": {"$ref": "#/$defs/operationSet"}},
+        "availability": {"enum": ["known", "verified", "conditional"]},
+        "verify": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operation"],
+          "properties": {
+            "operation": {"$ref": "common.schema.json#/$defs/identifier"},
+            "expect": {"enum": ["succeeds", "non-empty", "contains"]},
+            "fact": {"$ref": "common.schema.json#/$defs/label"},
+            "value": {"$ref": "common.schema.json#/$defs/label"},
+            "timeoutMs": {"type": "integer", "minimum": 100, "maximum": 30000},
+            "availability": {"enum": ["known", "verified"]}
+          }
+        },
+        "when": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/condition"}},
+        "restrictions": {"$ref": "common.schema.json#/$defs/compatibility"},
+        "permissions": {"type": "array", "maxItems": 64, "items": {"$ref": "common.schema.json#/$defs/label"}},
+        "disableOn": {"type": "array", "maxItems": 16, "items": {"$ref": "common.schema.json#/$defs/label"}},
+        "reason": {"$ref": "common.schema.json#/$defs/label"}
+      }
+    }
+  }
+}

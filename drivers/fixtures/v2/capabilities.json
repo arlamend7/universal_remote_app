@@ -1,0 +1,8 @@
+{
+  "volume": {"alternatives": [["volume-up", "volume-down"]]},
+  "mute": {
+    "alternatives": [["toggle-mute"], ["set-mute", "read-volume"]],
+    "when": [{"fact": "feature.audio", "equals": "true", "otherwise": {"fact": "device.is-tv", "equals": "true"}}],
+    "disableOn": ["unsupported", "permission"]
+  }
+}
