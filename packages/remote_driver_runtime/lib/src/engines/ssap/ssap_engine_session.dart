@@ -194,6 +194,8 @@ final class SsapEngineSession implements EngineSession {
       _endpoint,
       allowInsecure: _allowInsecure,
     );
+    _facts['pointer.open'] = '${_pointer.isOpen}';
+    _factChanges.add(null);
   }
 
   Future<void> _motion(String type, Map<String, Object?> arguments) {
@@ -284,6 +286,7 @@ final class SsapEngineSession implements EngineSession {
     if (_closed || _unavailable.isClosed) {
       return;
     }
+    _facts['pointer.open'] = 'false';
     _unavailable.add(const {
       SsapKinds.pointerButton,
       SsapKinds.pointerMove,

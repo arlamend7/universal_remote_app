@@ -1,0 +1,375 @@
+{
+  "identify-software": {
+    "kind": "ssap.identify",
+    "uri": "ssap://com.webos.service.update/getCurrentSWInformation",
+    "osVersionPrefix": "webOSTV ",
+    "operatingSystem": "webOS"
+  },
+  "volume-up": {
+    "kind": "ssap.request",
+    "uri": "ssap://audio/volumeUp"
+  },
+  "volume-down": {
+    "kind": "ssap.request",
+    "uri": "ssap://audio/volumeDown"
+  },
+  "set-volume": {
+    "kind": "ssap.request",
+    "uri": "ssap://audio/setVolume",
+    "payload": {
+      "volume": {
+        "$argument": "volume"
+      }
+    },
+    "constraints": {
+      "volume": {
+        "minimum": 0,
+        "maximum": 100
+      }
+    }
+  },
+  "set-mute": {
+    "kind": "ssap.request",
+    "uri": "ssap://audio/setMute",
+    "payload": {
+      "mute": {
+        "$argument": "muted"
+      }
+    }
+  },
+  "read-volume": {
+    "kind": "ssap.request",
+    "uri": "ssap://audio/getVolume",
+    "result": "volume",
+    "muteUri": "ssap://audio/getMute",
+    "readOnly": true,
+    "gate": "volumeFeedback"
+  },
+  "subscribe-volume": {
+    "kind": "ssap.subscribe",
+    "uri": "ssap://audio/getVolume",
+    "result": "volume",
+    "muteUri": "ssap://audio/getMute",
+    "gate": "volumeFeedback"
+  },
+  "power-off": {
+    "kind": "ssap.request",
+    "uri": "ssap://system/turnOff"
+  },
+  "wake": {
+    "kind": "network.wake-on-lan"
+  },
+  "screen-off": {
+    "kind": "ssap.request",
+    "uri": "ssap://com.webos.service.tvpower/power/turnOffScreen"
+  },
+  "screen-on": {
+    "kind": "ssap.request",
+    "uri": "ssap://com.webos.service.tvpower/power/turnOnScreen"
+  },
+  "open-pointer": {
+    "kind": "ssap.pointer-open",
+    "uri": "ssap://com.webos.service.networkinput/getPointerInputSocket"
+  },
+  "navigation-up": {
+    "kind": "ssap.pointer-button",
+    "button": "UP"
+  },
+  "navigation-down": {
+    "kind": "ssap.pointer-button",
+    "button": "DOWN"
+  },
+  "navigation-left": {
+    "kind": "ssap.pointer-button",
+    "button": "LEFT"
+  },
+  "navigation-right": {
+    "kind": "ssap.pointer-button",
+    "button": "RIGHT"
+  },
+  "navigation-enter": {
+    "kind": "ssap.pointer-button",
+    "button": "ENTER"
+  },
+  "navigation-back": {
+    "kind": "ssap.pointer-button",
+    "button": "BACK"
+  },
+  "navigation-home": {
+    "kind": "ssap.pointer-button",
+    "button": "HOME"
+  },
+  "pointer-move": {
+    "kind": "ssap.pointer-move"
+  },
+  "pointer-scroll": {
+    "kind": "ssap.pointer-scroll"
+  },
+  "pointer-click": {
+    "kind": "ssap.pointer-click"
+  },
+  "key-digit0": {
+    "kind": "ssap.pointer-button",
+    "button": "0",
+    "gate": "pointer"
+  },
+  "key-digit1": {
+    "kind": "ssap.pointer-button",
+    "button": "1",
+    "gate": "pointer"
+  },
+  "key-digit2": {
+    "kind": "ssap.pointer-button",
+    "button": "2",
+    "gate": "pointer"
+  },
+  "key-digit3": {
+    "kind": "ssap.pointer-button",
+    "button": "3",
+    "gate": "pointer"
+  },
+  "key-digit4": {
+    "kind": "ssap.pointer-button",
+    "button": "4",
+    "gate": "pointer"
+  },
+  "key-digit5": {
+    "kind": "ssap.pointer-button",
+    "button": "5",
+    "gate": "pointer"
+  },
+  "key-digit6": {
+    "kind": "ssap.pointer-button",
+    "button": "6",
+    "gate": "pointer"
+  },
+  "key-digit7": {
+    "kind": "ssap.pointer-button",
+    "button": "7",
+    "gate": "pointer"
+  },
+  "key-digit8": {
+    "kind": "ssap.pointer-button",
+    "button": "8",
+    "gate": "pointer"
+  },
+  "key-digit9": {
+    "kind": "ssap.pointer-button",
+    "button": "9",
+    "gate": "pointer"
+  },
+  "key-dash": {
+    "kind": "ssap.pointer-button",
+    "button": "DASH",
+    "gate": "pointer"
+  },
+  "key-enter": {
+    "kind": "ssap.pointer-button",
+    "button": "ENTER",
+    "gate": "pointer"
+  },
+  "key-menu": {
+    "kind": "ssap.pointer-button",
+    "button": "MENU",
+    "gate": "pointer"
+  },
+  "key-info": {
+    "kind": "ssap.pointer-button",
+    "button": "INFO",
+    "gate": "pointer"
+  },
+  "key-guide": {
+    "kind": "ssap.pointer-button",
+    "button": "GUIDE",
+    "gate": "pointer"
+  },
+  "key-exit": {
+    "kind": "ssap.pointer-button",
+    "button": "EXIT",
+    "gate": "pointer"
+  },
+  "key-red": {
+    "kind": "ssap.pointer-button",
+    "button": "RED",
+    "gate": "pointer"
+  },
+  "key-green": {
+    "kind": "ssap.pointer-button",
+    "button": "GREEN",
+    "gate": "pointer"
+  },
+  "key-yellow": {
+    "kind": "ssap.pointer-button",
+    "button": "YELLOW",
+    "gate": "pointer"
+  },
+  "key-blue": {
+    "kind": "ssap.pointer-button",
+    "button": "BLUE",
+    "gate": "pointer"
+  },
+  "key-source": {
+    "kind": "ssap.pointer-button",
+    "button": "SOURCE",
+    "gate": "pointer"
+  },
+  "key-settings": {
+    "kind": "ssap.pointer-button",
+    "button": "MENU",
+    "gate": "pointer"
+  },
+  "key-mute": {
+    "kind": "ssap.pointer-button",
+    "button": "MUTE",
+    "gate": "pointer"
+  },
+  "key-replay": {
+    "kind": "ssap.pointer-button",
+    "button": "REPLAY",
+    "gate": "pointer"
+  },
+  "key-live-tv": {
+    "kind": "ssap.pointer-button",
+    "button": "LIVE_TV",
+    "gate": "pointer"
+  },
+  "key-captions": {
+    "kind": "ssap.pointer-button",
+    "button": "CAPTIONS",
+    "gate": "pointer"
+  },
+  "channel-up": {
+    "kind": "ssap.request",
+    "uri": "ssap://tv/channelUp"
+  },
+  "channel-down": {
+    "kind": "ssap.request",
+    "uri": "ssap://tv/channelDown"
+  },
+  "list-channels": {
+    "kind": "ssap.request",
+    "uri": "ssap://tv/getChannelList",
+    "result": "channels",
+    "readOnly": true
+  },
+  "select-channel": {
+    "kind": "ssap.request",
+    "uri": "ssap://tv/openChannel",
+    "payload": {
+      "channelId": {
+        "$argument": "target"
+      }
+    }
+  },
+  "media-play": {
+    "kind": "ssap.request",
+    "uri": "ssap://media.controls/play"
+  },
+  "media-pause": {
+    "kind": "ssap.request",
+    "uri": "ssap://media.controls/pause"
+  },
+  "media-stop": {
+    "kind": "ssap.request",
+    "uri": "ssap://media.controls/stop"
+  },
+  "media-rewind": {
+    "kind": "ssap.request",
+    "uri": "ssap://media.controls/rewind"
+  },
+  "media-fast-forward": {
+    "kind": "ssap.request",
+    "uri": "ssap://media.controls/fastForward"
+  },
+  "send-text": {
+    "kind": "ssap.request",
+    "uri": "ssap://com.webos.service.ime/insertText",
+    "payload": {
+      "text": {
+        "$argument": "text"
+      },
+      "replace": 0
+    },
+    "constraints": {
+      "text": {
+        "minLength": 1,
+        "maxLength": 2048
+      }
+    }
+  },
+  "send-enter": {
+    "kind": "ssap.request",
+    "uri": "ssap://com.webos.service.ime/sendEnterKey"
+  },
+  "list-inputs": {
+    "kind": "ssap.request",
+    "uri": "ssap://tv/getExternalInputList",
+    "result": "inputs"
+  },
+  "select-input": {
+    "kind": "ssap.request",
+    "uri": "ssap://tv/switchInput",
+    "payload": {
+      "inputId": {
+        "$argument": "target"
+      }
+    }
+  },
+  "list-applications": {
+    "kind": "ssap.request",
+    "uri": "ssap://com.webos.applicationManager/listApps",
+    "result": "applications"
+  },
+  "launch-application": {
+    "kind": "ssap.launch",
+    "uri": "ssap://system.launcher/launch",
+    "openUri": "ssap://system.launcher/open"
+  },
+  "read-content": {
+    "kind": "ssap.read-content",
+    "uri": "ssap://com.webos.applicationManager/getForegroundAppInfo",
+    "applicationsUri": "ssap://com.webos.applicationManager/listApps",
+    "channelUri": "ssap://tv/getCurrentChannel",
+    "liveTvApplicationId": "com.webos.app.livetv",
+    "inputApplicationPrefix": "com.webos.app.hdmi",
+    "inputIdPrefix": "HDMI_",
+    "inputNamePrefix": "HDMI ",
+    "readOnly": true
+  },
+  "subscribe-content": {
+    "kind": "ssap.subscribe",
+    "uri": "ssap://com.webos.applicationManager/getForegroundAppInfo",
+    "applicationsUri": "ssap://com.webos.applicationManager/listApps",
+    "channelUri": "ssap://tv/getCurrentChannel",
+    "liveTvApplicationId": "com.webos.app.livetv",
+    "inputApplicationPrefix": "com.webos.app.hdmi",
+    "inputIdPrefix": "HDMI_",
+    "inputNamePrefix": "HDMI ",
+    "result": "content"
+  },
+  "list-accessories": {
+    "kind": "ssap.request",
+    "uri": "ssap://com.webos.service.btaudiosrc/getPairedDevices",
+    "result": "accessories"
+  },
+  "toggle-accessory": {
+    "kind": "ssap.toggle-accessory",
+    "uri": "ssap://com.webos.service.btaudiosrc/getPairedDevices",
+    "connectUri": "ssap://com.webos.service.btaudiosrc/connect",
+    "disconnectUri": "ssap://com.webos.service.btaudiosrc/disconnect"
+  },
+  "open-accessory-settings": {
+    "kind": "ssap.launch-reported",
+    "uri": "ssap://system.launcher/launch",
+    "applicationId": "com.palm.app.settings",
+    "params": {
+      "params": {
+        "target": "sound"
+      }
+    }
+  },
+  "read-wake-address": {
+    "kind": "ssap.wake-address",
+    "service": "ssap://com.webos.service.connectionmanager"
+  }
+}

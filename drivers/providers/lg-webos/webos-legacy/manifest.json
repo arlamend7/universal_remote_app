@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "integrationId": "lg.webos.legacy",
+  "providerId": "lg.webos",
+  "name": "LG webOS (legacy)",
+  "manufacturer": "LG",
+  "platform": "webOS",
+  "engine": "ssap",
+  "priority": 0,
+  "requiredRuntime": {
+    "api": 2,
+    "operations": [
+      "network.wake-on-lan",
+      "ssap.identify",
+      "ssap.launch",
+      "ssap.launch-reported",
+      "ssap.pointer-button",
+      "ssap.pointer-click",
+      "ssap.pointer-move",
+      "ssap.pointer-open",
+      "ssap.pointer-scroll",
+      "ssap.read-content",
+      "ssap.request",
+      "ssap.subscribe",
+      "ssap.toggle-accessory",
+      "ssap.wake-address"
+    ]
+  },
+  "credentialScope": "device",
+  "compatibility": {
+    "osVersion": "<7",
+    "versionScheme": "dotted-numeric"
+  },
+  "profiles": [
+    {
+      "id": "bootstrap",
+      "stage": "bootstrap"
+    }
+  ],
+  "capabilities": [
+    "volume",
+    "volumeFeedback",
+    "absoluteVolume",
+    "mute",
+    "applications",
+    "accessorySettings",
+    "inputs",
+    "navigation",
+    "pointer",
+    "bluetoothAccessories",
+    "screenPower",
+    "currentContent",
+    "currentInput",
+    "channels",
+    "media",
+    "textInput",
+    "channelSelection",
+    "power"
+  ],
+  "replaces": [
+    "lg-webos"
+  ]
+}

@@ -6,7 +6,14 @@ import 'package:test/test.dart';
 /// Compares a transcript with `test/parity/golden/<name>.json`.
 ///
 /// Set `UPDATE_PARITY_GOLDENS=1` only when recording the legacy baseline.
-void expectParityGolden(String name, List<Map<String, Object?>> transcript) {
+///
+/// [improvements] documents intended differences for the migrated runtime:
+/// each function rewrites the recorded legacy step before comparison.
+void expectParityGolden(
+  String name,
+  List<Map<String, Object?>> transcript, {
+  Map<String, Object? Function(Object? legacy)> improvements = const {},
+}) {
   final file = _golden(name);
   final actual = '${const JsonEncoder.withIndent('  ').convert(transcript)}\n';
   if (Platform.environment['UPDATE_PARITY_GOLDENS'] == '1') {
@@ -18,7 +25,10 @@ void expectParityGolden(String name, List<Map<String, Object?>> transcript) {
     isTrue,
     reason: 'Record the legacy parity baseline for $name first.',
   );
-  final expected = jsonDecode(file.readAsStringSync()) as List<Object?>;
+  final expected = [
+    for (final step in jsonDecode(file.readAsStringSync()) as List<Object?>)
+      improvements[(step! as Map)['step']]?.call(step) ?? step,
+  ];
   final recorded = jsonDecode(actual) as List<Object?>;
   for (var index = 0; index < expected.length; index++) {
     expect(
