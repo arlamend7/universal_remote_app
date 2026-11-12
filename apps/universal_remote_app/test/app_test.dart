@@ -10,6 +10,8 @@ import 'package:universal_remote_app/data/devices/repositories/saved_device_repo
 import 'package:universal_remote_app/data/pairing/repositories/secure_credential_store.dart';
 
 import 'support/fake_provider.dart';
+
+import 'support/integration_providers.dart';
 import 'support/memory_storage.dart';
 import 'support/fixture_protocols.dart';
 import 'support/test_device.dart';
@@ -203,6 +205,7 @@ void main() {
   ) async {
     final dependencies = await AppBootstrap.initialize(
       storage: MemoryStorage(),
+      registry: integrationProviders(SecureCredentialStore(MemoryStorage())),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
     await tester.tap(find.byTooltip('Connect by IP'));

@@ -17,6 +17,7 @@ void main() {
     owner.contentControl.update(
       const CurrentContent(
         appId: 'com.webos.app.livetv',
+        liveTv: true,
         appName: 'Live TV',
         channelNumber: '7.1',
         channelName: 'CBC',

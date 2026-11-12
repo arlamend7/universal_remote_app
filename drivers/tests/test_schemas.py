@@ -26,6 +26,19 @@ class SchemaTest(unittest.TestCase):
         self.schemas.validate("capabilities.schema.json", _load("capabilities.json"))
         self.schemas.validate("mappings.schema.json", _load("mappings.json"))
 
+    def test_every_integration_folder_satisfies_the_schemas(self):
+        providers = ROOT / "providers"
+        for manifest in providers.rglob("manifest.json"):
+            folder = manifest.parent
+            for name, schema in [
+                ("manifest.json", "manifest.schema.json"),
+                ("capabilities.json", "capabilities.schema.json"),
+                ("mappings.json", "mappings.schema.json"),
+            ]:
+                document = json.loads((folder / name).read_text("utf-8"))
+                with self.subTest(folder=str(folder.relative_to(providers)), file=name):
+                    self.schemas.validate(schema, document)
+
     def test_manifest_has_no_package_version(self):
         manifest = _load("manifest.json")
         manifest["version"] = "1.0.0"

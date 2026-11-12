@@ -1,7 +1,7 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 
-import '../adapters/lg_webos/support/memory_credentials.dart';
+import '../support/memory_credentials.dart';
 
 /// Builds a session context and records state transitions and pairing.
 final class EngineTestContext {

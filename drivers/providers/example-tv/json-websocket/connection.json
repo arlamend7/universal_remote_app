@@ -1,0 +1,5 @@
+{
+  "pairing": {"message": {"type": "pair"}},
+  "authentication": {"message": {"type": "hello"}},
+  "timeoutMs": 5000
+}

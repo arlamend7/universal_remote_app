@@ -59,6 +59,15 @@ final class ProviderRegistry {
     _definitions[definition.id] = definition;
   }
 
+  /// Replaces a provider's definition, for example after its integration
+  /// data was refreshed; unknown providers are registered.
+  void replaceDefinition(ProviderDefinition<RemoteBase> definition) {
+    if (definition.id.trim().isEmpty) {
+      throw ArgumentError('Provider ID must be nonempty.');
+    }
+    _definitions[definition.id] = definition;
+  }
+
   void _validateId(String id) {
     if (id.trim().isEmpty || _definitions.containsKey(id)) {
       throw ArgumentError('Provider ID must be unique and nonempty.');

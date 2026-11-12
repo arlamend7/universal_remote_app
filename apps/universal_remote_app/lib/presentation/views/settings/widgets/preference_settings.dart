@@ -41,11 +41,8 @@ class PreferenceSettings extends StatelessWidget {
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => DriverExplorerPage(
-                catalogs: model.dependencies.drivers?.catalogs,
-                inventory:
-                    model.dependencies.drivers?.manager.inventory ?? const {},
-              ),
+              builder: (_) =>
+                  DriverExplorerPage(drivers: model.dependencies.drivers),
             ),
           ),
         ),

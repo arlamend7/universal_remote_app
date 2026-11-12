@@ -2,7 +2,7 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:test/test.dart';
 
-import '../adapters/lg_webos/support/memory_credentials.dart';
+import '../support/memory_credentials.dart';
 import 'generic_parity_controller.dart';
 import 'roku_ecp_parity_server.dart';
 import 'support/parity_golden.dart';

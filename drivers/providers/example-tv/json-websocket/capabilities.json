@@ -1,0 +1,4 @@
+{
+  "volume": {"alternatives": [["volume-up", "volume-down"]]},
+  "volumeFeedback": {"alternatives": [["read-volume"]], "verify": {"operation": "read-volume"}}
+}

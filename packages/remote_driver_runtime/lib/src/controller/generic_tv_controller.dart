@@ -98,7 +98,13 @@ final class GenericTvController extends TVRemoteBase
     bool current() => !_disposed && generation == _generation;
     _setState(DeviceConnectionState.connecting);
     try {
-      final plan = _plan = await planner.prepare(_device);
+      final plan = _plan = await planner.prepare(
+        _device,
+        onProgress: _installProgress,
+      );
+      if (_installing) {
+        _installProgress(1);
+      }
       final opener = SessionOpener(
         planner: planner,
         credentials: credentials,
@@ -217,6 +223,24 @@ final class GenericTvController extends TVRemoteBase
     await _states.close();
     await _changes.close();
     await _inputs.close();
+  }
+
+  @override
+  bool get awaitingPairingCode => _pairing != null;
+
+  /// True while the integration package is being downloaded and verified.
+  bool get installing => _installing;
+  bool _installing = false;
+
+  /// Download progress (0–1) while [installing], or null when unknown.
+  double? installProgress;
+
+  void _installProgress(double? progress) {
+    _installing = progress == null || progress < 1;
+    installProgress = progress;
+    if (!_changes.isClosed) {
+      _changes.add(null);
+    }
   }
 
   @override

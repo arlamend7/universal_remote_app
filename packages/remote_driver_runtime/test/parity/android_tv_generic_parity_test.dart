@@ -3,7 +3,7 @@ import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:remote_driver_runtime/remote_v2.dart';
 import 'package:test/test.dart';
 
-import '../adapters/android_tv/support/memory_credentials.dart';
+import '../support/memory_credentials.dart';
 import 'android_tv_parity_server.dart';
 import 'generic_parity_controller.dart';
 import 'support/parity_golden.dart';

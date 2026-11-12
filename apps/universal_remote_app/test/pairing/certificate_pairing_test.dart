@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_driver_runtime/tv_provider_adapters.dart';
 import 'package:remote_network/remote_network.dart';
 import 'package:remote_ui/remote_ui.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
@@ -12,6 +11,7 @@ import 'package:universal_remote_app/app/app_dependencies.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 import 'package:universal_remote_app/data/pairing/repositories/secure_credential_store.dart';
 
+import '../support/lg_integration_provider.dart';
 import '../support/memory_storage.dart';
 import '../support/pairing_tv_transport.dart';
 
@@ -35,9 +35,9 @@ void main() {
         final pointer = PairingTvTransport()..pointer = true;
         late AppDependencies dependencies;
         var opens = 0;
-        final provider = LgWebOsProvider(
+        final provider = lgIntegrationProvider(
           credentials: credentials,
-          connector: (uri) async {
+          connector: (Uri uri) async {
             opens++;
             final trusted = dependencies.savedDevices.devices.value.single;
             if (trusted.metadata['trustedCertificateDer'] !=
@@ -48,16 +48,18 @@ void main() {
             return uri.path == '/pointer' ? pointer : main;
           },
         );
-        final base = provider.manualDevice(
-          '172.16.1.13',
-          profileId: 'living-room',
+        final base = provider.manualSetup!.manualDeviceFactory(
+          address: '172.16.1.13',
+          name: 'LG TV',
+          legacy: false,
+          allowInsecurePointer: false,
         );
         final tv = replacing
             ? copyDevice(base, metadata: {'trustedCertificateDer': 'BAUG'})
             : base;
         dependencies = await AppBootstrap.initialize(
           storage: storage,
-          registry: ProviderRegistry()..registerDefinition(provider.definition),
+          registry: ProviderRegistry()..registerDefinition(provider),
           hardwareAddressResolver: PlatformHardwareAddressResolver(
             supported: false,
           ),

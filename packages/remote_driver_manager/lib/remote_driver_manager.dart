@@ -1,29 +1,9 @@
-/// Compatibility and lifecycle services for managed remote drivers.
+/// Integration catalog, content-addressed installation, compatibility
+/// selection and provider registration for the driver runtime.
 library;
 
-export 'src/resolution/driver_candidate.dart';
-export 'src/resolution/driver_match.dart';
-export 'src/resolution/driver_rejection.dart';
-export 'src/resolution/driver_rejection_reason.dart';
-export 'src/resolution/driver_resolution.dart';
-export 'src/resolution/driver_resolver.dart';
-export 'src/resolution/driver_compatibility_resolver.dart';
-export 'src/lifecycle/driver_installation.dart';
-export 'src/lifecycle/driver_manager.dart';
-export 'src/lifecycle/driver_package.dart';
-export 'src/lifecycle/driver_package_repository.dart';
-export 'src/lifecycle/driver_package_storage.dart';
-export 'src/lifecycle/cached_driver_catalog.dart';
-export 'src/distribution/driver_catalog.dart';
-export 'src/distribution/driver_catalog_repository.dart';
 export 'src/distribution/driver_http_source.dart';
-export 'src/distribution/driver_release.dart';
 export 'src/distribution/driver_signature_verifier.dart';
-export 'src/distribution/http_driver_package_repository.dart';
-export 'src/connection/managed_driver_service.dart';
-export 'src/connection/managed_tv_controller.dart';
-export 'src/lifecycle/driver_update_service.dart';
-export 'src/lifecycle/local_driver_package_repository.dart';
 export 'src/catalog/catalog_integration.dart';
 export 'src/catalog/integration_catalog.dart';
 export 'src/catalog/signed_catalog_envelope.dart';
@@ -55,3 +35,6 @@ export 'src/selection/integration_resolver.dart';
 export 'src/selection/integration_selection.dart';
 export 'src/selection/selection_stage.dart';
 export 'src/selection/managed_integration_planner.dart';
+export 'src/installation/stored_zip_writer.dart';
+export 'src/installation/unavailable_package_source.dart';
+export 'src/service/integration_service.dart';

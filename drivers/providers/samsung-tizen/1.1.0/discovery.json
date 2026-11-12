@@ -1,9 +1,0 @@
-{
-  "targets": {
-    "ssdp": [
-      "urn:samsung.com:service:MultiScreenService:1"
-    ]
-  },
-  "port": 8002,
-  "path": "/api/v2/channels/samsung.remote.control"
-}

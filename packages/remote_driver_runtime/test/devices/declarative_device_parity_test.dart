@@ -1,15 +1,11 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/devices.dart';
-import 'package:remote_driver_runtime/src/adapters/android_tv/android_tv_provider.dart';
-import 'package:remote_driver_runtime/src/adapters/android_tv/discovery/android_tv_identifier.dart';
-import 'package:remote_driver_runtime/src/adapters/roku/roku_identifier.dart';
-import 'package:remote_driver_runtime/src/adapters/roku/roku_provider.dart';
-import 'package:remote_driver_runtime/src/adapters/samsung_tizen/discovery/samsung_identifier.dart';
-import 'package:remote_driver_runtime/src/adapters/samsung_tizen/samsung_provider.dart';
-import 'package:remote_driver_runtime/tv_provider_adapters.dart';
+
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:test/test.dart';
 
-import '../adapters/lg_webos/support/memory_credentials.dart';
 import 'driver_source_file.dart';
 import 'fake_discovery_network.dart';
 
@@ -43,19 +39,30 @@ DeclarativeManualSetup _setup(String providerId, String integration) =>
       DeviceRules.fromJson(driverSource(integration, 'device.json')).setup!,
     );
 
+/// Outputs recorded from the retired manufacturer identifiers and providers.
+final _golden = jsonDecode(
+  File(
+    Directory('test/devices/golden').existsSync()
+        ? 'test/devices/golden/legacy_devices.json'
+        : 'packages/remote_driver_runtime/test/devices/golden/legacy_devices.json',
+  ).readAsStringSync(),
+) as Map<String, Object?>;
+
 Future<void> _same(
-  ProviderIdentifier legacy,
   ProviderIdentifier declarative,
   DiscoveryObservation observation, {
   bool random = false,
 }) async {
   final token = DiscoveryCancellation();
-  final expected = await legacy.identify(observation, token);
   final actual = await declarative.identify(observation, token);
+  final key =
+      '${declarative.id} ${observation.serviceType} ${observation.endpoint} '
+      '${observation.metadata} ${random ? 'random' : 'stable'}';
+  expect(_golden.containsKey(key), isTrue, reason: key);
   expect(
     _device(actual?.profile.device, random: random),
-    _device(expected?.profile.device, random: random),
-    reason: '${observation.serviceType} ${observation.metadata}',
+    _golden[key],
+    reason: key,
   );
 }
 
@@ -89,7 +96,7 @@ void main() {
       _ssdp(service, '192.168.1.20', {'usn': 'notuuid'}),
       _ssdp('urn:other', '192.168.1.20', {'usn': 'uuid:abc'}),
     ]) {
-      await _same(const LgIdentifier(), declarative, observation);
+      await _same(declarative, observation);
     }
   });
 
@@ -116,7 +123,7 @@ void main() {
         'st': service,
       }),
     ]) {
-      await _same(const SamsungIdentifier(), declarative, observation);
+      await _same(declarative, observation);
     }
   });
 
@@ -143,7 +150,7 @@ void main() {
         'location': 'http://8.8.4.4:8060/',
       }),
     ]) {
-      await _same(const RokuIdentifier(), declarative, observation);
+      await _same(declarative, observation);
     }
   });
 
@@ -154,10 +161,8 @@ void main() {
         'android-tv/remote-v2',
         FakeDiscoveryNetwork(peer: peer),
       );
-      final legacy = AndroidTvIdentifier(inspectIdentity: (_) async => peer);
       for (final port in [6466, 6467]) {
         await _same(
-          legacy,
           declarative,
           DiscoveryObservation(
             protocolId: DiscoveryProtocol.bonjour,
@@ -172,30 +177,22 @@ void main() {
   });
 
   group('manual setup matches the legacy providers', () {
-    final credentials = MemoryCredentials();
-    final cases = <String, (ManualDeviceProvider, ManualDeviceProvider)>{
-      'lg': (
-        LgWebOsProvider(credentials: credentials),
-        _setup('lg.webos', 'lg-webos/webos-22-plus'),
-      ),
-      'samsung': (
-        SamsungProvider(credentials: credentials),
-        _setup('samsung.tizen', 'samsung-tizen/tizen-supported'),
-      ),
-      'android': (
-        AndroidTvProvider(credentials: credentials),
-        _setup('android.tv', 'android-tv/remote-v2'),
-      ),
-      'roku': (
-        const RokuProvider(),
-        _setup('roku.ecp', 'roku-ecp/roku-supported'),
-      ),
+    final cases = <String, ManualDeviceProvider>{
+      'lg': _setup('lg.webos', 'lg-webos/webos-22-plus'),
+      'samsung': _setup('samsung.tizen', 'samsung-tizen/tizen-supported'),
+      'android': _setup('android.tv', 'android-tv/remote-v2'),
+      'roku': _setup('roku.ecp', 'roku-ecp/roku-supported'),
     };
-    for (final MapEntry(key: name, value: (legacy, declarative))
-        in cases.entries) {
+    const labels = {
+      'lg': ('LG webOS', true),
+      'samsung': ('Samsung Tizen', true),
+      'android': ('Google TV / Android TV', false),
+      'roku': ('Roku (local HTTP)', false),
+    };
+    for (final MapEntry(key: name, value: declarative) in cases.entries) {
       test(name, () {
-        expect(declarative.manualSetupLabel, legacy.manualSetupLabel);
-        expect(declarative.showsAdvancedSetup, legacy.showsAdvancedSetup);
+        expect(declarative.manualSetupLabel, labels[name]!.$1);
+        expect(declarative.showsAdvancedSetup, labels[name]!.$2);
         final variants = [
           (address: '192.168.1.20', legacy: false, pointer: false, mac: ''),
           (address: '192.168.1.20', legacy: true, pointer: false, mac: ''),
@@ -209,18 +206,16 @@ void main() {
           (address: 'not an ip', legacy: false, pointer: false, mac: ''),
         ];
         for (final variant in variants) {
-          RemoteDevice? create(ManualDeviceProvider provider) =>
-              provider.manualDeviceFactory(
+          Object? outcome() {
+            try {
+              final device = declarative.manualDeviceFactory(
                 address: variant.address,
                 name: 'Den',
                 legacy: variant.legacy,
                 allowInsecurePointer: variant.pointer,
-                certificate: provider.showsAdvancedSetup ? 'AQID' : null,
+                certificate: declarative.showsAdvancedSetup ? 'AQID' : null,
                 mac: variant.mac,
               );
-          Object? outcome(ManualDeviceProvider provider) {
-            try {
-              final device = create(provider)!;
               return _device(device, random: true)
                 ..['id'] = device.id.replaceAll(
                   RegExp(r'[A-Za-z0-9_-]{24}$'),
@@ -231,7 +226,11 @@ void main() {
             }
           }
 
-          expect(outcome(declarative), outcome(legacy), reason: '$variant');
+          expect(
+            outcome(),
+            _golden['setup $name $variant'],
+            reason: '$variant',
+          );
         }
       });
     }

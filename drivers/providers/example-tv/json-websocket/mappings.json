@@ -1,0 +1,5 @@
+{
+  "volume-up": {"kind": "json-websocket.request", "message": {"type": "volumeUp"}},
+  "volume-down": {"kind": "json-websocket.request", "message": {"type": "volumeDown"}},
+  "read-volume": {"kind": "json-websocket.request", "message": {"type": "getVolume"}, "result": "volume", "readOnly": true}
+}

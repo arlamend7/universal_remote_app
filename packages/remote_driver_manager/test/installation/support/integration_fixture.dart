@@ -3,8 +3,6 @@ import 'dart:typed_data';
 
 import 'package:remote_driver_manager/remote_driver_manager.dart';
 
-import 'stored_zip_writer.dart';
-
 /// Builds signed catalog entries and packages for one example integration.
 final class IntegrationFixture {
   IntegrationFixture(this.sign, {this.keyId = 'fixture-key'});

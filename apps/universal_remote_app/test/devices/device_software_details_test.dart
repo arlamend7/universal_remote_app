@@ -17,8 +17,8 @@ void main() {
         providerId: 'lg.webos',
         softwareInformation: cached,
         metadata: {
-          'managedDriverVersion': '1.1.0',
-          'managedDriverProfile': 'existing-webos',
+          'driverIntegrationId': 'lg.webos.22-plus',
+          'driverProfileId': 'bootstrap',
         },
       );
       final live = DeviceSoftwareInformation(
@@ -49,8 +49,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('04.02.00'), findsOneWidget);
       expect(find.text('04.01.00'), findsNothing);
-      expect(find.text('1.1.0'), findsOneWidget);
-      expect(find.text('existing-webos'), findsOneWidget);
+      expect(find.text('lg.webos.22-plus'), findsOneWidget);
+      expect(find.text('bootstrap'), findsOneWidget);
       expect(find.text('Unknown'), findsWidgets);
     },
   );

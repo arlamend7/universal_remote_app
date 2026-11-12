@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../constants/default_lg_manifest.dart';
 import '../models/ssap_message.dart';
 import '../requests/ssap_pending_request.dart';
 import '../subscriptions/ssap_subscription.dart';
@@ -40,7 +39,7 @@ final class SsapClient {
     String? clientKey,
     bool forcePairing = false,
     Duration timeout = const Duration(seconds: 45),
-    Map<String, Object?> manifest = defaultLgManifest,
+    required Map<String, Object?> manifest,
   }) async {
     final payload = await _send(
       'register',

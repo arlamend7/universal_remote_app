@@ -1,10 +1,11 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
-import 'package:remote_driver_runtime/ssap.dart';
 import 'package:test/test.dart';
 
-import '../adapters/lg_webos/support/fake_transport.dart';
-import '../adapters/lg_webos/support/standard_responses.dart';
+import '../support/test_ssap_manifest.dart';
+
+import '../support/fake_transport.dart';
+import '../support/standard_responses.dart';
 import 'engine_test_context.dart';
 
 OperationMapping _map(
@@ -16,7 +17,7 @@ OperationMapping _map(
 void main() {
   final engine = SsapEngine();
   final connection = {
-    'registration': defaultLgManifest,
+    'registration': testSsapManifest,
     'allowLegacyTransport': true,
   };
   RemoteDevice device({bool optIn = true}) => RemoteDevice(
@@ -71,7 +72,7 @@ void main() {
     test('registration manifests cannot carry signatures or identities', () {
       expect(
         () => engine.compileConnection({
-          'registration': {...defaultLgManifest, 'signed': <String, Object?>{}},
+          'registration': {...testSsapManifest, 'signed': <String, Object?>{}},
         }),
         throwsFormatException,
       );

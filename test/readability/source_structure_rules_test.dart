@@ -77,4 +77,17 @@ void main() {
       isNotEmpty,
     );
   });
+  test('generic code cannot name provider IDs', () {
+    expect(
+      rules.inspect(source, "bool lg(String id) => id == 'lg.webos';"),
+      isNotEmpty,
+    );
+    expect(
+      rules.inspect(
+        'packages/remote_driver_runtime/lib/src/engines/x/x.dart',
+        "const engine = 'ssap';",
+      ),
+      isEmpty,
+    );
+  });
 }

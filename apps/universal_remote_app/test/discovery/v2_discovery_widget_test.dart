@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_driver_runtime/tv_provider_adapters.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
+import 'package:universal_remote_app/data/pairing/repositories/secure_credential_store.dart';
+
 import '../support/fake_controller.dart';
+import '../support/lg_integration_provider.dart';
 import '../support/memory_storage.dart';
 
 void main() {
@@ -38,8 +40,8 @@ void main() {
         });
       final providers = ProviderRegistry()
         ..registerDefinition(
-          ProviderDefinition(
-            identifier: const LgIdentifier(),
+          lgIntegrationProvider(
+            credentials: SecureCredentialStore(MemoryStorage()),
             createController: (device) {
               controllers++;
               return FakeController(device);

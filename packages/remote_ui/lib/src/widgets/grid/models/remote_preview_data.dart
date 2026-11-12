@@ -7,6 +7,7 @@ final class RemotePreviewData {
   VolumeState get volume => const VolumeState(35, false);
   CurrentContent get content => const CurrentContent(
     appId: 'com.webos.app.livetv',
+    liveTv: true,
     appName: 'Live TV',
     channelNumber: '42',
     channelName: 'National Geographic HD',

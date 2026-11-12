@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../../driver_text_session.dart';
+import 'driver_text_session.dart';
 import '../common/payload_template.dart';
 import '../contracts/content_reading.dart';
 import '../contracts/engine_operation.dart';

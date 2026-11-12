@@ -1,9 +1,0 @@
-{
-  "targets": {
-    "ssdp": [
-      "roku:ecp"
-    ]
-  },
-  "port": 8060,
-  "path": "/"
-}

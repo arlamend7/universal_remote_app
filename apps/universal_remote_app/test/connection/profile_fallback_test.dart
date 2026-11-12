@@ -1,49 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
-import 'package:universal_remote_app/domains/connection/services/connection_controller.dart';
-import 'package:universal_remote_app/domains/diagnostics/services/diagnostic_logger.dart';
 
 import '../support/fake_provider.dart';
 import '../support/memory_storage.dart';
 import '../support/test_device.dart';
 
 void main() {
-  test(
-    'driver preparation runs before controller creation and cancels',
-    () async {
-      final provider = FakeProvider();
-      final registry = ProviderRegistry()
-        ..registerDefinition(provider.definition);
-      final app = await AppBootstrap.initialize(
-        storage: MemoryStorage(),
-        registry: registry,
-      );
-      addTearDown(app.dispose);
-      final entered = Completer<void>();
-      final connection = ConnectionController(
-        registry,
-        app.savedDevices,
-        DiagnosticLogger(),
-        beforeConnecting: (_, cancelled, cancellation) async {
-          entered.complete();
-          await cancellation.first;
-          expect(cancelled(), isTrue);
-        },
-      );
-      addTearDown(connection.dispose);
-      final connecting = connection.connect(tv);
-      await entered.future;
-      expect(provider.last, isNull);
-      await connection.disconnect();
-      await connecting;
-      expect(provider.last, isNull);
-      expect(connection.state.value, DeviceConnectionState.disconnected);
-    },
-  );
-
   for (final failure in ['network', 'tls']) {
     test(
       'linked profile fallback is bounded and excludes $failure when unsafe',

@@ -1,9 +1,0 @@
-{
-  "targets": {
-    "bonjour": [
-      "_androidtvremote2._tcp"
-    ]
-  },
-  "port": 6466,
-  "path": "/"
-}

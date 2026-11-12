@@ -3,8 +3,8 @@ import 'package:remote_driver_runtime/integrations.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:test/test.dart';
 
-import '../adapters/lg_webos/support/fake_transport.dart';
-import '../adapters/lg_webos/support/standard_responses.dart';
+import '../support/fake_transport.dart';
+import '../support/standard_responses.dart';
 import '../engines/engine_test_context.dart';
 import 'ssap_test_integration.dart';
 

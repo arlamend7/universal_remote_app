@@ -4,6 +4,10 @@ import 'package:universal_remote_app/app/app_bootstrap.dart';
 
 import '../support/memory_storage.dart';
 import '../support/fake_provider.dart';
+import '../support/integration_providers.dart';
+
+import 'package:universal_remote_app/data/pairing/repositories/secure_credential_store.dart';
+
 import '../support/test_device.dart';
 
 void main() {
@@ -20,7 +24,11 @@ void main() {
       isFalse,
     );
     await fake.dispose();
-    final lg = await AppBootstrap.initialize(storage: MemoryStorage());
+    final storage = MemoryStorage();
+    final lg = await AppBootstrap.initialize(
+      storage: storage,
+      registry: integrationProviders(SecureCredentialStore(storage)),
+    );
     final device = RemoteDevice(id: 'lg', name: 'LG', providerId: 'lg.webos');
     expect(lg.providers.canWake(device), isFalse);
     expect(

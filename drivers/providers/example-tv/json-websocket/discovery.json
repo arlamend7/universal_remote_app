@@ -1,0 +1,12 @@
+{
+  "label": "Example TV",
+  "protocol": "ssdp",
+  "service": "urn:example:device:tv:1",
+  "address": "local",
+  "identity": {"source": "usn", "pattern": "^uuid:[0-9a-z-]{8,64}$", "lowercase": true, "template": "{providerId}:{value}"},
+  "endpoint": {"scheme": "wss", "port": 7443, "path": "/remote"},
+  "name": {"metadata": "friendlyname", "fallback": "Example TV"},
+  "manufacturer": "Example",
+  "category": "television",
+  "addressProbe": {"kind": "ssdp"}
+}

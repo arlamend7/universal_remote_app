@@ -8,6 +8,10 @@ import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
 import '../support/fake_wake_provider.dart';
+
+import 'package:universal_remote_app/data/pairing/repositories/secure_credential_store.dart';
+
+import '../support/integration_providers.dart';
 import '../support/memory_storage.dart';
 import '../support/test_device.dart';
 
@@ -17,7 +21,10 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    final app = await AppBootstrap.initialize(storage: MemoryStorage());
+    final app = await AppBootstrap.initialize(
+      storage: MemoryStorage(),
+      registry: integrationProviders(SecureCredentialStore(MemoryStorage())),
+    );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
     await tester.tap(find.byTooltip('Connect by IP'));
     await tester.pumpAndSettle();

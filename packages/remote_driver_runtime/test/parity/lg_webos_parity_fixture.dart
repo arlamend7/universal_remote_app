@@ -1,9 +1,9 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../adapters/lg_webos/support/fake_transport.dart';
-import '../adapters/lg_webos/support/memory_credentials.dart';
-import '../adapters/lg_webos/support/standard_responses.dart';
+import '../support/fake_transport.dart';
+import '../support/memory_credentials.dart';
+import '../support/standard_responses.dart';
 import 'support/parity_recorder.dart';
 import 'support/parity_targets.dart';
 import 'support/recording_transport.dart';

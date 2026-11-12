@@ -33,7 +33,30 @@ final class SourceStructureRules {
     }
     issues.addAll(_controlFlow(path, masked));
     issues.addAll(_boundaries(path, source));
+    issues.addAll(_providerIds(path, source));
     return issues;
+  }
+
+  /// Provider IDs belong in driver data; generic library code must not
+  /// branch on them. Protocol engines may name their own protocol only.
+  static final _providerId = RegExp(
+    r'''['"](lg\.webos|android\.tv|samsung\.tizen|roku\.ecp)['"]''',
+  );
+
+  List<String> _providerIds(String path, String source) {
+    if (path.contains('/test/') ||
+        path.startsWith('packages/remote_driver_runtime/lib/src/engines/')) {
+      return const [];
+    }
+    return [
+      for (final match in _providerId.allMatches(source))
+        _location(
+          path,
+          source,
+          match.start,
+          'provider ID ${match.group(1)} belongs in driver data, not code.',
+        ),
+    ];
   }
 
   List<String> _controlFlow(String path, String source) {

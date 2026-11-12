@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
+import 'package:remote_driver_manager/remote_driver_manager.dart'
+    show IntegrationMetadataKeys;
 import 'package:remote_ui/remote_ui.dart';
 
 import '../../devices/services/saved_devices_controller.dart';
@@ -18,7 +20,6 @@ class ConnectionController implements RemotePanelSession {
     this.wakeLearner,
     this.removeDashboards,
     this.autoReconnect,
-    this.beforeConnecting,
     this.clearManagedCredentials,
     this.pinFirstCertificate,
     this.wakeRetryDelay = const Duration(seconds: 2),
@@ -26,12 +27,6 @@ class ConnectionController implements RemotePanelSession {
   final DeviceWakeLearner? wakeLearner;
   final Future<void> Function(Iterable<String>)? removeDashboards;
   final bool Function()? autoReconnect;
-  final Future<void> Function(
-    RemoteDevice device,
-    bool Function() cancelled,
-    Stream<void> cancellation,
-  )?
-  beforeConnecting;
   final Future<void> Function(RemoteDevice)? clearManagedCredentials;
 
   /// Pins the certificate of a TV that has none yet and returns the updated
@@ -70,7 +65,6 @@ class ConnectionController implements RemotePanelSession {
   ValueNotifier<bool> get commandBusy => _commands.busy;
   RemoteBase? get controller => _session?.controller;
   DeviceSession? _session;
-  Completer<void>? _preparing;
   Future<void> _cleanup = Future.value();
   Future<void>? _disposeFuture;
   int _generation = 0;
@@ -125,10 +119,6 @@ class ConnectionController implements RemotePanelSession {
       return;
     }
     try {
-      await _prepare(device, generation);
-      if (!_isCurrent(generation)) {
-        return;
-      }
       await DeviceConnectionWorkflow(retryDelay: wakeRetryDelay).run(
         wake: waking ? () => registry.wake(device) : null,
         connect: () => _connectAttempt(device, generation, waking: waking),
@@ -300,10 +290,9 @@ class ConnectionController implements RemotePanelSession {
               case final version?)
             'softwareVersion': version,
           for (final key in const [
-            'managedDriverId',
-            'managedDriverVersion',
-            'managedDriverProfile',
-            'managedDriverProfileVersion',
+            IntegrationMetadataKeys.integrationId,
+            IntegrationMetadataKeys.profileId,
+            IntegrationMetadataKeys.packageSha256,
           ])
             if (session.controller.device.metadata[key] case final value?)
               key: value,
@@ -404,29 +393,7 @@ class ConnectionController implements RemotePanelSession {
     revision.value++;
   }
 
-  Future<void> _prepare(RemoteDevice device, int generation) async {
-    final prepare = beforeConnecting;
-    if (prepare == null) {
-      return;
-    }
-    final pending = _preparing = Completer<void>();
-    try {
-      await prepare(
-        device,
-        () => !_isCurrent(generation),
-        pending.future.asStream(),
-      );
-    } finally {
-      if (identical(_preparing, pending)) {
-        _preparing = null;
-        pending.complete();
-      }
-    }
-  }
-
   Future<void> _clear() {
-    _preparing?.complete();
-    _preparing = null;
     final session = _session;
     _session = null;
     _cleanup = _cleanup.then((_) => _releaseSession(session));

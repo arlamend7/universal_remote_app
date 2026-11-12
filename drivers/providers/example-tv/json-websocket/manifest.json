@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "integrationId": "example.json-websocket",
+  "providerId": "example.smarttv",
+  "name": "Example JSON WebSocket TV",
+  "manufacturer": "Example",
+  "platform": "Example OS",
+  "engine": "json-websocket",
+  "requiredRuntime": {"api": 2, "operations": ["json-websocket.request"]},
+  "credentialScope": "integration",
+  "compatibility": {"versionScheme": "dotted-numeric"},
+  "profiles": [{"id": "bootstrap", "stage": "bootstrap"}],
+  "capabilities": ["volume", "volumeFeedback"],
+  "replaces": ["example.smarttv"]
+}

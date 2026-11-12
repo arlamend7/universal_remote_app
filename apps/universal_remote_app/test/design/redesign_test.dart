@@ -130,6 +130,7 @@ void main() {
       provider.last!.contentControl.update(
         const CurrentContent(
           appId: 'com.webos.app.livetv',
+          liveTv: true,
           appName: 'Live TV',
           channelName: 'CBC',
           channelNumber: '7.1',

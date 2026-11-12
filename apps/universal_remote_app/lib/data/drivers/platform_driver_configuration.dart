@@ -1,40 +1,78 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/services.dart';
+import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
+import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
+/// Builds the integration service from build-time configuration and the
+/// platform's private driver storage and signature verifier.
 abstract final class PlatformDriverConfiguration {
   static const _channel = MethodChannel(
     'br.net.devcom.universal_remote/drivers',
   );
 
-  static Future<ManagedDriverService?> load() async {
+  /// Development integrations (such as Roku ECP) are offered only by
+  /// non-release builds that opt in.
+  static const allowDevelopment =
+      !kReleaseMode && bool.fromEnvironment('ALLOW_DEVELOPMENT_INTEGRATIONS');
+
+  static ProtocolEngineRegistry engines() => ProtocolEngineRegistry([
+    SsapEngine(),
+    RemoteV2Engine(),
+    SamsungChannelEngine(),
+    RokuEcpEngine(),
+    JsonWebSocketEngine(),
+  ]);
+
+  static Future<IntegrationService?> load(CredentialStore credentials) async {
     const local = String.fromEnvironment('DRIVER_LOCAL_PATH');
     if (!kReleaseMode && local.isNotEmpty) {
-      return _local(local);
+      return _local(local, credentials);
     }
     const url = String.fromEnvironment('DRIVER_CATALOG_BASE_URL');
     const keys = String.fromEnvironment('DRIVER_TRUSTED_KEYS');
-    if (url.isEmpty ||
-        keys.isEmpty ||
+    if (keys.isEmpty ||
         !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return null;
     }
+    final path = await _storageDirectory();
+    return IntegrationService(
+      root: Directory('$path/installed-drivers'),
+      legacyRoot: Directory(path),
+      engines: engines(),
+      credentials: credentials,
+      verify: _verifier(keys),
+      source: url.isEmpty ? null : DriverHttpSource(Uri.parse(url)),
+      allowDevelopment: allowDevelopment,
+    );
+  }
+
+  static Future<IntegrationService> _local(
+    String folder,
+    CredentialStore credentials,
+  ) async {
+    final path = await _storageDirectory();
+    final service = IntegrationService(
+      root: Directory('$path/development'),
+      engines: engines(),
+      credentials: credentials,
+      verify: (_, _, _) async => false,
+      allowDevelopment: true,
+    );
+    await service.installLocalFolder(Directory(folder));
+    return service;
+  }
+
+  static DriverSignatureVerifier _verifier(String keys) {
     final values = jsonDecode(keys);
     if (values is! Map<String, Object?> || values.isEmpty) {
       throw const FormatException('Invalid driver trust configuration.');
     }
     final trusted = values.map(_decodeKey);
-    final path = await _storageDirectory();
-    final source = DriverHttpSource(Uri.parse(url));
-    final storage = DriverPackageStorage(Directory(path));
-    Future<bool> verify(
-      String keyId,
-      Uint8List payload,
-      Uint8List signature,
-    ) async {
+    return (keyId, payload, signature) async {
       final key = trusted[keyId];
       if (key == null) {
         return false;
@@ -45,29 +83,7 @@ abstract final class PlatformDriverConfiguration {
             'signature': signature,
           }) ??
           false;
-    }
-
-    final catalogs = DriverCatalogRepository(source, storage, verify);
-    final packages = HttpDriverPackageRepository(source, catalogs, verify);
-    final manager = DriverManager(storage, packages);
-    return ManagedDriverService(
-      manager,
-      catalogs,
-      updates: DriverUpdateService(manager, storage),
-    );
-  }
-
-  static Future<ManagedDriverService> _local(String path) async {
-    final repository = await LocalDriverPackageRepository.open(
-      Directory(path),
-      enabled: !kReleaseMode,
-    );
-    final directory = await _storageDirectory();
-    final storage = DriverPackageStorage(Directory('$directory/development'));
-    final manager = DriverManager(storage, repository);
-    await manager.initialize();
-    await manager.install(repository.package.identity);
-    return ManagedDriverService(manager, null);
+    };
   }
 
   static Future<String> _storageDirectory() async {

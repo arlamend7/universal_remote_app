@@ -2,7 +2,7 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:test/test.dart';
 
-import '../adapters/samsung_tizen/support/samsung_test_transport.dart';
+import '../support/samsung_test_transport.dart';
 import 'engine_test_context.dart';
 
 void main() {

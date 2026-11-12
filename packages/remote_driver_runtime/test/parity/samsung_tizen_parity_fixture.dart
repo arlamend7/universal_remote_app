@@ -1,8 +1,8 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../adapters/samsung_tizen/support/samsung_test_credentials.dart';
-import '../adapters/samsung_tizen/support/samsung_test_transport.dart';
+import '../support/samsung_test_credentials.dart';
+import '../support/samsung_test_transport.dart';
 import 'support/parity_recorder.dart';
 import 'support/parity_targets.dart';
 import 'support/recording_transport.dart';

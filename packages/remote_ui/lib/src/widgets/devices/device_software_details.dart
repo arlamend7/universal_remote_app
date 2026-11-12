@@ -21,8 +21,9 @@ class DeviceSoftwareDetails extends StatelessWidget {
       ('Manufacturer software', information?.softwareVersion),
       ('Build number', information?.buildNumber),
       ('Protocol version', information?.protocolVersion),
-      ('Driver version', driver['managedDriverVersion']),
-      ('Compatibility profile', driver['managedDriverProfile']),
+      ('Driver integration', driver['driverIntegrationId']),
+      ('Compatibility profile', driver['driverProfileId']),
+      ('Driver package', _shortHash(driver['driverPackageSha256'])),
       (
         'Last identified',
         reportedAt == null
@@ -60,4 +61,7 @@ class DeviceSoftwareDetails extends StatelessWidget {
     DeviceInformationSource.legacyCache => 'Previously saved TV information',
     null => null,
   };
+
+  static String? _shortHash(String? sha256) =>
+      sha256 == null || sha256.length < 12 ? sha256 : sha256.substring(0, 12);
 }

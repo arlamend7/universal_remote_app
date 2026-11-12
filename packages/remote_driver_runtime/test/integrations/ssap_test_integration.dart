@@ -1,6 +1,6 @@
-import 'dart:convert';
+import '../support/test_ssap_manifest.dart';
 
-import 'package:remote_driver_runtime/ssap.dart';
+import 'dart:convert';
 
 /// A small SSAP integration whose JSON each test can edit.
 Map<String, Object?> ssapManifest({
@@ -103,7 +103,7 @@ Map<String, String> ssapFiles({
   'mappings.json': jsonEncode(mappings ?? ssapMappings()),
   'capabilities.json': jsonEncode(capabilities ?? ssapCapabilities()),
   'connection.json': jsonEncode({
-    'registration': defaultLgManifest,
+    'registration': testSsapManifest,
     'allowLegacyTransport': true,
   }),
 };

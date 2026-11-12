@@ -2,7 +2,6 @@
 library;
 
 export 'src/remote_v2/protocol/android_app_links.dart';
-export 'src/remote_v2/protocol/android_key_codes.dart';
 export 'src/remote_v2/protocol/android_pairing.dart';
 export 'src/remote_v2/protocol/android_remote_session.dart';
 export 'src/remote_v2/protocol/framed_socket.dart';

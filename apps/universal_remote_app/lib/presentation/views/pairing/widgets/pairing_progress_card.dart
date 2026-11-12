@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_driver_manager/remote_driver_manager.dart';
+import 'package:remote_driver_runtime/integrations.dart';
 import 'package:remote_ui/remote_ui.dart';
 
 import 'pairing_code_card.dart';
@@ -18,11 +18,9 @@ class PairingProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = model.connection.controller;
-    if (controller is ManagedTvController && controller.choices.isNotEmpty) {
-      return _driverChoices(controller);
-    }
     if (model.state == DeviceConnectionState.pairing &&
-        controller is PairingCodeReceiver) {
+        controller is PairingCodeReceiver &&
+        (controller as PairingCodeReceiver).awaitingPairingCode) {
       return PairingCodeCard(
         receiver: controller as PairingCodeReceiver,
         onCancel: model.disconnect,
@@ -30,13 +28,13 @@ class PairingProgressCard extends StatelessWidget {
       );
     }
     final installing =
-        controller is ManagedTvController && controller.installing;
+        controller is GenericTvController && controller.installing;
     return AppSheet(
       title: installing ? 'Installing TV driver…' : _title,
       onClose: model.disconnect,
       child: _body(
         installing,
-        controller is ManagedTvController ? controller.installProgress : null,
+        controller is GenericTvController ? controller.installProgress : null,
       ),
       footer: AppSheetActions(
         primary: OutlinedButton(
@@ -46,31 +44,6 @@ class PairingProgressCard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _driverChoices(ManagedTvController controller) => AppSheet(
-    title: 'Choose a TV driver',
-    onClose: model.disconnect,
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (final match in controller.choices)
-          ListTile(
-            title: Text(match.candidate.manifest.name),
-            subtitle: Text(
-              '${match.candidate.identity.id} · ${match.candidate.identity.version}',
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => controller.chooseDriver(match),
-          ),
-      ],
-    ),
-    footer: AppSheetActions(
-      primary: OutlinedButton(
-        onPressed: model.disconnect,
-        child: const Text('Cancel connection'),
-      ),
-    ),
-  );
 
   Widget _body(bool installing, double? progress) => Column(
     mainAxisSize: MainAxisSize.min,

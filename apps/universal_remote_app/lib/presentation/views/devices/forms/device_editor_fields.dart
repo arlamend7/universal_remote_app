@@ -72,7 +72,7 @@ class DeviceEditorFields extends StatelessWidget {
     contentPadding: EdgeInsets.zero,
     title: const Text('Legacy connection'),
     subtitle: const Text(
-      'Unencrypted port 3000. Use only on a trusted network.',
+      'Unencrypted transport. Use only on a trusted network.',
     ),
     value: model.legacy.value,
     onChanged: model.setLegacy,

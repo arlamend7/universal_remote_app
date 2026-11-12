@@ -2,11 +2,9 @@ import 'package:remote_ui/remote_ui.dart';
 
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
-import 'package:remote_driver_runtime/tv_provider_adapters.dart';
 import 'package:remote_network/remote_network.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
@@ -35,7 +33,7 @@ abstract final class AppBootstrap {
   static Future<AppDependencies> initialize({
     ApplicationStorage? storage,
     ApplicationStorage? credentialStorage,
-    ManagedDriverService? driverService,
+    IntegrationService? driverService,
     Future<PeerCertificate> Function(Uri)? inspectCertificate,
     ProviderRegistry? registry,
     DiscoveryRegistry? discoveryProtocols,
@@ -53,20 +51,10 @@ abstract final class AppBootstrap {
         : null;
     final CredentialStore credentials =
         sessionCredentials ?? protectedCredentials;
-    ManagedDriverService? managedDrivers;
-    DriverBindings? bindings(RemoteDevice device) =>
-        managedDrivers?.bindingsFor(device);
-    final providers =
-        registry ??
-        TvProviderAdapters.create(
-          credentials,
-          bindings,
-          enableRoku:
-              !kReleaseMode && const bool.fromEnvironment('ENABLE_ROKU_ECP'),
-        );
+    final providers = registry ?? ProviderRegistry();
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
-    final drivers = managedDrivers = await _initializeDrivers(
+    final drivers = await _initializeDrivers(
       driverService,
       providers,
       credentials,
@@ -94,6 +82,7 @@ abstract final class AppBootstrap {
     );
     final network = MulticastNetworkAccess();
     await saved.initialize();
+    await _migrateSavedDevices(drivers, saved);
     await settings.initialize();
     final grids = DeviceGridsController(
       LocalDashboardRepository(preferences),
@@ -107,16 +96,6 @@ abstract final class AppBootstrap {
       autoReconnect: () => settings.autoReconnect.value,
       removeDashboards: grids.removeForDevice,
       clearManagedCredentials: drivers?.clearCredentials,
-      beforeConnecting: drivers == null
-          ? null
-          : (device, cancelled, cancellation) => _prepareBindings(
-              drivers,
-              providers,
-              device,
-              logger,
-              cancelled: cancelled,
-              cancellation: cancellation,
-            ),
       pinFirstCertificate: (device, code) async {
         final unpinned = providers
             .networkConfiguration(device)
@@ -168,57 +147,50 @@ abstract final class AppBootstrap {
       drivers: drivers,
       checkDriverUpdates: drivers == null
           ? null
-          : () => _checkDriverUpdates(drivers, providers, saved, logger),
+          : () => _checkDriverUpdates(drivers, providers, logger),
       inspectCertificate: inspectCertificate ?? inspectTvCertificate,
     );
   }
 
-  static Future<void> _prepareBindings(
-    ManagedDriverService drivers,
-    ProviderRegistry providers,
-    RemoteDevice device,
-    DiagnosticLogger logger, {
-    required bool Function() cancelled,
-    required Stream<void> cancellation,
-  }) async {
-    if (!providers.providerFor(device).supportsManagedBindings) {
+  /// Rewrites version-based driver metadata on saved devices once; device
+  /// IDs, credentials, certificate pins and dashboards are untouched.
+  static Future<void> _migrateSavedDevices(
+    IntegrationService? drivers,
+    SavedDevicesController saved,
+  ) async {
+    if (drivers == null) {
       return;
     }
-    try {
-      await drivers.prepareBindings(
-        device,
-        cancelled: cancelled,
-        cancellation: cancellation,
-      );
-    } on Exception {
-      if (!cancelled()) {
-        logger.record(AppLogLevel.warning, 'drivers.bindingsUnavailable');
+    for (final device in saved.devices.value) {
+      final migrated = await drivers.migrateDevice(device);
+      if (!identical(migrated, device)) {
+        await saved.updateExisting(device.id, (_) => migrated);
       }
     }
   }
 
   static Future<void> _checkDriverUpdates(
-    ManagedDriverService drivers,
+    IntegrationService drivers,
     ProviderRegistry providers,
-    SavedDevicesController saved,
     DiagnosticLogger logger,
   ) async {
     try {
-      await drivers.checkUpdates(providers, saved.devices.value);
+      await drivers.checkUpdates(providers);
     } on Exception {
       logger.record(AppLogLevel.warning, 'drivers.updateFailed');
     }
   }
 
-  static Future<ManagedDriverService?> _initializeDrivers(
-    ManagedDriverService? service,
+  static Future<IntegrationService?> _initializeDrivers(
+    IntegrationService? service,
     ProviderRegistry registry,
     CredentialStore credentials,
     DiagnosticLogger logger,
   ) async {
     try {
-      final drivers = service ?? await PlatformDriverConfiguration.load();
-      await drivers?.initialize(registry, credentials: credentials);
+      final drivers =
+          service ?? await PlatformDriverConfiguration.load(credentials);
+      await drivers?.initialize(registry);
       return drivers;
     } on Exception {
       logger.record(AppLogLevel.warning, 'drivers.localInitializationFailed');

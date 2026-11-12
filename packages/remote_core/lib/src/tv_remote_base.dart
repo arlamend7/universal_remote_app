@@ -113,7 +113,9 @@ final class CurrentContent {
   final String? programTitle;
   final Duration? position;
   final Duration? duration;
-  bool get isLiveTv => liveTv || appId == 'com.webos.app.livetv';
+
+  /// Whether the integration reported live TV (tuner) content.
+  bool get isLiveTv => liveTv;
 }
 
 final class DeviceInput {

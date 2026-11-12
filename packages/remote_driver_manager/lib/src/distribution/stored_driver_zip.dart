@@ -1,22 +1,17 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:remote_driver_runtime/remote_driver_runtime.dart';
-
 /// Reads the bounded ZIP subset emitted by the driver package builder.
 final class StoredDriverZip {
-  StoredDriverZip(this._bytes, {RegExp? paths})
-    : _data = ByteData.sublistView(_bytes),
-      _paths = paths ?? _path;
+  StoredDriverZip(this._bytes) : _data = ByteData.sublistView(_bytes);
 
   /// Entry names permitted in a schema-2 integration package.
-  static final integrationPaths = RegExp(
+  static final _paths = RegExp(
     r'^(?:manifest|discovery|connection|identification|capabilities|mappings|workflows/[a-z][a-z0-9_-]{0,63})\.json$',
   );
 
   final Uint8List _bytes;
   final ByteData _data;
-  final RegExp _paths;
 
   Map<String, String> read() {
     final end = _bytes.length - 22;
@@ -30,7 +25,7 @@ final class StoredDriverZip {
     final central = _u32(end + 16);
     final centralSize = _u32(end + 12);
     if (count < 3 ||
-        count > DriverBundle.maximumFiles ||
+        count > _maximumFiles ||
         _u16(end + 8) != count ||
         central + centralSize != end) {
       throw _invalid;
@@ -78,7 +73,7 @@ final class StoredDriverZip {
         nameLength > 128 ||
         centralEnd > end ||
         localEnd > central ||
-        length > DriverBundle.maximumFileBytes ||
+        length > _maximumFileBytes ||
         _u32(cursor + 20) != length ||
         _u32(local) != 0x04034b50 ||
         _u32(local + 6) != 0 ||
@@ -105,8 +100,7 @@ final class StoredDriverZip {
   int _u16(int offset) => _data.getUint16(offset, Endian.little);
   int _u32(int offset) => _data.getUint32(offset, Endian.little);
 
+  static const _maximumFiles = 64;
+  static const _maximumFileBytes = 256 * 1024;
   static const _invalid = FormatException('Invalid or unsupported driver ZIP.');
-  static final _path = RegExp(
-    r'^(?:manifest|discovery|capabilities|bindings|(?:commands|workflows)/[a-z][a-z0-9_-]{0,63})\.json$',
-  );
 }

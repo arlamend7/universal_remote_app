@@ -12,10 +12,7 @@ final class IntegrationPackage {
   IntegrationPackage._(this.bytes, this.sha256, this.files, this.manifest);
 
   factory IntegrationPackage.read(Uint8List bytes) {
-    final files = StoredDriverZip(
-      bytes,
-      paths: StoredDriverZip.integrationPaths,
-    ).read();
+    final files = StoredDriverZip(bytes).read();
     for (final required in _required) {
       if (!files.containsKey(required)) {
         throw FormatException('Integration package is missing $required.');

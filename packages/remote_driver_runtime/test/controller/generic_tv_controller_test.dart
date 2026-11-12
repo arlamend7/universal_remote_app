@@ -5,9 +5,9 @@ import 'package:remote_driver_runtime/integrations.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:test/test.dart';
 
-import '../adapters/lg_webos/support/fake_transport.dart';
-import '../adapters/lg_webos/support/memory_credentials.dart';
-import '../adapters/lg_webos/support/standard_responses.dart';
+import '../support/fake_transport.dart';
+import '../support/memory_credentials.dart';
+import '../support/standard_responses.dart';
 import '../integrations/ssap_test_integration.dart';
 import 'static_integration_planner.dart';
 

@@ -17,10 +17,10 @@ String discoveryFailureMessage(Object failure) {
     case 'bonjourUnavailable':
       return 'The iOS Bonjour adapter is unavailable. Install the latest build or connect by IP.';
     case 'bonjourResolveFailed':
-      return 'An Android TV advertised its service, but its address could not be resolved. Retry or connect by IP.';
+      return 'A TV advertised its service, but its address could not be resolved. Retry or connect by IP.';
     case 'bonjourBrowseFailed':
     case 'mdnsOperationFailed':
-      return 'Android TV discovery could not complete. Check Local Network access and Wi-Fi, then retry or connect by IP.';
+      return 'Bonjour discovery could not complete. Check Local Network access and Wi-Fi, then retry or connect by IP.';
     case 'identificationFailed':
       return 'A device responded but could not be identified. Search again or connect by IP.';
     case 'devicePermissionDenied':
@@ -28,9 +28,9 @@ String discoveryFailureMessage(Object failure) {
     case 'invalidAdvertisement':
       return 'A discovery response could not be read. Retry or connect by IP.';
     case 'networkBlocked':
-      return 'Network discovery was blocked by the system (code $osCode). Check Local Network access. On iOS, verify the signed build has multicast access for LG discovery.';
+      return 'Network discovery was blocked by the system (code $osCode). Check Local Network access. On iOS, verify the signed build has multicast access.';
     case 'networkUnreachable':
-      return 'No usable route or Local Network access is blocked (code $osCode). Check Wi-Fi and Local Network access. On iOS, verify multicast signing for LG discovery.';
+      return 'No usable route or Local Network access is blocked (code $osCode). Check Wi-Fi and Local Network access. On iOS, verify multicast signing.';
   }
   if (failure is TimeoutException || diagnostic == 'responseTimeout') {
     return 'Discovery timed out. Check the TV is on the same network, then retry.';

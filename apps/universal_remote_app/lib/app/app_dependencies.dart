@@ -30,7 +30,7 @@ final class AppDependencies {
   final DeviceGridsController grids;
   final DeviceSleepController sleep;
   final ProviderRegistry providers;
-  final ManagedDriverService? drivers;
+  final IntegrationService? drivers;
   final Future<void> Function()? checkDriverUpdates;
   final Future<PeerCertificate> Function(Uri) inspectCertificate;
   final void Function()? disposeCredentials;

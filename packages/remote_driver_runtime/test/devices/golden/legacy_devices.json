@@ -1,0 +1,285 @@
+{
+  "lg.webos urn:lge-com:service:webos-second-screen:1 http://192.168.1.20:1900 {usn: uuid:abc-123::urn:x, friendlyname:  Living room , modelname: OLED55C2} stable": {
+    "id": "lg.webos:uuid:abc-123",
+    "name": "Living room",
+    "providerId": "lg.webos",
+    "manufacturer": "LG",
+    "model": "OLED55C2",
+    "category": "television",
+    "stableIdentity": true,
+    "endpoints": [
+      "wss://192.168.1.20:3001"
+    ],
+    "metadata": {
+      "usn": "uuid:abc-123::urn:x",
+      "friendlyname": " Living room ",
+      "modelname": "OLED55C2"
+    }
+  },
+  "lg.webos urn:lge-com:service:webos-second-screen:1 http://192.168.1.20:1900 {usn: uuid:abc} stable": {
+    "id": "lg.webos:uuid:abc",
+    "name": "LG webOS TV",
+    "providerId": "lg.webos",
+    "manufacturer": "LG",
+    "model": null,
+    "category": "television",
+    "stableIdentity": true,
+    "endpoints": [
+      "wss://192.168.1.20:3001"
+    ],
+    "metadata": {
+      "usn": "uuid:abc"
+    }
+  },
+  "lg.webos urn:lge-com:service:webos-second-screen:1 http://192.168.1.20:1900 {usn: notuuid} stable": {},
+  "lg.webos urn:other http://192.168.1.20:1900 {usn: uuid:abc} stable": {},
+  "samsung.tizen urn:samsung.com:service:MultiScreenService:1 http://192.168.1.42:1900 {usn: uuid:0EE3A7F0-1234-5678-9ABC-DEF012345678::x, st: urn:samsung.com:service:MultiScreenService:1, friendlyname: Samsung, modelname: QN65} stable": {
+    "id": "samsung.tizen:uuid:0ee3a7f0-1234-5678-9abc-def012345678",
+    "name": "Samsung",
+    "providerId": "samsung.tizen",
+    "manufacturer": "Samsung",
+    "model": "QN65",
+    "category": "television",
+    "stableIdentity": true,
+    "endpoints": [
+      "wss://192.168.1.42:8002/api/v2/channels/samsung.remote.control"
+    ],
+    "metadata": {}
+  },
+  "samsung.tizen urn:samsung.com:service:MultiScreenService:1 http://192.168.1.42:1900 {usn: uuid:0ee3a7f0-1234-5678, st: x} stable": {},
+  "samsung.tizen urn:samsung.com:service:MultiScreenService:1 http://8.8.8.8:1900 {usn: uuid:0ee3a7f0-1234-5678-9abc, st: urn:samsung.com:service:MultiScreenService:1} stable": {},
+  "roku.ecp roku:ecp http://192.168.1.30:1900 {usn: uuid:roku:ecp:YN00AB123456, st: roku:ecp, location: http://192.168.1.30:8060/} stable": {
+    "id": "roku.ecp:yn00ab123456",
+    "name": "Roku (YN00AB123456)",
+    "providerId": "roku.ecp",
+    "manufacturer": "Roku",
+    "model": null,
+    "category": "mediaPlayer",
+    "stableIdentity": true,
+    "endpoints": [
+      "http://192.168.1.30:8060"
+    ],
+    "metadata": {
+      "usn": "uuid:roku:ecp:YN00AB123456",
+      "rokuSerial": "YN00AB123456"
+    }
+  },
+  "roku.ecp roku:ecp http://192.168.1.30:1900 {usn: uuid:roku:ecp:YN00AB123456, st: roku:ecp, location: http://192.168.1.99:8060/} stable": {},
+  "roku.ecp roku:ecp http://8.8.4.4:1900 {usn: uuid:roku:ecp:YN00, st: roku:ecp, location: http://8.8.4.4:8060/} stable": {},
+  "android.tv _androidtvremote2._tcp tcp://192.168.1.50:6466 {name: Bedroom TV} stable": {
+    "id": "android-tv-AB:CD",
+    "name": "Bedroom TV",
+    "providerId": "android.tv",
+    "manufacturer": null,
+    "model": null,
+    "category": "television",
+    "stableIdentity": true,
+    "endpoints": [
+      "tls://192.168.1.50:6466"
+    ],
+    "metadata": {
+      "advertisedPeerIdentity": "AB:CD"
+    }
+  },
+  "android.tv _androidtvremote2._tcp tcp://192.168.1.50:6467 {name: Bedroom TV} stable": {},
+  "android.tv _androidtvremote2._tcp tcp://192.168.1.50:6466 {name: Bedroom TV} random": {
+    "id": "<profile>",
+    "name": "Bedroom TV",
+    "providerId": "android.tv",
+    "manufacturer": null,
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "tls://192.168.1.50:6466"
+    ],
+    "metadata": {}
+  },
+  "android.tv _androidtvremote2._tcp tcp://192.168.1.50:6467 {name: Bedroom TV} random": {},
+  "setup lg (address: 192.168.1.20, legacy: false, mac: , pointer: false)": {
+    "id": "lg.webos:profile:*",
+    "name": "Den",
+    "providerId": "lg.webos",
+    "manufacturer": "LG",
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "wss://192.168.1.20:3001"
+    ],
+    "metadata": {
+      "identitySource": "userProfile",
+      "allowInsecure": "false",
+      "trustedCertificateDer": "AQID"
+    }
+  },
+  "setup lg (address: 192.168.1.20, legacy: true, mac: , pointer: false)": {
+    "id": "lg.webos:profile:*",
+    "name": "Den",
+    "providerId": "lg.webos",
+    "manufacturer": "LG",
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "ws://192.168.1.20:3000"
+    ],
+    "metadata": {
+      "identitySource": "userProfile",
+      "allowInsecure": "true",
+      "trustedCertificateDer": "AQID"
+    }
+  },
+  "setup lg (address: 192.168.1.20, legacy: false, mac: , pointer: true)": {
+    "id": "lg.webos:profile:*",
+    "name": "Den",
+    "providerId": "lg.webos",
+    "manufacturer": "LG",
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "wss://192.168.1.20:3001"
+    ],
+    "metadata": {
+      "identitySource": "userProfile",
+      "allowInsecure": "true",
+      "trustedCertificateDer": "AQID"
+    }
+  },
+  "setup lg (address: 192.168.1.20, legacy: false, mac: aa-bb-cc-dd-ee-ff, pointer: false)": {
+    "id": "lg.webos:profile:*",
+    "name": "Den",
+    "providerId": "lg.webos",
+    "manufacturer": "LG",
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "wss://192.168.1.20:3001"
+    ],
+    "metadata": {
+      "identitySource": "userProfile",
+      "allowInsecure": "false",
+      "trustedCertificateDer": "AQID",
+      "macAddress": "aa:bb:cc:dd:ee:ff"
+    }
+  },
+  "setup lg (address: not an ip, legacy: false, mac: , pointer: false)": "rejected",
+  "setup samsung (address: 192.168.1.20, legacy: false, mac: , pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "samsung.tizen",
+    "manufacturer": "Samsung",
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "wss://192.168.1.20:8002/api/v2/channels/samsung.remote.control"
+    ],
+    "metadata": {
+      "trustedCertificateDer": "AQID"
+    }
+  },
+  "setup samsung (address: 192.168.1.20, legacy: true, mac: , pointer: false)": "rejected",
+  "setup samsung (address: 192.168.1.20, legacy: false, mac: , pointer: true)": "rejected",
+  "setup samsung (address: 192.168.1.20, legacy: false, mac: aa-bb-cc-dd-ee-ff, pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "samsung.tizen",
+    "manufacturer": "Samsung",
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "wss://192.168.1.20:8002/api/v2/channels/samsung.remote.control"
+    ],
+    "metadata": {
+      "trustedCertificateDer": "AQID",
+      "macAddress": "aa:bb:cc:dd:ee:ff"
+    }
+  },
+  "setup samsung (address: not an ip, legacy: false, mac: , pointer: false)": "rejected",
+  "setup android (address: 192.168.1.20, legacy: false, mac: , pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "android.tv",
+    "manufacturer": null,
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "tls://192.168.1.20:6466"
+    ],
+    "metadata": {}
+  },
+  "setup android (address: 192.168.1.20, legacy: true, mac: , pointer: false)": "rejected",
+  "setup android (address: 192.168.1.20, legacy: false, mac: , pointer: true)": "rejected",
+  "setup android (address: 192.168.1.20, legacy: false, mac: aa-bb-cc-dd-ee-ff, pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "android.tv",
+    "manufacturer": null,
+    "model": null,
+    "category": "television",
+    "stableIdentity": false,
+    "endpoints": [
+      "tls://192.168.1.20:6466"
+    ],
+    "metadata": {}
+  },
+  "setup android (address: not an ip, legacy: false, mac: , pointer: false)": "rejected",
+  "setup roku (address: 192.168.1.20, legacy: false, mac: , pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "roku.ecp",
+    "manufacturer": "Roku",
+    "model": null,
+    "category": "mediaPlayer",
+    "stableIdentity": false,
+    "endpoints": [
+      "http://192.168.1.20:8060"
+    ],
+    "metadata": {}
+  },
+  "setup roku (address: 192.168.1.20, legacy: true, mac: , pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "roku.ecp",
+    "manufacturer": "Roku",
+    "model": null,
+    "category": "mediaPlayer",
+    "stableIdentity": false,
+    "endpoints": [
+      "http://192.168.1.20:8060"
+    ],
+    "metadata": {}
+  },
+  "setup roku (address: 192.168.1.20, legacy: false, mac: , pointer: true)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "roku.ecp",
+    "manufacturer": "Roku",
+    "model": null,
+    "category": "mediaPlayer",
+    "stableIdentity": false,
+    "endpoints": [
+      "http://192.168.1.20:8060"
+    ],
+    "metadata": {}
+  },
+  "setup roku (address: 192.168.1.20, legacy: false, mac: aa-bb-cc-dd-ee-ff, pointer: false)": {
+    "id": "*",
+    "name": "Den",
+    "providerId": "roku.ecp",
+    "manufacturer": "Roku",
+    "model": null,
+    "category": "mediaPlayer",
+    "stableIdentity": false,
+    "endpoints": [
+      "http://192.168.1.20:8060"
+    ],
+    "metadata": {}
+  },
+  "setup roku (address: not an ip, legacy: false, mac: , pointer: false)": "rejected"
+}
