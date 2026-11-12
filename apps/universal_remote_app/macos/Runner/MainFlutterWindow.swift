@@ -10,6 +10,7 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    LocalNetworkChannel.register(with: flutterViewController.engine.binaryMessenger)
     registerDrivers(flutterViewController.engine.binaryMessenger)
     PreferencesChannel.register(with: flutterViewController.registrar(forPlugin: "UniversalRemotePreferences"))
 

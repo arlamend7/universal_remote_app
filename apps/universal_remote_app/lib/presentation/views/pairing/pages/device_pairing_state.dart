@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_ui/remote_ui.dart';
 
 import '../../../shared/widgets/connection_issue_page.dart';
 import '../../remote/viewmodels/remote_viewmodel.dart';
 import '../widgets/pairing_progress_card.dart';
-import 'device_pairing_sheet.dart';
+import '../widgets/pairing_step_page.dart';
+import 'device_pairing_page.dart';
 
-class DevicePairingState extends State<DevicePairingSheet> {
+class DevicePairingState extends State<DevicePairingPage> {
   late final _model = RemoteViewModel(widget.dependencies);
   late RemoteDevice _target = widget.device;
   Timer? _success;
@@ -38,7 +38,9 @@ class DevicePairingState extends State<DevicePairingSheet> {
     setState(
       () => _success = Timer(const Duration(milliseconds: 420), () {
         _success = null;
-        if (!mounted || _model.state != DeviceConnectionState.connected) {
+        if (!mounted ||
+            ModalRoute.of(context)?.isCurrent != true ||
+            _model.state != DeviceConnectionState.connected) {
           return;
         }
         Navigator.pop(context, _model.device ?? _target);
@@ -54,27 +56,35 @@ class DevicePairingState extends State<DevicePairingSheet> {
 
   Widget _content(BuildContext context, Widget? child) {
     if (_success != null && _model.state == DeviceConnectionState.connected) {
-      return AppSheet(
-        title: 'TV connected!',
-        subtitle: _model.device?.name ?? _target.name,
-        onClose: _close,
-        child: Icon(
-          Icons.check_circle_outline,
-          color: Theme.of(context).colorScheme.primary,
+      return PairingStepPage(
+        device: _model.device ?? _target,
+        onBack: _close,
+        connected: true,
+        body: ListTile(
+          leading: Icon(
+            Icons.check_circle_outline,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          title: const Text('TV connected!'),
         ),
       );
     }
-    if (_model.state == DeviceConnectionState.disconnected &&
+    if (_model.device?.id == _target.id &&
+        _model.state == DeviceConnectionState.disconnected &&
         _model.error != null) {
       return _failure();
     }
-    return PairingProgressCard(model: _model, onCancel: _close);
+    return PairingProgressCard(
+      model: _model,
+      onCancel: _close,
+      setupDevice: _target,
+    );
   }
 
-  Widget _failure() => AppSheet(
-    title: _target.name,
-    onClose: _close,
-    child: ConnectionIssuePage(
+  Widget _failure() => PairingStepPage(
+    device: _target,
+    onBack: _close,
+    body: ConnectionIssuePage(
       title: 'Could not connect',
       description: _model.error!,
       icon: Icons.link_off,
@@ -84,10 +94,10 @@ class DevicePairingState extends State<DevicePairingSheet> {
             onPressed: _reviewCertificate,
             child: Text('Review certificate'),
           ),
-        TextButton(onPressed: _close, child: Text('Back')),
-        FilledButton(onPressed: _connect, child: Text('Try again')),
       ],
     ),
+    secondary: OutlinedButton(onPressed: _close, child: const Text('Cancel')),
+    primary: FilledButton(onPressed: _connect, child: const Text('Try again')),
   );
 
   Future<void> _reviewCertificate() async {

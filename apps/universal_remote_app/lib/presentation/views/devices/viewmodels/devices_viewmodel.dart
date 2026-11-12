@@ -3,9 +3,8 @@ import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
 import '../modals/edit_device.dart';
-import '../../discovery/modals/show_device_discovery.dart';
+import '../../discovery/pages/show_device_discovery.dart';
 import '../modals/show_device_details.dart';
-import '../../pairing/modals/show_supported_remote_items.dart';
 
 import 'package:remote_ui/remote_ui.dart';
 
@@ -33,15 +32,7 @@ final class DevicesViewModel {
 
   Future<void> search(BuildContext context) async {
     final device = await showDeviceDiscovery(context, dependencies);
-    if (device == null || !context.mounted) {
-      return;
-    }
-    final openRemote = await showSupportedRemoteItems(
-      context,
-      dependencies,
-      device,
-    );
-    if (openRemote && context.mounted) {
+    if (device != null && context.mounted) {
       onConnect(device);
     }
   }

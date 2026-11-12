@@ -1,45 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:remote_ui/remote_ui.dart';
 
 class SupportedRemoteItemCard extends StatelessWidget {
   const SupportedRemoteItemCard({
     super.key,
-    required this.definition,
-    required this.model,
+    required this.title,
+    required this.icon,
+    required this.onTap,
   });
 
-  final RemoteItemDefinition<Object> definition;
-  final GridRemoteViewModel model;
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          spacing: 6,
-          children: [
-            Icon(_icon(), color: theme.colorScheme.primary),
-            Text(definition.name, textAlign: TextAlign.center),
-          ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: _content(theme),
         ),
       ),
     );
   }
 
-  IconData _icon() {
-    final context = RemoteElementContext(remote: model.remote);
-    for (final element in definition.elements) {
-      final icon = switch (element) {
-        RemoteAction<Object>() => model.resolve(element, context)?.icon,
-        _ => element.icon?.call(context),
-      };
-      if (icon != null) {
-        return icon;
-      }
-    }
-    return Icons.tune;
-  }
+  Widget _content(ThemeData theme) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    spacing: 20,
+    children: [
+      Icon(icon, size: 25, color: theme.colorScheme.onSurface),
+      Text(title, style: theme.textTheme.titleSmall),
+    ],
+  );
 }

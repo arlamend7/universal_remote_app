@@ -87,6 +87,12 @@ Runner.entitlements requests com.apple.developer.networking.multicast. Physical
 device signing requires an Apple-approved multicast entitlement and a provisioning
 profile that includes it. This cannot be granted by source code. Without it,
 multicast discovery may be unavailable; manual IP connection remains independent.
+
+Preparation reads the Wi-Fi or Ethernet connection state. Showing the exact
+Wi-Fi name is optional and may require foreground location permission from the
+operating system. The app reads the SSID for display only. iOS device builds
+must enable Access Wi-Fi Information for the App ID and use a provisioning
+profile that includes `com.apple.developer.networking.wifi-info`.
 Simulator compilation does not certify physical-device network behavior.
 
 ## Logging and input limits

@@ -52,6 +52,7 @@ import Security
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "UniversalRemotePreferences") {
       PreferencesChannel.register(with: registrar)
+      LocalNetworkChannel.register(with: registrar.messenger())
       registerDiscovery(registrar.messenger())
       registerDrivers(registrar.messenger())
       let networkSettings = FlutterMethodChannel(

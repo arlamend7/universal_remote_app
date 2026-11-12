@@ -64,8 +64,6 @@ void main() {
       expect(find.text('1 unrecognized discovery responses'), findsOneWidget);
       expect(controllers, 0);
       expect(scans, 1);
-      await tester.tap(find.text('Test OLED'));
-      await tester.pump();
       await tester.tap(find.text('Connect'));
       await tester.pumpAndSettle();
       expect(controllers, 1);

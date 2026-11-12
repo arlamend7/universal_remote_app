@@ -4,8 +4,8 @@ import 'package:remote_core/remote_core.dart';
 import '../../../../app/app_dependencies.dart';
 import 'device_pairing_state.dart';
 
-class DevicePairingSheet extends StatefulWidget {
-  const DevicePairingSheet({
+class DevicePairingPage extends StatefulWidget {
+  const DevicePairingPage({
     super.key,
     required this.dependencies,
     required this.device,
@@ -15,5 +15,5 @@ class DevicePairingSheet extends StatefulWidget {
   final RemoteDevice device;
 
   @override
-  State<DevicePairingSheet> createState() => DevicePairingState();
+  State<DevicePairingPage> createState() => DevicePairingState();
 }

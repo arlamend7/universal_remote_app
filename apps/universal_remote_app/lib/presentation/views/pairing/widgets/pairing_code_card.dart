@@ -9,11 +9,13 @@ class PairingCodeCard extends StatefulWidget {
     required this.receiver,
     required this.deviceName,
     required this.onCancel,
+    this.setupDevice,
   });
 
   final PairingCodeReceiver receiver;
   final String deviceName;
   final VoidCallback onCancel;
+  final RemoteDevice? setupDevice;
 
   @override
   State<PairingCodeCard> createState() => PairingCodeCardState();

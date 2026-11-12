@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
-import 'package:universal_remote_app/presentation/views/discovery/modals/device_discovery_sheet.dart';
+import 'package:universal_remote_app/presentation/views/discovery/pages/device_discovery_page.dart';
 
 import '../support/start_nearby_search.dart';
 
@@ -47,14 +47,18 @@ void main() {
       await tester.pump();
       provider.response.complete([tv, tv]);
       await tester.pumpAndSettle();
-      expect(find.byType(DeviceDiscoverySheet), findsOneWidget);
+      expect(find.byType(DeviceDiscoveryPage), findsOneWidget);
       expect(find.text('Connect'), findsNothing);
       expect(find.text('Already added (1)'), findsOneWidget);
-      await captureDesign(tester, capture, '20-discovery-modal');
-      expect(tester.getTopLeft(find.text('Living room')), rowPosition);
-      await tester.tap(find.byTooltip('Close'));
+      await captureDesign(tester, capture, '20-discovery-page');
+      expect(find.text('Living room'), findsNothing);
+      await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
-      expect(find.byType(DeviceDiscoverySheet), findsNothing);
+      expect(find.text('Preparation'), findsOneWidget);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('Living room')), rowPosition);
+      expect(find.byType(DeviceDiscoveryPage), findsNothing);
       expect(app.savedDevices.devices.value, hasLength(1));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
@@ -77,7 +81,7 @@ void main() {
     provider.response.completeError(StateError('private TV data'));
     await tester.pumpAndSettle();
 
-    final sheet = find.byType(DeviceDiscoverySheet);
+    final sheet = find.byType(DeviceDiscoveryPage);
     expect(find.text('No Displays Found'), findsNothing);
     expect(find.textContaining('Network discovery failed'), findsOneWidget);
     expect(
@@ -140,7 +144,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     expect(app.discovery.busy.value, isTrue);
     expect(provider.token!.isCancelled, isFalse);
-    await tester.tap(find.byTooltip('Close'));
+    await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(provider.token!.isCancelled, isTrue);
     expect(releases, 1);

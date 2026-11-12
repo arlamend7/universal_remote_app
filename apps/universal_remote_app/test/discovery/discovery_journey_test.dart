@@ -88,9 +88,7 @@ void main() {
     await startNearbySearch(tester);
     await tester.pumpAndSettle();
     final connect = find.widgetWithText(FilledButton, 'Connect');
-    expect(tester.widget<FilledButton>(connect).onPressed, isNull);
-    await tester.tap(find.text(tv.name));
-    await tester.pump();
+    expect(tester.widget<FilledButton>(connect).onPressed, isNotNull);
     await tester.tap(connect);
     await tester.pumpAndSettle();
     expect(find.text('The TV denied pairing.'), findsOneWidget);
@@ -102,7 +100,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(provider.last, isNot(same(original)));
     expect(provider.last?.device.id, tv.id);
-    await tester.tap(find.text('Back'));
+    await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(tester.widget<FilledButton>(connect).onPressed, isNotNull);
     expect(app.discovery.searchId, 1);

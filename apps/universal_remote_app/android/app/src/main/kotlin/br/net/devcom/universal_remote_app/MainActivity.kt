@@ -11,12 +11,14 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private var preferencesChannel: PreferencesChannel? = null
+    private var localNetworkChannel: LocalNetworkChannel? = null
     private var multicastLock: WifiManager.MulticastLock? = null
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
         preferencesChannel = PreferencesChannel(applicationContext, messenger)
         DriverChannel.register(applicationContext, messenger)
+        localNetworkChannel = LocalNetworkChannel(this, messenger)
         MethodChannel(messenger, "br.net.devcom.universal_remote/network_settings")
             .setMethodCallHandler { call, result ->
                 if (call.method != "open") {
@@ -65,6 +67,19 @@ class MainActivity : FlutterActivity() {
         multicastLock?.let { if (it.isHeld) it.release() }
         multicastLock = null
     }
-    override fun onDestroy() { preferencesChannel?.close(); super.onDestroy() }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        localNetworkChannel?.onRequestPermissionsResult(requestCode)
+    }
+
+    override fun onDestroy() {
+        localNetworkChannel?.close()
+        preferencesChannel?.close()
+        super.onDestroy()
+    }
     override fun onStop() { releaseMulticast(); super.onStop() }
 }

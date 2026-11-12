@@ -4,6 +4,7 @@ import 'package:remote_ui/remote_ui.dart';
 import 'package:universal_remote_app/presentation/views/pairing/widgets/pairing_code_card.dart';
 
 import '../support/recording_pairing_receiver.dart';
+import '../support/test_device.dart';
 
 void main() {
   testWidgets('pairing sheet accepts six characters with a small viewport', (
@@ -54,4 +55,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(cancelled, isTrue);
   });
+  testWidgets(
+    'full-page PIN confirmation stays reachable with the keyboard open',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetViewInsets);
+      final receiver = RecordingPairingReceiver();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PairingCodeCard(
+            receiver: receiver,
+            deviceName: tv.name,
+            setupDevice: tv,
+            onCancel: () {},
+          ),
+        ),
+      );
+      expect(find.text('STEP 3 OF 4'), findsOneWidget);
+      final field = find.byType(TextField);
+      await tester.ensureVisible(field);
+      await tester.enterText(field, 'A1B2C3');
+      final confirm = find.text('Confirm code');
+      await tester.ensureVisible(confirm);
+      await tester.pumpAndSettle();
+      await tester.tap(confirm);
+      await tester.pump();
+      expect(receiver.submitted, ['A1B2C3']);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

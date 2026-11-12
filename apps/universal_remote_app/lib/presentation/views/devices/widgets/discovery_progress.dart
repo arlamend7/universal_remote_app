@@ -6,16 +6,14 @@ class DiscoveryProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: true,
-    child: Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
-        children: [
-          Text('Searching for nearby devices…'),
-          const LinearProgressIndicator(minHeight: 3),
-        ],
+    child: Chip(
+      shape: const StadiumBorder(),
+      avatar: Icon(
+        Icons.circle,
+        color: Theme.of(context).colorScheme.primary,
+        size: 10,
       ),
+      label: const Text('Searching for nearby devices…'),
     ),
   );
 }

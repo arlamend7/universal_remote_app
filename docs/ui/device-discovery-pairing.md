@@ -12,7 +12,7 @@ The design brief is the visual reference for this branch. The application uses t
 | Remote controls | `RemoteItemRegistry.search`, `RemoteItemDefinition` | Use resolved capability evidence and existing category metadata. |
 | Navigation | `AppRoutes`, `MainShell`, `openRemoteEditor` | Return to the existing dashboard or editor. |
 
-Device setup uses English copy. Local-network authorization and catalog refresh are distinct, so a failed catalog request leaves local discovery available. Preparation gives Wi-Fi and Ethernet guidance because the current platform adapters do not expose a Wi-Fi SSID.
+Device setup uses English copy. Local-network authorization and catalog refresh are distinct, so a failed catalog request leaves local discovery available. Preparation checks the device’s network connection and displays the Wi-Fi name when the operating system makes it available.
 
 ## Physical device verification
 
