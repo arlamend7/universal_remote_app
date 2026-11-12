@@ -5,10 +5,18 @@ import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
 /// Reads the bounded ZIP subset emitted by the driver package builder.
 final class StoredDriverZip {
-  StoredDriverZip(this._bytes) : _data = ByteData.sublistView(_bytes);
+  StoredDriverZip(this._bytes, {RegExp? paths})
+    : _data = ByteData.sublistView(_bytes),
+      _paths = paths ?? _path;
+
+  /// Entry names permitted in a schema-2 integration package.
+  static final integrationPaths = RegExp(
+    r'^(?:manifest|discovery|connection|identification|capabilities|mappings|workflows/[a-z][a-z0-9_-]{0,63})\.json$',
+  );
 
   final Uint8List _bytes;
   final ByteData _data;
+  final RegExp _paths;
 
   Map<String, String> read() {
     final end = _bytes.length - 22;
@@ -83,7 +91,7 @@ final class StoredDriverZip {
     }
     final path = ascii.decode(_bytes.sublist(cursor + 46, centralEnd));
     final localPath = ascii.decode(_bytes.sublist(local + 30, content));
-    if (path != localPath || _path.firstMatch(path)?.end != path.length) {
+    if (path != localPath || _paths.firstMatch(path)?.end != path.length) {
       throw _invalid;
     }
     return (
