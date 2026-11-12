@@ -29,7 +29,6 @@ export 'src/installation/update_schedule.dart';
 export 'src/installation/verified_object.dart';
 export 'src/providers/integration_provider_source.dart';
 export 'src/providers/provider_rule_source.dart';
-export 'src/selection/device_software_evidence.dart';
 export 'src/selection/integration_candidate.dart';
 export 'src/selection/integration_resolver.dart';
 export 'src/selection/integration_selection.dart';

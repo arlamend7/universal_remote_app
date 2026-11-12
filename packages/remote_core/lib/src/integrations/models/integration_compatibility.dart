@@ -1,3 +1,4 @@
+import '../../devices/models/device_software_information.dart';
 import '../enums/version_match.dart';
 import '../enums/version_scheme.dart';
 import '../functions/integration_json.dart';
@@ -40,6 +41,15 @@ final class IntegrationCompatibility {
       osVersion == null && firmwareVersion == null && models.isEmpty;
 
   /// Unknown device evidence never counts as a match for a declared range.
+  VersionMatch matchSoftware(
+    DeviceSoftwareInformation? software, {
+    String? model,
+  }) => match(
+    os: software?.operatingSystemVersion,
+    firmware: software?.firmwareVersion,
+    model: software?.hardwareModel ?? software?.model ?? model,
+  );
+
   VersionMatch match({String? os, String? firmware, String? model}) {
     final results = [
       if (osVersion != null) osVersion!.match(os, versionScheme),

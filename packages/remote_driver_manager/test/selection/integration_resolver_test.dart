@@ -59,21 +59,23 @@ void main() {
     final webos5 = IntegrationResolver.identified(
       first,
       candidates,
-      const DeviceSoftwareEvidence(os: '5.0'),
+      DeviceSoftwareInformation(
+        source: DeviceInformationSource.authenticatedSession,
+        operatingSystemVersion: '5.0',
+      ),
     );
     expect(webos5.identity.integrationId, 'lg.webos.legacy');
     final webos8 = IntegrationResolver.identified(
       first,
       candidates,
-      const DeviceSoftwareEvidence(os: '8.1'),
+      DeviceSoftwareInformation(
+        source: DeviceInformationSource.authenticatedSession,
+        operatingSystemVersion: '8.1',
+      ),
     );
     expect(webos8.identity.integrationId, 'lg.webos.22-plus');
     expect(webos8.profile.id, 'webos-23-plus');
-    final unknown = IntegrationResolver.identified(
-      first,
-      candidates,
-      const DeviceSoftwareEvidence(),
-    );
+    final unknown = IntegrationResolver.identified(first, candidates, null);
     expect(unknown.identity.integrationId, 'lg.webos.22-plus');
     expect(unknown.profile.id, 'bootstrap');
   });

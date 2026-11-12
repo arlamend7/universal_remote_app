@@ -9,7 +9,6 @@ import '../installation/integration_catalog_repository.dart';
 import '../installation/integration_installer.dart';
 import '../installation/integration_metadata_keys.dart';
 import '../installation/integration_update_service.dart';
-import 'device_software_evidence.dart';
 import 'integration_candidate.dart';
 import 'integration_resolver.dart';
 import 'integration_selection.dart';
@@ -90,7 +89,8 @@ final class ManagedIntegrationPlanner implements IntegrationPlanner {
         reason: 'current',
       ),
       candidates,
-      DeviceSoftwareEvidence.of(software, model: device.model),
+      software,
+      model: device.model,
       allowDevelopment: allowDevelopment,
     );
     if (refined.identity == current.identity &&

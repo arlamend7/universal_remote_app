@@ -1,6 +1,5 @@
 import 'package:remote_core/remote_core.dart';
 
-import 'device_software_evidence.dart';
 import 'integration_candidate.dart';
 import 'integration_selection.dart';
 import 'selection_stage.dart';
@@ -43,7 +42,8 @@ abstract final class IntegrationResolver {
   static IntegrationSelection identified(
     IntegrationSelection current,
     Iterable<IntegrationCandidate> candidates,
-    DeviceSoftwareEvidence evidence, {
+    DeviceSoftwareInformation? software, {
+    String? model,
     bool allowDevelopment = false,
   }) {
     final family = _family(
@@ -54,7 +54,8 @@ abstract final class IntegrationResolver {
     final matching = family
         .where(
           (candidate) =>
-              evidence.match(candidate.compatibility) == VersionMatch.matches,
+              candidate.compatibility.matchSoftware(software, model: model) ==
+              VersionMatch.matches,
         )
         .toList();
     final stays = matching.any(
@@ -63,7 +64,7 @@ abstract final class IntegrationResolver {
     if (stays || matching.isEmpty) {
       return IntegrationSelection(
         current.candidate,
-        profile(current.candidate, evidence),
+        profile(current.candidate, software, model: model),
         SelectionStage.identified,
         reason: stays ? 'The TV software matches this integration.' : 'No integration declares this TV software; keeping the bootstrap choice.',
       );
@@ -71,7 +72,7 @@ abstract final class IntegrationResolver {
     final replacement = _best(matching);
     return IntegrationSelection(
       replacement,
-      profile(replacement, evidence),
+      profile(replacement, software, model: model),
       SelectionStage.identified,
       reason: 'The TV software matches ${replacement.id}.',
     );
@@ -80,13 +81,15 @@ abstract final class IntegrationResolver {
   /// The first identified profile whose ranges match, else the bootstrap.
   static CompatibilityProfile profile(
     IntegrationCandidate candidate,
-    DeviceSoftwareEvidence evidence,
-  ) =>
+    DeviceSoftwareInformation? software, {
+    String? model,
+  }) =>
       candidate.profiles
           .where((profile) => profile.stage == ProfileStage.identified)
           .where(
             (profile) =>
-                evidence.match(profile.compatibility) == VersionMatch.matches,
+                profile.compatibility.matchSoftware(software, model: model) ==
+                VersionMatch.matches,
           )
           .firstOrNull ??
       candidate.bootstrapProfile;

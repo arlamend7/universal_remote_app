@@ -1,6 +1,18 @@
+import 'devices/models/volume_state.dart';
+import 'devices/models/device_input.dart';
+import 'devices/models/current_content.dart';
+import 'devices/models/device_channel.dart';
+import 'devices/models/device_application.dart';
+
 import 'package:remote_core/src/bluetooth_accessory.dart';
 import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/remote_base.dart';
+
+export 'devices/models/device_application.dart';
+export 'devices/models/device_channel.dart';
+export 'devices/models/current_content.dart';
+export 'devices/models/device_input.dart';
+export 'devices/models/volume_state.dart';
 
 /// Television commands. Providers throw [RemoteException] for any command the
 /// connected device does not support; [supports] reports driver evidence.
@@ -81,49 +93,6 @@ Future<Never> _unsupported(String feature) => Future.error(
   RemoteException('unsupported', '$feature is not supported by this device.'),
 );
 
-final class DeviceApplication {
-  const DeviceApplication(this.id, this.name, {this.artwork});
-  final String id;
-  final String name;
-  final Uri? artwork;
-}
-
-final class DeviceChannel {
-  const DeviceChannel(this.id, this.name, this.number);
-  final String id, name, number;
-}
-
-/// Only information actually reported by the device, never inferred playback.
-final class CurrentContent {
-  const CurrentContent({
-    required this.appId,
-    this.appName,
-    this.channelName,
-    this.channelNumber,
-    this.liveTv = false,
-    this.programTitle,
-    this.position,
-    this.duration,
-  });
-  final String appId;
-  final String? appName;
-  final String? channelName;
-  final String? channelNumber;
-  final bool liveTv;
-  final String? programTitle;
-  final Duration? position;
-  final Duration? duration;
-
-  /// Whether the integration reported live TV (tuner) content.
-  bool get isLiveTv => liveTv;
-}
-
-final class DeviceInput {
-  const DeviceInput(this.id, this.name);
-  final String id;
-  final String name;
-}
-
 enum MediaAction { play, pause, stop, rewind, fastForward, previous, next }
 
 enum NavigationKey { up, down, left, right, enter, back, home }
@@ -158,12 +127,4 @@ enum RemoteKey {
 
   const RemoteKey(this.wireName);
   final String wireName;
-}
-
-final class VolumeState {
-  const VolumeState(this.volume, this.muted);
-  final int volume;
-
-  /// Null when the device reports volume without exposing mute feedback.
-  final bool? muted;
 }

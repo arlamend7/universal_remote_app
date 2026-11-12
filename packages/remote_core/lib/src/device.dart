@@ -3,6 +3,10 @@ import 'dart:math';
 
 import 'devices/models/device_software_information.dart';
 
+export 'devices/models/device_network_configuration.dart';
+
+export 'devices/models/device_wake_address.dart';
+
 final class RemoteDevice {
   RemoteDevice({
     required this.id,
@@ -58,28 +62,6 @@ enum DeviceConnectionState {
 }
 
 enum PairingState { unknown, unpaired, paired }
-
-/// Network setup values returned by a provider for display in the app.
-final class DeviceNetworkConfiguration {
-  const DeviceNetworkConfiguration({
-    this.address = '',
-    this.certificate = '',
-    this.mac = '',
-    this.broadcast = '',
-    this.legacy = false,
-    this.allowInsecurePointer = false,
-  });
-
-  final String address, certificate, mac, broadcast;
-  final bool legacy, allowInsecurePointer;
-}
-
-/// Wake target reported by an authenticated device interface.
-final class DeviceWakeAddress {
-  const DeviceWakeAddress(this.macAddress, {this.broadcastAddress});
-  final String macAddress;
-  final String? broadcastAddress;
-}
 
 RemoteDevice copyDevice(
   RemoteDevice device, {
