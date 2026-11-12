@@ -17,3 +17,7 @@ artifacts/
 
 # Local signing keys and other secrets: never commit.
 /.secrets/
+
+# Local build configuration (dart-define values).
+.env
+!.env.example

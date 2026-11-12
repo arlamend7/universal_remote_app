@@ -58,5 +58,8 @@ never overrides an installed generation or a newer cached catalog.
 
 ## Client configuration
 
+Set these in `apps/universal_remote_app/.env` (copy `.env.example`) and build
+with `--dart-define-from-file=.env`:
+
 - `DRIVER_TRUSTED_KEYS`: JSON map of key ID → Base64 uncompressed P-256 point.
 - `DRIVER_CATALOG_BASE_URL`: the Pages base URL ending in `/`.

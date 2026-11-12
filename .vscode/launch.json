@@ -7,19 +7,23 @@
         {
             "name": "Universal Control",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": ["--dart-define-from-file=.env"]
+
         },
         {
             "name": "universal_remote_app",
             "cwd": "apps/universal_remote_app",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": ["--dart-define-from-file=.env"]
         },
         {
             "name": "universal_remote_app (profile mode)",
             "cwd": "apps/universal_remote_app",
             "request": "launch",
             "type": "dart",
+            "args": ["--dart-define-from-file=.env"],
             "flutterMode": "profile"
         },
         {
@@ -27,6 +31,7 @@
             "cwd": "apps/universal_remote_app",
             "request": "launch",
             "type": "dart",
+            "args": ["--dart-define-from-file=.env"],
             "flutterMode": "release"
         },
         {

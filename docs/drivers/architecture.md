@@ -62,6 +62,10 @@ See `integration-model.md`, `installation.md`, `protocol-engines.md`,
 
 ## Configuration
 
+Values are passed as Dart defines from `apps/universal_remote_app/.env`
+(git-ignored; copy `.env.example`): `flutter run --dart-define-from-file=.env`.
+The VS Code launch configurations pass it automatically.
+
 | Define | Effect |
 |---|---|
 | `DRIVER_TRUSTED_KEYS` | Required for distribution and seed verification (key ID → P-256 point) |
