@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:remote_core/remote_core.dart';
 import 'package:xml/xml.dart';
 
-import 'roku_app_catalog.dart';
+import 'package:remote_driver_runtime/src/engines/roku_ecp/decoders/ecp_application_catalog.dart';
+
+import 'roku_input_keys.dart';
 
 import 'package:remote_driver_runtime/roku_ecp.dart';
 
-import 'roku_serial.dart';
-import 'roku_channel_data.dart';
+import 'package:remote_driver_runtime/src/engines/roku_ecp/decoders/ecp_serial.dart';
+import 'package:remote_driver_runtime/src/engines/roku_ecp/decoders/ecp_fields.dart';
 
 final class RokuController extends TVRemoteBase {
   RokuController(this._device, this.client, {this.bindings});
@@ -31,7 +33,7 @@ final class RokuController extends TVRemoteBase {
   Stream<void> get capabilityChanges => _changes.stream;
   final _unavailable = <RemoteCapability>{};
   final _capabilities = <RemoteCapability>{};
-  RokuAppCatalog? _catalog;
+  EcpApplicationCatalog? _catalog;
   bool _isTv = false;
   bool _hasTunerFeedback = false;
   String? _serial;
@@ -189,11 +191,11 @@ final class RokuController extends TVRemoteBase {
     }
   }
 
-  Future<RokuAppCatalog?> _loadCatalog() async {
+  Future<EcpApplicationCatalog?> _loadCatalog() async {
     try {
       final root = await client.query('apps');
       return root.name.local == 'apps'
-          ? RokuAppCatalog(root, client.endpoint)
+          ? EcpApplicationCatalog(root, client.endpoint, rokuInputKeys)
           : null;
     } on RemoteException {
       return null;

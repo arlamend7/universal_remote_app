@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 
 import '../support/lg_fixture_api.dart';
 
-import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/power/lg_wake_address_reader.dart';
+import 'package:remote_driver_runtime/src/engines/ssap/wake/ssap_wake_address_reader.dart';
 
 import '../support/fake_transport.dart';
 
@@ -32,14 +32,14 @@ void main() {
               'wired': {'ipAddress': '172.16.1.15', 'state': 'connected'},
             },
           });
-      final target = await LgWakeAddressReader(client).read(_host);
+      final target = await SsapWakeAddressReader(client).read(_host);
       expect(target?.macAddress, _wifi);
       expect(target?.broadcastAddress, '172.16.1.255');
       expect(transport.sent.map((item) => item['uri']), [
         '$_service/getinfo',
         '$_service/getStatus',
       ]);
-      expect(await LgWakeAddressReader(client).read('172.16.1.99'), isNull);
+      expect(await SsapWakeAddressReader(client).read('172.16.1.99'), isNull);
       await client.close();
     },
   );
@@ -67,7 +67,10 @@ void main() {
             },
           },
         });
-    expect((await LgWakeAddressReader(client).read(_host))?.macAddress, _wifi);
+    expect(
+      (await SsapWakeAddressReader(client).read(_host))?.macAddress,
+      _wifi,
+    );
     await client.close();
   });
   test('supports the older status spelling only when the newer method is unsupported', () async {
@@ -87,7 +90,10 @@ void main() {
         },
       });
     };
-    expect((await LgWakeAddressReader(client).read(_host))?.macAddress, _wired);
+    expect(
+      (await SsapWakeAddressReader(client).read(_host))?.macAddress,
+      _wired,
+    );
     expect(transport.sent.last['uri'], '$_service/getstatus');
     await client.close();
   });
@@ -98,7 +104,7 @@ void main() {
       final client = SsapClient(transport);
       transport.respond = (request) =>
           transport.reject(request, '403 permission denied');
-      expect(await LgWakeAddressReader(client).read(_host), isNull);
+      expect(await SsapWakeAddressReader(client).read(_host), isNull);
       expect(transport.sent, hasLength(1));
       expect(client.isClosed, isFalse);
       await client.close();

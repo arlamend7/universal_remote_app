@@ -8,7 +8,7 @@ import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/accesso
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/applications/lg_application_controller.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/text/lg_text_controller.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/channels/lg_channel_selection_controller.dart';
-import 'package:remote_driver_runtime/src/adapters/lg_webos/pointer/services/lg_pointer_connection.dart';
+import 'package:remote_driver_runtime/src/engines/ssap/pointer/ssap_pointer_connection.dart';
 
 import 'support/fake_transport.dart';
 
@@ -162,19 +162,19 @@ void main() {
   });
   test('pointer movement, scroll, click and keypad frames are delimited and validated', () async {
     final transport = FakeTransport();
-    final pointer = LgPointerConnection(
+    final pointer = SsapPointerConnection(
       connector: (_) async => transport,
       onUnavailable: () {},
     );
     await pointer.open(
       'ws://127.0.0.1:3000/pointer',
       Uri.parse('ws://127.0.0.1:3000'),
-      const LgConnectionOptions(allowInsecure: true),
+      allowInsecure: true,
     );
     await pointer.motion('move', 12, -5);
     await pointer.motion('scroll', 0, 2);
     await pointer.click();
-    await pointer.specialKey(RemoteKey.digit7);
+    await pointer.button(RemoteKey.digit7.wireName);
     expect(transport.frames[0], contains('type:move\ndx:12\ndy:-5'));
     expect(transport.frames[1], contains('type:scroll'));
     expect(transport.frames[2], 'type:click\n\n');

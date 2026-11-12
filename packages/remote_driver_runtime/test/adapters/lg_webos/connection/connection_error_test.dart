@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_driver_runtime/src/adapters/lg_webos/connection/functions/lg_connection_error.dart';
+import 'package:remote_driver_runtime/src/engines/common/transport_connection_error.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -11,15 +11,15 @@ void main() {
       'credentialStorage',
       'Protected storage unavailable',
     );
-    expect(lgConnectionError(error), same(error));
+    expect(transportConnectionError(error), same(error));
   });
   test(
     'certificate and other TLS handshake failures have actionable messages',
     () {
-      final certificate = lgConnectionError(
+      final certificate = transportConnectionError(
         const HandshakeException('CERTIFICATE_VERIFY_FAILED'),
       );
-      final handshake = lgConnectionError(
+      final handshake = transportConnectionError(
         const HandshakeException('protocol failure'),
       );
       expect(certificate.code, 'tls');
@@ -31,20 +31,23 @@ void main() {
     'network access, refused port, timeout and upgrade failures are distinct',
     () {
       expect(
-        lgConnectionError(
+        transportConnectionError(
           const SocketException('hidden', osError: OSError('denied', 65)),
         ).code,
         'networkAccess',
       );
       expect(
-        lgConnectionError(
+        transportConnectionError(
           const SocketException('hidden', osError: OSError('refused', 61)),
         ).code,
         'connectionRefused',
       );
-      expect(lgConnectionError(TimeoutException('hidden')).code, 'timeout');
       expect(
-        lgConnectionError(const WebSocketException('hidden')).code,
+        transportConnectionError(TimeoutException('hidden')).code,
+        'timeout',
+      );
+      expect(
+        transportConnectionError(const WebSocketException('hidden')).code,
         'websocket',
       );
     },

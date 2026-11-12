@@ -7,11 +7,11 @@ import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/power/l
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/text/lg_text_controller.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/volume/lg_volume_controller.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/services/lg_capability_registry.dart';
-import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/power/lg_wake_address_reader.dart';
+import 'package:remote_driver_runtime/src/engines/ssap/wake/ssap_wake_address_reader.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/capabilities/services/lg_capability_resolver.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/commands/services/lg_command_channel.dart';
-import 'package:remote_driver_runtime/src/adapters/lg_webos/connection/functions/lg_connection_error.dart';
-import 'package:remote_driver_runtime/src/adapters/lg_webos/pointer/services/lg_pointer_connection.dart';
+import 'package:remote_driver_runtime/src/engines/common/transport_connection_error.dart';
+import 'package:remote_driver_runtime/src/engines/ssap/pointer/ssap_pointer_connection.dart';
 
 import 'dart:async';
 
@@ -21,7 +21,7 @@ import 'package:remote_driver_runtime/ssap.dart';
 import 'package:remote_driver_runtime/src/adapters/lg_webos/connection/models/lg_connection_options.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../functions/lg_software_information.dart';
+import 'package:remote_driver_runtime/src/engines/ssap/identification/ssap_software_information.dart';
 
 final class LgDeviceController extends TVRemoteBase
     implements DeviceWakeAddressSource {
@@ -58,7 +58,7 @@ final class LgDeviceController extends TVRemoteBase
     onUnavailable: _disable,
     bindings: bindings,
   );
-  late final _pointer = LgPointerConnection(
+  late final _pointer = SsapPointerConnection(
     connector: connector,
     onUnavailable: _pointerUnavailable,
   );
@@ -90,12 +90,12 @@ final class LgDeviceController extends TVRemoteBase
   }
 
   LgVolumeController get _volume => _use(RemoteCapability.volume);
-  LgPointerConnection get _navigation => _use(RemoteCapability.navigation);
+  SsapPointerConnection get _navigation => _use(RemoteCapability.navigation);
   LgCommandChannel get _channelKeys => _use(RemoteCapability.channels);
   LgChannelSelectionController get _channelList =>
       _use(RemoteCapability.channelSelection);
   LgCommandChannel get _media => _use(RemoteCapability.media);
-  LgPointerConnection get _pointerKeys => _use(RemoteCapability.pointer);
+  SsapPointerConnection get _pointerKeys => _use(RemoteCapability.pointer);
   LgTextController get _text => _use(RemoteCapability.textInput);
   LgInputController get _inputs => _use(RemoteCapability.inputs);
   LgApplicationController get _apps => _use(RemoteCapability.applications);
@@ -150,7 +150,8 @@ final class LgDeviceController extends TVRemoteBase
   Stream<VolumeState> watchVolume() =>
       _use<LgVolumeController>(RemoteCapability.volumeFeedback).watchVolume();
   @override
-  Future<void> press(NavigationKey key) async => _navigation.press(key);
+  Future<void> press(NavigationKey key) async =>
+      _navigation.button(key.name.toUpperCase());
   @override
   Future<void> channelUp() async {
     await _channelKeys.send(RemoteCapability.channels, 'tv/channelUp');
@@ -185,7 +186,8 @@ final class LgDeviceController extends TVRemoteBase
   @override
   Future<void> click() async => _pointerKeys.click();
   @override
-  Future<void> sendKey(RemoteKey key) async => _pointerKeys.specialKey(key);
+  Future<void> sendKey(RemoteKey key) async =>
+      _pointerKeys.button(key.wireName);
   @override
   Future<void> sendText(String text) => _text.sendText(text);
   @override
@@ -243,7 +245,7 @@ final class LgDeviceController extends TVRemoteBase
         host == null) {
       return null;
     }
-    return LgWakeAddressReader(client).read(host);
+    return SsapWakeAddressReader(client).read(host);
   }
 
   void _setState(DeviceConnectionState next) {
@@ -415,7 +417,7 @@ final class LgDeviceController extends TVRemoteBase
     Object error,
     String? savedKey,
   ) async {
-    final failure = lgConnectionError(error);
+    final failure = transportConnectionError(error);
     if (failure.code != 'pairingRejected' || savedKey == null) {
       return failure;
     }
@@ -448,7 +450,10 @@ final class LgDeviceController extends TVRemoteBase
       if (!_isCurrent(generation)) {
         return;
       }
-      final software = _sessionSoftware = lgSoftwareInformation(info);
+      final software = _sessionSoftware = ssapSoftwareInformation(
+        info,
+        operatingSystem: 'webOS',
+      );
       final version = info['product_name'] ?? info['version'];
       _device = copyDevice(
         _device,

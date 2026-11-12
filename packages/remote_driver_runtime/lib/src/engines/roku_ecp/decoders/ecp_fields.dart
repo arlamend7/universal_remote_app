@@ -1,6 +1,7 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:xml/xml.dart';
 
+/// The trimmed text of a child element, or null when absent or empty.
 String? rokuField(XmlElement? node, String name) {
   final value = node?.getElement(name)?.innerText.trim();
   return value == null || value.isEmpty ? null : value;

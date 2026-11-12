@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 
-import '../../connection/models/lg_connection_options.dart';
-import '../functions/encode_lg_navigation.dart';
+import 'pointer_button_frame.dart';
 
-/// Owns the pointer socket and its lifecycle independently of SSAP.
-final class LgPointerConnection {
-  LgPointerConnection({required this.connector, required this.onUnavailable});
+/// Owns the SSAP pointer socket and its lifecycle independently of the
+/// main session; only the host of the authenticated session is accepted.
+final class SsapPointerConnection {
+  SsapPointerConnection({required this.connector, required this.onUnavailable});
   final TransportConnector connector;
   final void Function() onUnavailable;
   TextTransport? _transport;
@@ -16,10 +16,10 @@ final class LgPointerConnection {
   int _generation = 0;
   Future<void> open(
     Object? address,
-    Uri main,
-    LgConnectionOptions options,
-  ) async {
-    final uri = _endpoint(address, main, options);
+    Uri main, {
+    required bool allowInsecure,
+  }) async {
+    final uri = _endpoint(address, main, allowInsecure);
     final generation = ++_generation;
     final transport = await connector(uri);
     if (generation != _generation) {
@@ -34,7 +34,7 @@ final class LgPointerConnection {
     );
   }
 
-  Uri _endpoint(Object? address, Uri main, LgConnectionOptions options) {
+  Uri _endpoint(Object? address, Uri main, bool allowInsecure) {
     final uri = address is String ? Uri.tryParse(address) : null;
     if (uri == null ||
         !{'ws', 'wss'}.contains(uri.scheme) ||
@@ -46,7 +46,7 @@ final class LgPointerConnection {
         'The TV returned an invalid pointer endpoint.',
       );
     }
-    if (uri.scheme == 'ws' && !options.allowInsecure) {
+    if (uri.scheme == 'ws' && !allowInsecure) {
       throw const RemoteException(
         'insecure',
         'The pointer socket requires explicit legacy-transport permission.',
@@ -55,8 +55,15 @@ final class LgPointerConnection {
     return uri;
   }
 
-  Future<void> specialKey(RemoteKey key) =>
-      _send('type:button\nname:${key.wireName}\n\n');
+  bool get isOpen => _transport != null;
+
+  Future<void> button(String name) {
+    if (pointerButtonName.firstMatch(name)?.end != name.length) {
+      throw ArgumentError('Invalid pointer button.');
+    }
+    return _send(pointerButtonFrame(name));
+  }
+
   Future<void> motion(String type, double dx, double dy) {
     if (!{'move', 'scroll'}.contains(type) ||
         !dx.isFinite ||
@@ -70,7 +77,6 @@ final class LgPointerConnection {
 
   Future<void> click() => _send('type:click\n\n');
 
-  Future<void> press(NavigationKey key) => _send(encodeLgNavigation(key));
   Future<void> _send(String frame) async {
     final transport = _transport;
     if (transport == null) {

@@ -11,7 +11,8 @@
     "required": ["kind"],
     "maxProperties": 16,
     "properties": {
-      "kind": {"type": "string", "pattern": "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*$"}
+      "kind": {"type": "string", "pattern": "^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*$"},
+      "readOnly": {"type": "boolean"}
     }
   }
 }

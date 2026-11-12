@@ -6,7 +6,7 @@ import 'roku_endpoint.dart';
 
 import 'package:remote_driver_runtime/roku_ecp.dart';
 
-import 'roku_serial.dart';
+import 'package:remote_driver_runtime/src/engines/roku_ecp/decoders/ecp_serial.dart';
 
 final class RokuIdentifier
     implements ProviderIdentifier, UnicastProbe, AddressIdentifier {

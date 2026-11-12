@@ -3,14 +3,17 @@ import 'package:remote_driver_runtime/ssap.dart';
 import 'package:remote_network/remote_network.dart';
 
 /// Matches the current peer address to a reported interface before taking its MAC.
-final class LgWakeAddressReader {
-  LgWakeAddressReader(this.client);
+final class SsapWakeAddressReader {
+  SsapWakeAddressReader(this.client, {this.service = defaultService});
   final SsapClient client;
-  static const _service = 'com.webos.service.connectionmanager';
+
+  /// The connection-manager service queried for interface addresses.
+  final String service;
+  static const defaultService = 'com.webos.service.connectionmanager';
   static const _timeout = Duration(seconds: 1);
   Future<DeviceWakeAddress?> read(String host) async {
     try {
-      final info = await client.request('$_service/getinfo', timeout: _timeout);
+      final info = await client.request('$service/getinfo', timeout: _timeout);
       if (info['wifiInfo'] is! Map && info['wiredInfo'] is! Map) {
         return null;
       }
@@ -28,12 +31,12 @@ final class LgWakeAddressReader {
 
   Future<Map<String, Object?>> _status() async {
     try {
-      return await client.request('$_service/getStatus', timeout: _timeout);
+      return await client.request('$service/getStatus', timeout: _timeout);
     } on RemoteException catch (error) {
       if (error.code != 'unsupported') {
         rethrow;
       }
-      return client.request('$_service/getstatus', timeout: _timeout);
+      return client.request('$service/getstatus', timeout: _timeout);
     }
   }
 

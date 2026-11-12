@@ -1,9 +1,9 @@
 import 'package:remote_core/remote_core.dart';
 
 import '../../commands/services/lg_command_channel.dart';
-import '../../connection/functions/lg_connection_error.dart';
+import '../../../../engines/common/transport_connection_error.dart';
 import '../../connection/models/lg_connection_options.dart';
-import '../../pointer/services/lg_pointer_connection.dart';
+import '../../../../engines/ssap/pointer/ssap_pointer_connection.dart';
 import '../accessories/lg_bluetooth_accessory_controller.dart';
 import '../applications/lg_application_controller.dart';
 import '../inputs/lg_input_controller.dart';
@@ -24,7 +24,7 @@ final class LgCapabilityResolver {
     required this.isCurrent,
   });
   final LgCommandChannel commands;
-  final LgPointerConnection pointer;
+  final SsapPointerConnection pointer;
   final LgCapabilityRegistry registry;
   final Uri endpoint;
   final LgConnectionOptions options;
@@ -168,7 +168,11 @@ final class LgCapabilityResolver {
     if (!isCurrent()) {
       return;
     }
-    await pointer.open(response['socketPath'], endpoint, options);
+    await pointer.open(
+      response['socketPath'],
+      endpoint,
+      allowInsecure: options.allowInsecure,
+    );
     if (isCurrent()) {
       registry.enable(
         RemoteCapability.pointer,
@@ -202,6 +206,6 @@ final class LgCapabilityResolver {
     if (!isCurrent()) {
       return;
     }
-    registry.disable(kind, reason: lgConnectionError(error).message);
+    registry.disable(kind, reason: transportConnectionError(error).message);
   }
 }

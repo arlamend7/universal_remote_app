@@ -49,6 +49,7 @@ abstract final class RuntimeOperations {
     'toggle-game-mode',
     'identify-software',
     'read-wake-address',
+    'open-pointer',
   });
 
   /// State streams a session may keep open while connected.

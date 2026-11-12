@@ -10,6 +10,7 @@ final class OperationMapping {
     required this.operation,
     required this.kind,
     Map<String, Object?> parameters = const {},
+    this.readOnly = false,
   }) : parameters = Map.unmodifiable(parameters) {
     if (!RuntimeOperations.isMappable(operation)) {
       throw FormatException('Unknown runtime operation: $operation.');
@@ -22,13 +23,15 @@ final class OperationMapping {
   factory OperationMapping.fromJson(String operation, Object? value) {
     final json = IntegrationJson.object(value, operation);
     final kind = json['kind'];
-    if (kind is! String) {
-      throw FormatException('Missing engine operation kind: $operation.');
+    final readOnly = json['readOnly'] ?? false;
+    if (kind is! String || readOnly is! bool) {
+      throw FormatException('Invalid engine operation mapping: $operation.');
     }
     return OperationMapping(
       operation: operation,
       kind: kind,
-      parameters: {...json}..remove('kind'),
+      parameters: {...json}..removeWhere(_generic),
+      readOnly: readOnly,
     );
   }
 
@@ -36,8 +39,18 @@ final class OperationMapping {
   final String kind;
   final Map<String, Object?> parameters;
 
+  /// A status query: its failures never withdraw a capability.
+  final bool readOnly;
+
+  static bool _generic(String key, Object? _) =>
+      key == 'kind' || key == 'readOnly';
+
   /// The engine namespace, such as `ssap` in `ssap.request`.
   String get engine => kind.split('.').first;
 
-  Map<String, Object?> toJson() => {'kind': kind, ...parameters};
+  Map<String, Object?> toJson() => {
+    'kind': kind,
+    if (readOnly) 'readOnly': true,
+    ...parameters,
+  };
 }

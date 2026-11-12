@@ -3,7 +3,8 @@ import 'dart:io';
 
 import 'package:remote_core/remote_core.dart';
 
-RemoteException lgConnectionError(Object error) {
+/// Maps transport failures to presentation-safe, typed connection errors.
+RemoteException transportConnectionError(Object error) {
   if (error is RemoteException) {
     return error;
   }

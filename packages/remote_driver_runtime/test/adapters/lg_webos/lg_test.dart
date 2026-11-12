@@ -209,13 +209,13 @@ void main() {
   });
 
   test('pointer navigation uses blank-line separators and click for OK', () {
-    expect(encodeLgNavigation(NavigationKey.up), 'type:button\nname:UP\n\n');
-    expect(
-      encodeLgNavigation(NavigationKey.enter),
-      'type:button\nname:ENTER\n\n',
-    );
+    expect(pointerButtonFrame('UP'), 'type:button\nname:UP\n\n');
+    expect(pointerButtonFrame('ENTER'), 'type:button\nname:ENTER\n\n');
     for (final key in NavigationKey.values) {
-      expect(encodeLgNavigation(key).endsWith('\n\n'), isTrue);
+      expect(
+        pointerButtonFrame(key.name.toUpperCase()).endsWith('\n\n'),
+        isTrue,
+      );
     }
   });
   test(

@@ -16,7 +16,8 @@
       "properties": {
         "fact": {"$ref": "common.schema.json#/$defs/identifier"},
         "equals": {"type": "string", "maxLength": 128},
-        "otherwise": {"$ref": "#/$defs/condition"}
+        "otherwise": {"$ref": "#/$defs/condition"},
+        "missing": {"type": "boolean"}
       }
     },
     "declaration": {

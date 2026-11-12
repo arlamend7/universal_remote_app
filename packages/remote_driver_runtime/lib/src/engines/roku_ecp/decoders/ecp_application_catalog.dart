@@ -1,8 +1,10 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:xml/xml.dart';
 
-final class RokuAppCatalog {
-  RokuAppCatalog(XmlElement root, Uri endpoint)
+/// Apps and inputs reported by `query/apps`. Which app IDs are inputs, and
+/// the keys that select them, come from integration data.
+final class EcpApplicationCatalog {
+  EcpApplicationCatalog(XmlElement root, Uri endpoint, this.inputKeys)
     : apps = [
         for (final app in root.findElements('app'))
           if (RegExp(r'^[0-9]+$').hasMatch(app.getAttribute('id') ?? '') &&
@@ -17,22 +19,16 @@ final class RokuAppCatalog {
       ],
       inputs = [
         for (final app in root.findElements('app'))
-          if (_inputKeys.containsKey(app.getAttribute('id')))
+          if (inputKeys.containsKey(app.getAttribute('id')))
             DeviceInput(app.getAttribute('id')!, app.innerText.trim()),
       ];
 
   final List<DeviceApplication> apps;
   final List<DeviceInput> inputs;
 
-  static const _inputKeys = {
-    'tvinput.dtv': 'InputTuner',
-    'tvinput.hdmi1': 'InputHDMI1',
-    'tvinput.hdmi2': 'InputHDMI2',
-    'tvinput.hdmi3': 'InputHDMI3',
-    'tvinput.hdmi4': 'InputHDMI4',
-    'tvinput.cvbs': 'InputAV1',
-  };
+  /// Input app ID → ECP key that selects it.
+  final Map<String, String> inputKeys;
 
   String? keyForInput(String id) =>
-      inputs.any((input) => input.id == id) ? _inputKeys[id] : null;
+      inputs.any((input) => input.id == id) ? inputKeys[id] : null;
 }
