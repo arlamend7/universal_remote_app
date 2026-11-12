@@ -129,6 +129,33 @@ Documented TCL observations (not verified here):
   `android-tv-<fingerprint>` format, so saved devices, credentials and
   dashboards are unchanged.
 
+### Compatibility profiles
+
+TCL stays on `android.tv.remote-v2` with its unrestricted `bootstrap` profile.
+No TCL profile is shipped, because no TCL behaviour that differs from other
+Remote v2 televisions has been verified. Resolver tests
+(`remote_driver_manager/test/selection/android_tv_compatibility_test.dart`)
+prove that a reported vendor or model, or unknown OS and firmware, never
+reject the integration or switch profile, and that a model profile *would*
+apply once evidence exists.
+
+When hardware shows a model-specific difference, add an `identified` profile
+to `drivers/providers/android-tv/remote-v2/manifest.json`. Match on the exact
+model string the TV reports in `RemoteDeviceInfo`: `models` is matched against
+`hardwareModel ?? model`. Use `disabledCapabilities` or `mappingOverrides` for
+the difference.
+
+```json
+{"id": "<verified-model>", "stage": "identified",
+ "compatibility": {"models": ["<exact reported model>"]},
+ "disabledCapabilities": ["<capability shown not to work>"]}
+```
+
+Do not key a profile on the vendor. Do not infer an Android version from the
+model name. Do not disable the TV, MENU, INFO, GUIDE or CHANNEL± keys for TCL
+from the single 65C805 report: a key the TV ignores cannot be detected, and
+other TCL models may support them.
+
 ## 5. Verification status
 
 Result values: **Automated test passed**, **Hardware verified**,
