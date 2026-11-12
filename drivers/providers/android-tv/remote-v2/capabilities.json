@@ -1,0 +1,279 @@
+{
+  "navigation": {
+    "alternatives": [
+      [
+        "navigation-up",
+        "navigation-down",
+        "navigation-left",
+        "navigation-right",
+        "navigation-enter",
+        "navigation-back",
+        "navigation-home"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "media": {
+    "alternatives": [
+      [
+        "media-play",
+        "media-pause",
+        "media-stop"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "numericKeys": {
+    "alternatives": [
+      [
+        "key-digit0",
+        "key-digit1",
+        "key-digit2",
+        "key-digit3",
+        "key-digit4",
+        "key-digit5",
+        "key-digit6",
+        "key-digit7",
+        "key-digit8",
+        "key-digit9"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "tvSettings": {
+    "alternatives": [
+      [
+        "key-settings"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "specialKeys": {
+    "alternatives": [
+      [
+        "key-menu",
+        "key-info",
+        "key-guide"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "trackNavigation": {
+    "alternatives": [
+      [
+        "media-next",
+        "media-previous"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "liveTvKey": {
+    "alternatives": [
+      [
+        "key-live-tv"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "captionsKey": {
+    "alternatives": [
+      [
+        "key-captions"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "inputs": {
+    "alternatives": [
+      [
+        "open-input-picker"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "mute": {
+    "alternatives": [
+      [
+        "toggle-mute"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "channels": {
+    "alternatives": [
+      [
+        "channel-up",
+        "channel-down"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.keys",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "reason": "Sends channel keys to the active TV input or app."
+  },
+  "volume": {
+    "alternatives": [
+      [
+        "volume-up",
+        "volume-down"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.volume-keys",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "textInput": {
+    "alternatives": [
+      [
+        "send-text",
+        "send-enter"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.ime",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "currentContent": {
+    "alternatives": [
+      [
+        "read-content"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.ime",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "applications": {
+    "alternatives": [
+      [
+        "launch-application"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.app-links",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "absoluteVolume": {
+    "alternatives": [
+      [
+        "set-volume"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "audio.absolute",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "power": {
+    "alternatives": [
+      [
+        "power-off"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "feature.power",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  },
+  "volumeFeedback": {
+    "alternatives": [
+      [
+        "read-volume"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "volume.reported",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "availability": "verified"
+  }
+}

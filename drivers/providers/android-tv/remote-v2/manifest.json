@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 2,
+  "integrationId": "android.tv.remote-v2",
+  "providerId": "android.tv",
+  "name": "Google TV / Android TV (Remote v2)",
+  "manufacturer": "Google",
+  "platform": "Android TV",
+  "engine": "android-remote-v2",
+  "priority": 0,
+  "requiredRuntime": {
+    "api": 2,
+    "operations": [
+      "network.wake-on-lan",
+      "remote-v2.app-link",
+      "remote-v2.content",
+      "remote-v2.key",
+      "remote-v2.read-content",
+      "remote-v2.read-volume",
+      "remote-v2.set-mute",
+      "remote-v2.set-volume",
+      "remote-v2.submit",
+      "remote-v2.text",
+      "remote-v2.volume"
+    ]
+  },
+  "credentialScope": "device",
+  "compatibility": {
+    "versionScheme": "dotted-numeric"
+  },
+  "profiles": [
+    {
+      "id": "bootstrap",
+      "stage": "bootstrap"
+    }
+  ],
+  "capabilities": [
+    "navigation",
+    "media",
+    "numericKeys",
+    "tvSettings",
+    "specialKeys",
+    "trackNavigation",
+    "liveTvKey",
+    "captionsKey",
+    "inputs",
+    "mute",
+    "channels",
+    "volume",
+    "textInput",
+    "currentContent",
+    "applications",
+    "absoluteVolume",
+    "power",
+    "volumeFeedback"
+  ],
+  "replaces": [
+    "android-tv"
+  ]
+}

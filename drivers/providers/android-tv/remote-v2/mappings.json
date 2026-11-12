@@ -1,0 +1,216 @@
+{
+  "power-off": {
+    "kind": "remote-v2.key",
+    "code": 223
+  },
+  "volume-up": {
+    "kind": "remote-v2.key",
+    "code": 24
+  },
+  "volume-down": {
+    "kind": "remote-v2.key",
+    "code": 25
+  },
+  "navigation-up": {
+    "kind": "remote-v2.key",
+    "code": 19
+  },
+  "navigation-down": {
+    "kind": "remote-v2.key",
+    "code": 20
+  },
+  "navigation-left": {
+    "kind": "remote-v2.key",
+    "code": 21
+  },
+  "navigation-right": {
+    "kind": "remote-v2.key",
+    "code": 22
+  },
+  "navigation-enter": {
+    "kind": "remote-v2.key",
+    "code": 23
+  },
+  "navigation-back": {
+    "kind": "remote-v2.key",
+    "code": 4
+  },
+  "navigation-home": {
+    "kind": "remote-v2.key",
+    "code": 3
+  },
+  "media-play": {
+    "kind": "remote-v2.key",
+    "code": 126
+  },
+  "media-pause": {
+    "kind": "remote-v2.key",
+    "code": 127
+  },
+  "media-stop": {
+    "kind": "remote-v2.key",
+    "code": 86
+  },
+  "media-rewind": {
+    "kind": "remote-v2.key",
+    "code": 89
+  },
+  "media-fast-forward": {
+    "kind": "remote-v2.key",
+    "code": 90
+  },
+  "media-previous": {
+    "kind": "remote-v2.key",
+    "code": 88
+  },
+  "media-next": {
+    "kind": "remote-v2.key",
+    "code": 87
+  },
+  "channel-up": {
+    "kind": "remote-v2.key",
+    "code": 166
+  },
+  "channel-down": {
+    "kind": "remote-v2.key",
+    "code": 167
+  },
+  "key-digit0": {
+    "kind": "remote-v2.key",
+    "code": 7
+  },
+  "key-digit1": {
+    "kind": "remote-v2.key",
+    "code": 8
+  },
+  "key-digit2": {
+    "kind": "remote-v2.key",
+    "code": 9
+  },
+  "key-digit3": {
+    "kind": "remote-v2.key",
+    "code": 10
+  },
+  "key-digit4": {
+    "kind": "remote-v2.key",
+    "code": 11
+  },
+  "key-digit5": {
+    "kind": "remote-v2.key",
+    "code": 12
+  },
+  "key-digit6": {
+    "kind": "remote-v2.key",
+    "code": 13
+  },
+  "key-digit7": {
+    "kind": "remote-v2.key",
+    "code": 14
+  },
+  "key-digit8": {
+    "kind": "remote-v2.key",
+    "code": 15
+  },
+  "key-digit9": {
+    "kind": "remote-v2.key",
+    "code": 16
+  },
+  "key-enter": {
+    "kind": "remote-v2.key",
+    "code": 23
+  },
+  "key-settings": {
+    "kind": "remote-v2.key",
+    "code": 176
+  },
+  "key-source": {
+    "kind": "remote-v2.key",
+    "code": 178
+  },
+  "key-mute": {
+    "kind": "remote-v2.key",
+    "code": 164
+  },
+  "key-menu": {
+    "kind": "remote-v2.key",
+    "code": 82
+  },
+  "key-info": {
+    "kind": "remote-v2.key",
+    "code": 165
+  },
+  "key-guide": {
+    "kind": "remote-v2.key",
+    "code": 172
+  },
+  "key-exit": {
+    "kind": "remote-v2.key",
+    "code": 4
+  },
+  "key-red": {
+    "kind": "remote-v2.key",
+    "code": 183
+  },
+  "key-green": {
+    "kind": "remote-v2.key",
+    "code": 184
+  },
+  "key-yellow": {
+    "kind": "remote-v2.key",
+    "code": 185
+  },
+  "key-blue": {
+    "kind": "remote-v2.key",
+    "code": 186
+  },
+  "key-live-tv": {
+    "kind": "remote-v2.key",
+    "code": 170
+  },
+  "key-captions": {
+    "kind": "remote-v2.key",
+    "code": 175
+  },
+  "toggle-mute": {
+    "kind": "remote-v2.key",
+    "code": 164
+  },
+  "open-input-picker": {
+    "kind": "remote-v2.key",
+    "code": 178
+  },
+  "set-volume": {
+    "kind": "remote-v2.set-volume"
+  },
+  "set-mute": {
+    "kind": "remote-v2.set-mute"
+  },
+  "read-volume": {
+    "kind": "remote-v2.read-volume",
+    "readOnly": true,
+    "gate": "volumeFeedback"
+  },
+  "subscribe-volume": {
+    "kind": "remote-v2.volume",
+    "gate": "volumeFeedback"
+  },
+  "send-text": {
+    "kind": "remote-v2.text"
+  },
+  "send-enter": {
+    "kind": "remote-v2.submit"
+  },
+  "launch-application": {
+    "kind": "remote-v2.app-link"
+  },
+  "read-content": {
+    "kind": "remote-v2.read-content",
+    "readOnly": true
+  },
+  "subscribe-content": {
+    "kind": "remote-v2.content"
+  },
+  "wake": {
+    "kind": "network.wake-on-lan"
+  }
+}
