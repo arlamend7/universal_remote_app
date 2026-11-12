@@ -65,9 +65,3 @@ python3 drivers/tools/publish/build_site.py --output /tmp/site --key /tmp/test.p
   every integration folder below that path into separate development storage.
 - `--dart-define=ALLOW_DEVELOPMENT_INTEGRATIONS=true` offers development-channel
   integrations (such as Roku ECP). Release builds ignore both flags.
-
-Integrations under the same provider can list shared documents in
-`shared-files.json`. The source loader reads those files from the provider's
-`_shared/` directory. It accepts only the standard integration document names,
-rejects symlinks and conflicting local copies, and expands the documents before
-validation. The signed package keeps its existing flat format.

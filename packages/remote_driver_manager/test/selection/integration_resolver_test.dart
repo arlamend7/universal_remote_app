@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
-import 'package:remote_driver_runtime/authoring.dart';
 import 'package:remote_driver_runtime/devices.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:test/test.dart';
@@ -26,14 +25,14 @@ IntegrationCandidate _lg(String id, String range, int priority) =>
       ],
     );
 
-Map<String, Object?> _source(String folder, String file) {
+Map<String, Object?> _source(String path) {
   var directory = Directory.current.absolute;
   while (!Directory('${directory.path}/drivers/providers').existsSync()) {
     directory = directory.parent;
   }
-  final source = Directory('${directory.path}/drivers/providers/$folder');
-  return jsonDecode(readDriverSourceFiles(source)[file]!)
-      as Map<String, Object?>;
+  return jsonDecode(
+    File('${directory.path}/drivers/providers/$path').readAsStringSync(),
+  ) as Map<String, Object?>;
 }
 
 void main() {
@@ -117,8 +116,8 @@ void main() {
       ),
       engine: engine,
       development: development,
-      discovery: _source(folder, 'discovery.json'),
-      device: _source(folder, 'device.json'),
+      discovery: _source('$folder/discovery.json'),
+      device: _source('$folder/device.json'),
     );
     final sources = [
       source('lg.webos', 'lg.webos.22-plus', 'lg-webos/webos-22-plus', 'ssap'),

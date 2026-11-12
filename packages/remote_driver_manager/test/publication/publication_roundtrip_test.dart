@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
-import 'package:remote_driver_runtime/authoring.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 import 'package:test/test.dart';
 
@@ -52,13 +51,12 @@ void main() {
         '-out',
         public.path,
       ]);
-      final source = await Directory('${temporary.path}/lg').create();
-      final original = Directory(
+      final source = Directory('${temporary.path}/lg');
+      await _run('cp', [
+        '-R',
         '${repository.path}/drivers/providers/lg-webos/webos-22-plus',
-      );
-      for (final entry in readDriverSourceFiles(original).entries) {
-        File('${source.path}/${entry.key}').writeAsStringSync(entry.value);
-      }
+        source.path,
+      ]);
       final index = File('${temporary.path}/catalog.json')
         ..writeAsStringSync(
           jsonEncode({

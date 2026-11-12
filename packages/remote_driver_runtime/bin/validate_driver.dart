@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:remote_driver_runtime/authoring.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
 /// Validates a schema-2 integration folder against every compiled engine and
@@ -13,7 +12,7 @@ Future<void> main(List<String> arguments) async {
     return;
   }
   try {
-    final files = readDriverSourceFiles(Directory(arguments.single));
+    final files = _files(Directory(arguments.single));
     final definition = IntegrationDefinition.compile(
       files,
       ProtocolEngineRegistry([
@@ -39,4 +38,23 @@ Future<void> main(List<String> arguments) async {
     stderr.writeln('Unable to read the integration directory.');
     exitCode = 66;
   }
+}
+
+Map<String, String> _files(Directory directory) {
+  final root = directory.absolute.path;
+  final files = <String, String>{};
+  for (final entry in directory.listSync(recursive: true, followLinks: false)) {
+    if (entry is Link) {
+      throw const FormatException('Integration folders cannot contain links.');
+    }
+    if (entry is! File || !entry.path.endsWith('.json')) {
+      continue;
+    }
+    final name = entry.absolute.path.substring(root.length + 1);
+    if (files.length >= 64 || entry.lengthSync() > 256 * 1024) {
+      throw const FormatException('Integration folder exceeds its limits.');
+    }
+    files[name] = entry.readAsStringSync();
+  }
+  return files;
 }

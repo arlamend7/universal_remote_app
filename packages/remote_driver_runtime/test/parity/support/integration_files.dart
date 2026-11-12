@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:remote_driver_runtime/authoring.dart';
-
 /// The JSON files of `drivers/providers/<folder>`, as a package would hold.
 Map<String, String> integrationFiles(String folder) {
   var directory = Directory.current.absolute;
@@ -9,5 +7,9 @@ Map<String, String> integrationFiles(String folder) {
     directory = directory.parent;
   }
   final source = Directory('${directory.path}/drivers/providers/$folder');
-  return readDriverSourceFiles(source);
+  return {
+    for (final file in source.listSync(recursive: true).whereType<File>())
+      if (file.path.endsWith('.json'))
+        file.path.substring(source.path.length + 1): file.readAsStringSync(),
+  };
 }

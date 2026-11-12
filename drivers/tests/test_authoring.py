@@ -45,33 +45,6 @@ class DriverAuthoringTest(unittest.TestCase):
                 self.assertEqual(manifest["integrationId"], "example.json-websocket")
                 self.assertIn("mappings.json", archive.namelist())
 
-    def test_shared_lg_source_expands_before_packaging(self):
-        validated = []
-        for folder in INTEGRATIONS[:2]:
-            result = subprocess.run(
-                ["sh", str(VALIDATOR), str(DRIVERS / "providers" / folder)],
-                capture_output=True,
-                check=True,
-            )
-            files = json.loads(result.stdout)["files"]
-            self.assertNotIn("shared-files.json", files)
-            self.assertIn("mappings.json", files)
-            del files["manifest.json"]
-            validated.append(files)
-        self.assertEqual(validated[0], validated[1])
-
-    def test_shared_source_rejects_paths_outside_the_allowlist(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            folder = Path(temporary)
-            (folder / "shared-files.json").write_text('["../mappings.json"]')
-            result = subprocess.run(
-                ["sh", str(VALIDATOR), str(folder)],
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(result.returncode, 65)
-            self.assertIn(b"Invalid shared driver files", result.stderr)
-
     def test_rejects_symbolic_links(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)

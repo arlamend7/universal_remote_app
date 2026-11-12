@@ -1,6 +1,5 @@
 import copy
 import json
-import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -31,18 +30,12 @@ class SchemaTest(unittest.TestCase):
         providers = ROOT / "providers"
         for manifest in providers.rglob("manifest.json"):
             folder = manifest.parent
-            result = subprocess.run(
-                ["sh", str(ROOT / "tools" / "validate" / "validate.sh"), str(folder)],
-                capture_output=True,
-                check=True,
-            )
-            files = json.loads(result.stdout)["files"]
             for name, schema in [
                 ("manifest.json", "manifest.schema.json"),
                 ("capabilities.json", "capabilities.schema.json"),
                 ("mappings.json", "mappings.schema.json"),
             ]:
-                document = json.loads(files[name])
+                document = json.loads((folder / name).read_text("utf-8"))
                 with self.subTest(folder=str(folder.relative_to(providers)), file=name):
                     self.schemas.validate(schema, document)
 

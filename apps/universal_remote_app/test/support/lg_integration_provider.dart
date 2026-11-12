@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
-import 'package:remote_driver_runtime/authoring.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 import 'package:remote_network/remote_network.dart';
 
@@ -15,7 +16,7 @@ ProviderDefinition<RemoteBase> lgIntegrationProvider({
 }) {
   final engines = ProtocolEngineRegistry([SsapEngine(connector: connector)]);
   final definition = IntegrationDefinition.compile(
-    readRepositoryDriverSource('lg-webos/webos-22-plus'),
+    _files('lg-webos/webos-22-plus'),
     engines,
   );
   final planner = StaticPlanPlanner(
@@ -32,4 +33,17 @@ ProviderDefinition<RemoteBase> lgIntegrationProvider({
           credentials: credentials,
         ),
   ).definitions([ProviderRuleSource.definition(definition)]).single;
+}
+
+Map<String, String> _files(String folder) {
+  var directory = Directory.current.absolute;
+  while (!Directory('${directory.path}/drivers/providers').existsSync()) {
+    directory = directory.parent;
+  }
+  final source = Directory('${directory.path}/drivers/providers/$folder');
+  return {
+    for (final file in source.listSync(recursive: true).whereType<File>())
+      if (file.path.endsWith('.json'))
+        file.path.substring(source.path.length + 1): file.readAsStringSync(),
+  };
 }
