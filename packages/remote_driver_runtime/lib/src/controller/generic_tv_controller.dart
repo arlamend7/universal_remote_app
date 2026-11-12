@@ -311,22 +311,26 @@ final class GenericTvController extends TVRemoteBase
 
   @override
   bool get canWake {
-    final mapping = _plan?.definition.operations(_plan!.profile)['wake'];
+    final mapping = _plan?.definition.operations(
+      _plan!.profile,
+    )[RuntimeOperations.wake];
     if (mapping == null) {
       return false;
     }
     if (mapping.operation is NetworkOperation) {
       return deviceWakeTarget(_device) != null;
     }
-    return _connected?.gate.allows('wake') == true;
+    return _connected?.gate.allows(RuntimeOperations.wake) == true;
   }
 
   @override
   Future<void> wake() async {
-    final mapping = _plan?.definition.operations(_plan!.profile)['wake'];
+    final mapping = _plan?.definition.operations(
+      _plan!.profile,
+    )[RuntimeOperations.wake];
     final network = mapping?.operation;
     if (network is! NetworkOperation) {
-      return _send('wake');
+      return _send(RuntimeOperations.wake);
     }
     final target = deviceWakeTarget(
       _device,
@@ -342,25 +346,29 @@ final class GenericTvController extends TVRemoteBase
   }
 
   @override
-  Future<void> powerOff() => _send('power-off');
+  Future<void> powerOff() => _send(RuntimeOperations.powerOff);
   @override
-  Future<void> volumeUp() => _send('volume-up');
+  Future<void> volumeUp() => _send(RuntimeOperations.volumeUp);
   @override
-  Future<void> volumeDown() => _send('volume-down');
+  Future<void> volumeDown() => _send(RuntimeOperations.volumeDown);
   @override
-  Future<void> setVolume(int volume) => _send('set-volume', {'volume': volume});
+  Future<void> setVolume(int volume) =>
+      _send(RuntimeOperations.setVolume, {'volume': volume});
   @override
-  Future<void> setMuted(bool muted) => _send('set-mute', {'muted': muted});
+  Future<void> setMuted(bool muted) =>
+      _send(RuntimeOperations.setMute, {'muted': muted});
 
   @override
   Future<void> toggleMute() async {
-    if (_mapped('toggle-mute')) {
-      return _send('toggle-mute');
+    if (_mapped(RuntimeOperations.toggleMute)) {
+      return _send(RuntimeOperations.toggleMute);
     }
     final active = _connected;
-    final reading = active?.table['read-volume'];
-    if (active == null || reading == null || !active.gate.allows('set-mute')) {
-      return _send('set-mute', const {'muted': true});
+    final reading = active?.table[RuntimeOperations.readVolume];
+    if (active == null ||
+        reading == null ||
+        !active.gate.allows(RuntimeOperations.setMute)) {
+      return _send(RuntimeOperations.setMute, const {'muted': true});
     }
     final volume = await active.session.execute(reading.operation, const {});
     final muted = volume is VolumeState ? volume.muted ?? false : false;
@@ -368,7 +376,8 @@ final class GenericTvController extends TVRemoteBase
   }
 
   @override
-  Future<VolumeState> readVolume() => _read<VolumeState>('read-volume');
+  Future<VolumeState> readVolume() =>
+      _read<VolumeState>(RuntimeOperations.readVolume);
 
   @override
   Stream<VolumeState> watchVolume() =>
@@ -378,52 +387,57 @@ final class GenericTvController extends TVRemoteBase
   Future<void> press(NavigationKey key) =>
       _send(RuntimeOperations.navigation(key));
   @override
-  Future<void> channelUp() => _send('channel-up');
+  Future<void> channelUp() => _send(RuntimeOperations.channelUp);
   @override
-  Future<void> channelDown() => _send('channel-down');
+  Future<void> channelDown() => _send(RuntimeOperations.channelDown);
   @override
   Future<List<DeviceChannel>> channels() =>
-      _read<List<DeviceChannel>>('list-channels');
+      _read<List<DeviceChannel>>(RuntimeOperations.listChannels);
   @override
-  Future<void> selectChannel(String id) => _target('select-channel', id);
+  Future<void> selectChannel(String id) =>
+      _target(RuntimeOperations.selectChannel, id);
   @override
   Future<void> sendMedia(MediaAction action) =>
       _send(RuntimeOperations.media(action));
   @override
-  Future<void> togglePlayback() => _send('toggle-playback');
+  Future<void> togglePlayback() => _send(RuntimeOperations.togglePlayback);
 
   @override
-  Future<bool?> playbackState() async =>
-      _mapped('read-playback') ? _read<bool?>('read-playback') : null;
+  Future<bool?> playbackState() async => _mapped(RuntimeOperations.readPlayback)
+      ? _read<bool?>(RuntimeOperations.readPlayback)
+      : null;
 
   @override
-  Future<void> turnOffScreen() => _send('screen-off');
+  Future<void> turnOffScreen() => _send(RuntimeOperations.screenOff);
   @override
-  Future<void> turnOnScreen() => _send('screen-on');
+  Future<void> turnOnScreen() => _send(RuntimeOperations.screenOn);
   @override
   Future<void> movePointer(double dx, double dy) =>
-      _send('pointer-move', {'dx': dx, 'dy': dy});
+      _send(RuntimeOperations.pointerMove, {'dx': dx, 'dy': dy});
   @override
   Future<void> scroll(double dx, double dy) =>
-      _send('pointer-scroll', {'dx': dx, 'dy': dy});
+      _send(RuntimeOperations.pointerScroll, {'dx': dx, 'dy': dy});
   @override
-  Future<void> click() => _send('pointer-click');
+  Future<void> click() => _send(RuntimeOperations.pointerClick);
   @override
   Future<void> sendKey(RemoteKey key) => _send(RuntimeOperations.key(key));
   @override
-  Future<void> sendText(String text) => _send('send-text', {'text': text});
+  Future<void> sendText(String text) =>
+      _send(RuntimeOperations.sendText, {'text': text});
   @override
-  Future<void> sendEnter() => _send('send-enter');
+  Future<void> sendEnter() => _send(RuntimeOperations.sendEnter);
 
   @override
-  Future<List<DeviceInput>> inputs() async => _mapped('list-inputs')
-      ? await _read<List<DeviceInput>>('list-inputs')
+  Future<List<DeviceInput>> inputs() async =>
+      _mapped(RuntimeOperations.listInputs)
+      ? await _read<List<DeviceInput>>(RuntimeOperations.listInputs)
       : const [];
 
   @override
-  Future<void> selectInput(String id) => _target('select-input', id);
+  Future<void> selectInput(String id) =>
+      _target(RuntimeOperations.selectInput, id);
   @override
-  Future<void> openInputPicker() => _send('open-input-picker');
+  Future<void> openInputPicker() => _send(RuntimeOperations.openInputPicker);
   @override
   DeviceInput? get currentInput => _currentInput;
   @override
@@ -431,10 +445,12 @@ final class GenericTvController extends TVRemoteBase
 
   @override
   Future<List<DeviceApplication>> applications() async {
-    if (!_mapped('list-applications')) {
+    if (!_mapped(RuntimeOperations.listApplications)) {
       return const [];
     }
-    final apps = await _read<List<DeviceApplication>>('list-applications');
+    final apps = await _read<List<DeviceApplication>>(
+      RuntimeOperations.listApplications,
+    );
     _reportedApplicationIds = Set.unmodifiable(apps.map((app) => app.id));
     return apps;
   }
@@ -444,16 +460,17 @@ final class GenericTvController extends TVRemoteBase
 
   @override
   Future<void> launchApplication(String id) =>
-      _send('launch-application', {'target': id});
+      _send(RuntimeOperations.launchApplication, {'target': id});
 
   @override
-  Future<String?> currentApplication() async => _mapped('read-application')
-      ? await _read<String?>('read-application')
+  Future<String?> currentApplication() async =>
+      _mapped(RuntimeOperations.readApplication)
+      ? await _read<String?>(RuntimeOperations.readApplication)
       : (await currentContent()).appId;
 
   @override
   Future<CurrentContent> currentContent() async =>
-      _content(await _run('read-content'));
+      _content(await _run(RuntimeOperations.readContent));
 
   @override
   Stream<CurrentContent> watchCurrentContent() =>
@@ -472,24 +489,25 @@ final class GenericTvController extends TVRemoteBase
 
   @override
   Future<List<BluetoothAccessory>> bluetoothAccessories() =>
-      _read<List<BluetoothAccessory>>('list-accessories');
+      _read<List<BluetoothAccessory>>(RuntimeOperations.listAccessories);
   @override
   Future<void> toggleBluetoothAccessory(String id) =>
-      _target('toggle-accessory', id);
+      _target(RuntimeOperations.toggleAccessory, id);
   @override
-  Future<void> openAccessorySettings() => _send('open-accessory-settings');
+  Future<void> openAccessorySettings() =>
+      _send(RuntimeOperations.openAccessorySettings);
   @override
-  Future<void> startVoiceControl() => _send('start-voice');
+  Future<void> startVoiceControl() => _send(RuntimeOperations.startVoice);
   @override
-  Future<void> toggleGameMode() => _send('toggle-game-mode');
+  Future<void> toggleGameMode() => _send(RuntimeOperations.toggleGameMode);
 
   @override
   Future<DeviceWakeAddress?> readWakeAddress() async {
-    if (!_mapped('read-wake-address')) {
+    if (!_mapped(RuntimeOperations.readWakeAddress)) {
       return null;
     }
     try {
-      return await _read<DeviceWakeAddress?>('read-wake-address');
+      return await _read<DeviceWakeAddress?>(RuntimeOperations.readWakeAddress);
     } on Object {
       return null;
     }

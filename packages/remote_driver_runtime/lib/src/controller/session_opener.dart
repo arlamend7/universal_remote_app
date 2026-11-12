@@ -81,7 +81,7 @@ final class SessionOpener {
   ) async {
     final mapping = plan.definition.operations(
       plan.profile,
-    )['identify-software'];
+    )[RuntimeOperations.identifySoftware];
     if (mapping == null) {
       return session.software;
     }
