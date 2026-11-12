@@ -316,10 +316,7 @@ final class GenericTvController extends TVRemoteBase
       return false;
     }
     if (mapping.operation is NetworkOperation) {
-      return normalizeMacAddress(
-            _device.metadata[DeviceMetadataKeys.macAddress],
-          ) !=
-          null;
+      return deviceWakeTarget(_device) != null;
     }
     return _connected?.gate.allows('wake') == true;
   }
@@ -331,21 +328,17 @@ final class GenericTvController extends TVRemoteBase
     if (network is! NetworkOperation) {
       return _send('wake');
     }
-    final mac = normalizeMacAddress(
-      _device.metadata[DeviceMetadataKeys.macAddress],
+    final target = deviceWakeTarget(
+      _device,
+      defaultBroadcast: network.broadcast,
     );
-    if (mac == null) {
+    if (target == null) {
       throw const RemoteException(
         'wakeUnavailable',
         'Configure a verified MAC address and enable network wake on the TV first.',
       );
     }
-    await _wake(
-      mac,
-      _device.metadata[DeviceMetadataKeys.broadcastAddress] ??
-          network.broadcast ??
-          '255.255.255.255',
-    );
+    await _wake(target.macAddress, target.broadcastAddress!);
   }
 
   @override

@@ -13,10 +13,7 @@ abstract class RemoteBase implements RemoteDriver {
 
   /// Whether this session has driver evidence that [capability] is usable.
   bool supports(RemoteCapability capability) => evidence.any(
-    (item) =>
-        item.capability == capability &&
-        (item.availability == CapabilityAvailability.verified ||
-            item.availability == CapabilityAvailability.known),
+    (item) => item.capability == capability && item.availability.isUsable,
   );
 
   /// Stable identity established by an authenticated connection, when available.
@@ -81,7 +78,5 @@ enum DisconnectReason { user, poweredOff, connectionLost, suspended }
 /// Use resolved driver evidence. Discovery advertisements alone are insufficient.
 Set<RemoteCapability> resolvedCapabilities(RemoteBase controller) => {
   for (final item in controller.evidence)
-    if (item.availability == CapabilityAvailability.verified ||
-        item.availability == CapabilityAvailability.known)
-      item.capability,
+    if (item.availability.isUsable) item.capability,
 };

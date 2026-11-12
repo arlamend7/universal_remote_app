@@ -31,10 +31,7 @@ final class DeclarativeWakeProvider implements DeviceWakeProvider {
     if (json['kind'] == 'engine') {
       return engine != null && operation != null && _hasCapability(device);
     }
-    return normalizeMacAddress(
-          device.metadata[DeviceMetadataKeys.macAddress],
-        ) !=
-        null;
+    return deviceWakeTarget(device) != null;
   }
 
   @override
@@ -45,12 +42,8 @@ final class DeclarativeWakeProvider implements DeviceWakeProvider {
     if (json['kind'] == 'engine') {
       return engine!.wakeOffline(device, operation!);
     }
-    await sendWakeOnLan(
-      normalizeMacAddress(device.metadata[DeviceMetadataKeys.macAddress])!,
-      broadcast:
-          device.metadata[DeviceMetadataKeys.broadcastAddress] ??
-          '255.255.255.255',
-    );
+    final target = deviceWakeTarget(device)!;
+    await sendWakeOnLan(target.macAddress, broadcast: target.broadcastAddress!);
   }
 
   bool _hasCapability(RemoteDevice device) {

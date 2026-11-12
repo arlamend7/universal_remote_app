@@ -9,8 +9,5 @@ final class ResolvedCapability {
   /// The selected alternative; empty unless the capability is usable.
   final List<String> operations;
 
-  bool get usable => const {
-    CapabilityAvailability.known,
-    CapabilityAvailability.verified,
-  }.contains(evidence.availability);
+  bool get usable => evidence.availability.isUsable;
 }

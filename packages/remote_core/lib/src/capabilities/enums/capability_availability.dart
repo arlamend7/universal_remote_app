@@ -5,5 +5,7 @@ enum CapabilityAvailability {
   unavailable,
   unsupported,
   conditional,
-  unknown,
+  unknown;
+
+  bool get isUsable => this == known || this == verified;
 }
