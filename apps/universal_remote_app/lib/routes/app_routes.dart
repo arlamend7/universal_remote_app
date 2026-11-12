@@ -59,6 +59,7 @@ final class AppRoutes {
   late final SessionPromptCoordinator? _sessionPrompts;
   static const _remoteIndex = 0;
   static const _devicesIndex = 1;
+  static const _settingsIndex = 2;
   late final ValueNotifier<int> _selectedPage;
   late final ValueNotifier<bool> _settingUp;
   late final bool _startedWithoutDevices;
@@ -71,6 +72,19 @@ final class AppRoutes {
   );
 
   void select(int destination) => _selectedPage.value = destination;
+
+  void _selectTab(int destination) {
+    final changed = destination != _selectedPage.value;
+    select(destination);
+    if (changed) {
+      _sessionPrompts?.onTabChanged(
+        stillAtBreak: destination == _settingsIndex
+            ? () => _selectedPage.value == _settingsIndex
+            : null,
+      );
+    }
+  }
+
   void chooseDevice() => select(_devicesIndex);
   void connect(RemoteDevice device) {
     select(_remoteIndex);
@@ -158,7 +172,7 @@ final class AppRoutes {
 
   Widget _shell(BuildContext context, int index, Widget? child) => MainShell(
     index: index,
-    onSelect: select,
+    onSelect: _selectTab,
     session: _sessionPrompts,
     pages: [
       RemotePage(

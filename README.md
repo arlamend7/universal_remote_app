@@ -52,12 +52,12 @@ This is a Pub workspace: commit the root pubspec.lock; do not resolve packages
 as unrelated projects. No cloud backend, database, user accounts, analytics,
 release publication, or internet-facing control server is required.
 
-## Test rewarded sessions
+## Test interstitials and the ad-free pass
 
-The session feature is available on Android and iOS when that platform's
-rewarded ad unit ID is set. Use the Google demo IDs in
-`apps/universal_remote_app/.env.example` for branch testing. Copy the four
-`ADMOB_` entries into the app's ignored `.env` and keep any existing settings.
+Ads are available on Android and iOS when the platform's rewarded and
+interstitial ad unit IDs are set. For branch testing, copy the six demo
+`ADMOB_` entries from `apps/universal_remote_app/.env.example` into the app's
+ignored `.env` and keep the other settings.
 
 ```sh
 cd apps/universal_remote_app
@@ -68,25 +68,32 @@ flutter run --dart-define-from-file=.env
 The Android build reads its App ID from Flutter's build defines. The iOS script
 writes an ignored Xcode configuration. Use the same Flutter build defines when
 producing a test archive with `flutter build ipa`. Keep demo IDs for TestFlight.
-For production, register the two platform apps separately in
-[AdMob](https://admob.google.com/) and create a
-[rewarded ad unit](https://support.google.com/admob/answer/7311747) for each.
-Use reward amount `30` and item `session minutes`. Replace both App IDs and both
-rewarded ad unit IDs, rerun the iOS configuration script, and set up the
-applicable [privacy messages](https://developers.google.com/admob/flutter/privacy)
-in AdMob before enabling live ads.
+For production, open each platform's app in [AdMob](https://admob.google.com/).
+Create a standard Interstitial ad unit and set the existing
+[rewarded ad unit](https://support.google.com/admob/answer/7311747) to reward
+amount `120` and item `minutes without interstitials`. Set the interstitial
+IDs in `ADMOB_ANDROID_INTERSTITIAL_AD_UNIT_ID` and
+`ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID`. Keep your app IDs and rewarded unit IDs
+in their existing settings. Rerun the iOS configuration script when changing
+the iOS app ID. Set up applicable
+[privacy messages](https://developers.google.com/admob/flutter/privacy)
+before enabling live ads.
 
-The timer starts with 30 minutes, counts foreground use, and pauses during
-full-screen ads. Watching a rewarded ad can add 30 minutes, up to 60 minutes
-of balance and with one minute of active use between rewards. Essential
-remote controls and device setup are available after the session ends.
+After 20 minutes of foreground use, a preloaded interstitial can appear when
+the user opens Settings or exits the top-level layout editor back to the main
+app. A shown interstitial starts a new 20-minute interval. An earned reward
+starts two hours without interstitials, followed by the regular 20-minute
+interval. App time pauses while backgrounded or while a full-screen ad is
+visible. TV controls and device setup are available throughout.
 
 ### Physical-device validation
 
 Use a demo build on an Android phone and an iPhone. Check that the footer
-updates every ten seconds, backgrounding freezes the clock, dismissing an ad
-early grants nothing, and completing one adds exactly 30 minutes. Confirm the
-last-minute warning and verify that the remote and setup still work at zero.
+updates every second during the reward, backgrounding freezes the clock, and
+completing a rewarded ad starts exactly two hours. Confirm that the pass and
+20-minute interval both pass before the next interstitial becomes eligible.
+Verify that an eligible ad waits for a page transition and that device setup
+and the remote remain available.
 Use Flutter DevTools in profile mode to compare idle foreground CPU activity,
 memory, timer callbacks and widget rebuilds with the rewarded unit configured
 and with it blank. Record physical-device and profiling results separately

@@ -133,15 +133,6 @@ class SetupStepPage extends StatelessWidget {
     }
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final secondaryStyle =
-        (theme.outlinedButtonTheme.style ?? const ButtonStyle()).copyWith(
-          backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.disabled)) {
-              return null;
-            }
-            return colors.surfaceContainerHigh;
-          }),
-        );
     return Column(
       children: [
         Padding(
@@ -151,10 +142,7 @@ class SetupStepPage extends StatelessWidget {
             spacing: 4,
             children: [
               if (action != null)
-                OutlinedButtonTheme(
-                  data: OutlinedButtonThemeData(style: secondaryStyle),
-                  child: AppSheetActions(primary: action, secondary: secondary),
-                ),
+                AppSheetActions(primary: action, secondary: secondary),
               if (footerLink != null)
                 TextButtonTheme(
                   data: TextButtonThemeData(

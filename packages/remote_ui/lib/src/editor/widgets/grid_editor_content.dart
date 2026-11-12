@@ -164,7 +164,7 @@ class GridEditorContent extends StatelessWidget {
               : 'This removes the page and its $count controls.',
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),

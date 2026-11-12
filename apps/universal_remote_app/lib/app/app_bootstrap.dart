@@ -14,6 +14,8 @@ import '../data/drivers/platform_driver_configuration.dart';
 import '../domains/diagnostics/models/enums/app_log_level.dart';
 import '../data/settings/screen_awake.dart';
 import '../data/session/admob_rewarded_advertising.dart';
+import '../data/session/admob_consent.dart';
+import '../data/session/admob_interstitial_advertising.dart';
 import '../data/storage/adapters/native_preferences_storage.dart';
 import '../data/pairing/repositories/secure_credential_store.dart';
 import '../data/pairing/repositories/session_credential_store.dart';
@@ -29,6 +31,7 @@ import '../domains/devices/services/saved_devices_controller.dart';
 import '../domains/discovery/services/discovery_controller.dart';
 import '../domains/settings/services/settings_controller.dart';
 import '../domains/session/contracts/rewarded_advertising.dart';
+import '../domains/session/contracts/interstitial_advertising.dart';
 import '../domains/session/services/active_session.dart';
 import '../domains/connection/services/connection_controller.dart';
 import 'app_dependencies.dart';
@@ -46,6 +49,7 @@ abstract final class AppBootstrap {
     Future<void> Function()? acquireNetwork,
     Future<void> Function()? releaseNetwork,
     RewardedAdvertising? rewardedAdvertising,
+    InterstitialAdvertising? interstitialAdvertising,
     Duration Function()? sessionClock,
   }) async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -61,10 +65,14 @@ abstract final class AppBootstrap {
     final providers = registry ?? ProviderRegistry();
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
-    final ads = rewardedAdvertising ?? AdMobRewardedAdvertising.configured();
-    final session = ads == null
-        ? null
-        : ActiveSession(preferences, ads, now: sessionClock);
+    final session = rewardedAdvertising == null
+        ? _mobileAdSession(preferences)
+        : ActiveSession(
+            preferences,
+            rewardedAdvertising,
+            interstitial: interstitialAdvertising,
+            now: sessionClock,
+          );
     await session?.restore();
     final drivers = await _initializeDrivers(
       driverService,
@@ -162,6 +170,33 @@ abstract final class AppBootstrap {
           ? null
           : () => _checkDriverUpdates(drivers, providers, logger),
       inspectCertificate: inspectCertificate ?? inspectTvCertificate,
+    );
+  }
+
+  static ActiveSession? _mobileAdSession(ApplicationStorage preferences) {
+    const androidReward = String.fromEnvironment(
+      'ADMOB_ANDROID_REWARDED_AD_UNIT_ID',
+    );
+    const iosReward = String.fromEnvironment('ADMOB_IOS_REWARDED_AD_UNIT_ID');
+    const androidInterstitial = String.fromEnvironment(
+      'ADMOB_ANDROID_INTERSTITIAL_AD_UNIT_ID',
+    );
+    const iosInterstitial = String.fromEnvironment(
+      'ADMOB_IOS_INTERSTITIAL_AD_UNIT_ID',
+    );
+    final (reward, interstitial) = switch (Platform.operatingSystem) {
+      'android' => (androidReward, androidInterstitial),
+      'ios' => (iosReward, iosInterstitial),
+      _ => ('', ''),
+    };
+    if (reward.isEmpty || interstitial.isEmpty) {
+      return null;
+    }
+    final consent = AdMobConsent();
+    return ActiveSession(
+      preferences,
+      AdMobRewardedAdvertising(reward, consent),
+      interstitial: AdMobInterstitialAdvertising(interstitial, consent),
     );
   }
 

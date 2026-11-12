@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_remote_app/domains/session/services/active_session.dart';
 
+import '../support/fake_interstitial_advertising.dart';
 import '../support/fake_rewarded_advertising.dart';
 import '../support/memory_storage.dart';
 
@@ -11,6 +12,7 @@ void main() {
     'uses elapsed foreground time and checkpoints every ten seconds',
     (tester) async {
       final storage = MemoryStorage();
+      await storage.write(ActiveSession.storageKey, '{"remainingMs":1800000}');
       final startedAt = tester.binding.clock.now();
       Duration now() => tester.binding.clock.now().difference(startedAt);
       final session = ActiveSession(
@@ -85,7 +87,6 @@ void main() {
     expect(await declined, isFalse);
     await tester.pump(const Duration(minutes: 1));
     expect(session.expired, isTrue);
-    expect(session.expirationDue, isTrue);
     expect(_savedTime(storage), 0);
     final writesAtExpiration = storage.writes.length;
     await tester.pump(const Duration(minutes: 5));
@@ -98,15 +99,100 @@ void main() {
     ads.earn!();
     ads.dismiss();
     expect(await request, isTrue);
-    expect(session.remaining, const Duration(minutes: 30));
+    expect(session.remaining, const Duration(hours: 2));
     expect(session.canExtend, isFalse);
-    expect(_savedTime(storage), 1800000);
+    expect(_savedTime(storage), 7200000);
     expect(storage.writes, hasLength(writesAtExpiration + 1));
-    await tester.pump(const Duration(seconds: 59));
+    await tester.pump(const Duration(minutes: 118, seconds: 59));
     expect(session.canExtend, isFalse);
     await tester.pump(const Duration(seconds: 1));
     expect(session.canExtend, isTrue);
     await session.close();
+  });
+
+  testWidgets(
+    'interstitials wait twenty minutes and respect the two-hour reward',
+    (tester) async {
+      final storage = MemoryStorage();
+      final ads = FakeInterstitialAdvertising()..available = false;
+      final reward = FakeRewardedAdvertising();
+      final start = tester.binding.clock.now();
+      final session = ActiveSession(
+        storage,
+        reward,
+        interstitial: ads,
+        now: () => tester.binding.clock.now().difference(start),
+      );
+      await session.restore();
+      session.setForeground(true);
+      await tester.pump(const Duration(minutes: 19));
+      await session.showInterstitial(canPresent: () => true);
+      expect(ads.presentations, 0);
+      session.setForeground(false);
+      await tester.pump(const Duration(hours: 1));
+      session.setForeground(true);
+      await tester.pump(const Duration(minutes: 1));
+      expect(ads.presentations, 0);
+      await session.showInterstitial(canPresent: () => false);
+      expect(await session.showInterstitial(canPresent: () => true), isFalse);
+      ads.available = true;
+      expect(await session.showInterstitial(canPresent: () => true), isFalse);
+      expect(ads.presentations, 0);
+      await session.showInterstitial(canPresent: () => true);
+      await session.showInterstitial(canPresent: () => true);
+      expect(ads.presentations, 1);
+
+      final extension = session.requestExtension(canPresent: () => true);
+      reward.earn!();
+      reward.dismiss();
+      expect(await extension, isTrue);
+      await tester.pump(const Duration(minutes: 119));
+      await session.showInterstitial(canPresent: () => true);
+      expect(ads.presentations, 1);
+      await tester.pump(const Duration(minutes: 1));
+      expect(session.expired, isTrue);
+      await session.showInterstitial(canPresent: () => true);
+      expect(ads.presentations, 1);
+      await tester.pump(const Duration(minutes: 20));
+      await session.showInterstitial(canPresent: () => true);
+      expect(ads.presentations, 2);
+      await session.close();
+    },
+  );
+
+  testWidgets('the new interval preserves elapsed time across upgrades', (
+    tester,
+  ) async {
+    final storage = MemoryStorage();
+    await storage.write(
+      ActiveSession.storageKey,
+      '{"remainingMs":0,"interstitialWaitMs":300000}',
+    );
+    final start = tester.binding.clock.now();
+    Duration now() => tester.binding.clock.now().difference(start);
+    final first = ActiveSession(
+      storage,
+      FakeRewardedAdvertising(),
+      interstitial: FakeInterstitialAdvertising(),
+      now: now,
+    );
+    await first.restore();
+    first.setForeground(true);
+    await tester.pump(const Duration(minutes: 14, seconds: 59));
+    expect(await first.showInterstitial(canPresent: () => true), isFalse);
+    await first.close();
+
+    final restarted = ActiveSession(
+      storage,
+      FakeRewardedAdvertising(),
+      interstitial: FakeInterstitialAdvertising(),
+      now: now,
+    );
+    await restarted.restore();
+    restarted.setForeground(true);
+    await tester.pump(const Duration(seconds: 1));
+    expect(await restarted.showInterstitial(canPresent: () => true), isTrue);
+    await restarted.close();
   });
 }
 

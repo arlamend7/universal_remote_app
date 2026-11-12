@@ -12,6 +12,7 @@ class AppSheet extends StatelessWidget {
     this.scrollable = true,
     this.heightFactor = .88,
     this.horizontalInset = 24,
+    this.centerTitle = false,
   });
 
   final String title;
@@ -23,6 +24,7 @@ class AppSheet extends StatelessWidget {
   final bool scrollable;
   final double heightFactor;
   final double horizontalInset;
+  final bool centerTitle;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -86,30 +88,55 @@ class AppSheet extends StatelessWidget {
       horizontalInset,
       8,
     ),
-    child: Row(
-      children: [
-        Expanded(child: _heading(context)),
-        IconButton.filledTonal(
-          tooltip: closeLabel,
-          onPressed: onClose ?? () => Navigator.pop(context),
-          icon: const Icon(Icons.close, size: 20),
-        ),
-      ],
-    ),
+    child: centerTitle
+        ? _centeredHeadingRow(context)
+        : Row(
+            children: [
+              Expanded(child: _heading(context)),
+              _closeButton(context),
+            ],
+          ),
+  );
+
+  Widget _centeredHeadingRow(BuildContext context) => Stack(
+    alignment: Alignment.center,
+    children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 48),
+        child: _heading(context),
+      ),
+      Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: _closeButton(context),
+      ),
+    ],
+  );
+
+  Widget _closeButton(BuildContext context) => IconButton.filledTonal(
+    tooltip: closeLabel,
+    onPressed: onClose ?? () => Navigator.pop(context),
+    icon: const Icon(Icons.close, size: 20),
   );
 
   Widget _heading(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: centerTitle
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         Semantics(
           header: true,
-          child: Text(title, style: theme.textTheme.titleLarge),
+          child: Text(
+            title,
+            textAlign: centerTitle ? TextAlign.center : TextAlign.start,
+            style: theme.textTheme.titleLarge,
+          ),
         ),
         if (subtitle != null)
           Text(
             subtitle!,
+            textAlign: centerTitle ? TextAlign.center : TextAlign.start,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

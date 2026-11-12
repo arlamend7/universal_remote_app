@@ -109,7 +109,7 @@ final class GridEditorActions {
           'This changes your draft. You can undo it before saving.',
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),

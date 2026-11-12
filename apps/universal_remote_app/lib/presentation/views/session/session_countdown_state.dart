@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../domains/session/services/active_session.dart';
 import 'session_countdown.dart';
 
 class SessionCountdownState extends State<SessionCountdown> {
@@ -47,10 +46,7 @@ class SessionCountdownState extends State<SessionCountdown> {
     if (!widget.session.counting) {
       return;
     }
-    final interval = remaining <= ActiveSession.warningTime
-        ? const Duration(seconds: 1)
-        : const Duration(seconds: 10);
-    _refresh = Timer(interval, _update);
+    _refresh = Timer(const Duration(seconds: 1), _update);
   }
 
   @override

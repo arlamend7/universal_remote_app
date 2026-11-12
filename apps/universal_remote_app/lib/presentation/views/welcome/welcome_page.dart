@@ -118,18 +118,16 @@ class WelcomePage extends StatelessWidget {
     padding: const EdgeInsets.only(top: 12, bottom: 6),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 4,
+      spacing: 8,
       children: [
         FilledButton.icon(
           onPressed: () => onContinue(context),
           icon: const Icon(Icons.search),
           label: const Text('Find Nearby TVs'),
         ),
-        Center(
-          child: TextButton(
-            onPressed: () => onContinue(context),
-            child: const Text('Configure later'),
-          ),
+        OutlinedButton(
+          onPressed: () => onContinue(context),
+          child: const Text('Configure later'),
         ),
       ],
     ),

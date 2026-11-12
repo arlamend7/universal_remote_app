@@ -1,35 +1,23 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../domains/session/contracts/rewarded_advertising.dart';
+import 'admob_consent.dart';
 
 final class AdMobRewardedAdvertising implements RewardedAdvertising {
-  AdMobRewardedAdvertising(this._unitId);
+  AdMobRewardedAdvertising(this._unitId, this._consent);
 
   final String _unitId;
-  bool _initialized = false;
-  bool _consentRefreshed = false;
-
-  static AdMobRewardedAdvertising? configured() {
-    const android = String.fromEnvironment('ADMOB_ANDROID_REWARDED_AD_UNIT_ID');
-    const ios = String.fromEnvironment('ADMOB_IOS_REWARDED_AD_UNIT_ID');
-    final unit = Platform.isAndroid ? android : (Platform.isIOS ? ios : '');
-    return unit.isEmpty ? null : AdMobRewardedAdvertising(unit);
-  }
+  final AdMobConsent _consent;
 
   @override
-  final ValueNotifier<bool> privacyOptionsRequired = ValueNotifier(false);
+  ValueListenable<bool> get privacyOptionsRequired =>
+      _consent.privacyOptionsRequired;
 
   @override
-  Future<void> showPrivacyOptions() async {
-    if (!privacyOptionsRequired.value) {
-      return;
-    }
-    await ConsentForm.showPrivacyOptionsForm((_) {});
-  }
+  Future<void> showPrivacyOptions() => _consent.showPrivacyOptions();
 
   @override
   Future<void> show({
@@ -37,13 +25,11 @@ final class AdMobRewardedAdvertising implements RewardedAdvertising {
     required void Function(bool) onVisible,
     required void Function() onEarned,
   }) async {
-    if (!await _allowsAds(canPresent) || !canPresent()) {
+    if (!await _consent.canLoad(canPresentConsent: canPresent) ||
+        !canPresent()) {
       return;
     }
-    if (!_initialized) {
-      await MobileAds.instance.initialize();
-      _initialized = true;
-    }
+    await _consent.initialize();
     if (!canPresent()) {
       return;
     }
@@ -58,32 +44,6 @@ final class AdMobRewardedAdvertising implements RewardedAdvertising {
     } finally {
       await ad.dispose();
     }
-  }
-
-  Future<bool> _allowsAds(bool Function() canPresent) async {
-    final consent = ConsentInformation.instance;
-    if (!_consentRefreshed) {
-      final updated = await _refreshConsent(consent);
-      if (updated && canPresent()) {
-        await ConsentForm.loadAndShowConsentFormIfRequired(
-          (error) => _consentRefreshed = error == null,
-        );
-      }
-    }
-    privacyOptionsRequired.value =
-        await consent.getPrivacyOptionsRequirementStatus() ==
-        PrivacyOptionsRequirementStatus.required;
-    return consent.canRequestAds();
-  }
-
-  Future<bool> _refreshConsent(ConsentInformation consent) {
-    final updated = Completer<bool>();
-    consent.requestConsentInfoUpdate(
-      ConsentRequestParameters(),
-      () => updated.complete(true),
-      (_) => updated.complete(false),
-    );
-    return updated.future;
   }
 
   Future<RewardedAd?> _load() async {

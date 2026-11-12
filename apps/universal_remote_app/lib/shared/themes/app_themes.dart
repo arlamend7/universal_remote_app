@@ -138,6 +138,11 @@ abstract final class AppThemes {
       filledButtonTheme: FilledButtonThemeData(style: button),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: button.copyWith(
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.disabled)
+                ? scheme.onSurface.withValues(alpha: .38)
+                : scheme.primary,
+          ),
           side: WidgetStateProperty.resolveWith(
             (states) => BorderSide(
               color: states.contains(WidgetState.disabled)

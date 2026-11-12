@@ -68,8 +68,8 @@ class MainShell extends StatelessWidget {
 
   Widget _sessionDestination(BuildContext context, String time) =>
       NavigationDestination(
-        tooltip: 'Session time',
-        label: time,
+        tooltip: 'Ad options',
+        label: time == '00:00' ? 'Ads' : time,
         icon: const Icon(Icons.ondemand_video_outlined),
       );
 }

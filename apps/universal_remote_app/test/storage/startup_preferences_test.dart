@@ -37,7 +37,7 @@ void main() {
       storage: storage,
       rewardedAdvertising: FakeRewardedAdvertising(),
     );
-    expect(values[ActiveSession.storageKey], contains('"remainingMs":1800000'));
+    expect(values[ActiveSession.storageKey], contains('"remainingMs":0'));
     expect(app.settings.autoReconnect.value, isFalse);
     expect(app.settings.welcomeCompleted.value, isFalse);
     await app.settings.completeWelcome();

@@ -41,25 +41,35 @@ class DiscoveryIssue extends StatelessWidget {
       title: title,
       description: description,
       icon: icon,
-      actions: _actions(context),
+      actions: _actions(),
     );
   }
 
-  List<Widget> _actions(BuildContext context) {
+  List<Widget> _actions() {
     final offline = type == ConnectionIssueType.internetUnavailable;
     final permission = type == ConnectionIssueType.localNetworkPermissionDenied;
+    final canOpenSettings = Platform.isIOS || Platform.isAndroid;
+    if (permission) {
+      return [
+        if (canOpenSettings)
+          FilledButton(
+            onPressed: openDiscoverySettings,
+            child: const Text('Open Settings'),
+          ),
+        OutlinedButton(onPressed: dismiss, child: const Text('Not now')),
+      ];
+    }
     return [
-      if (!permission)
-        FilledButton.tonal(onPressed: retry, child: Text('Try again')),
-      if (!offline && (Platform.isIOS || Platform.isAndroid))
+      FilledButton(onPressed: retry, child: const Text('Try again')),
+      if (!offline && canOpenSettings)
         OutlinedButton(
           onPressed: openDiscoverySettings,
-          child: Text('Open Settings'),
+          child: const Text('Open Settings'),
         ),
-      if (offline || permission)
-        TextButton(
+      if (offline)
+        OutlinedButton(
           onPressed: dismiss,
-          child: Text(offline ? 'Continue offline' : 'Not now'),
+          child: const Text('Continue offline'),
         ),
     ];
   }

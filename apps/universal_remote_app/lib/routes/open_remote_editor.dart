@@ -6,6 +6,8 @@ import '../presentation/views/remote/viewmodels/remote_viewmodel.dart';
 
 import 'package:remote_ui/remote_ui.dart';
 
+const remoteEditorRouteName = 'remote-editor';
+
 Future<void> openRemoteEditor(
   BuildContext context,
   AppDependencies dependencies,
@@ -14,6 +16,9 @@ Future<void> openRemoteEditor(
   GridItem? group,
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
+    settings: parent == null
+        ? const RouteSettings(name: remoteEditorRouteName)
+        : null,
     builder: (_) => GridEditorPage(
       dependencies: RemoteEditorHost(
         grids: dependencies.grids,

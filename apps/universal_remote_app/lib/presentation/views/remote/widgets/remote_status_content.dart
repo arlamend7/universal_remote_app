@@ -30,18 +30,24 @@ class RemoteStatusContent extends StatelessWidget {
           onPressed: model.busy ? null : () => _review(context),
           child: const Text('Review TV certificate and pair'),
         ),
+      if (model.offline) _retryAction(context),
       if (model.offline)
-        FilledButton(
-          onPressed: model.busy ? null : () => _connect(context),
-          child: const Text('Retry connection'),
-        ),
-      if (model.offline)
-        TextButton(
+        OutlinedButton(
           onPressed: model.busy ? null : () => _edit(context),
           child: const Text('Connection settings'),
         ),
     ],
   );
+
+  Widget _retryAction(BuildContext context) {
+    final retry = model.busy ? null : () => _connect(context);
+    const label = Text('Retry connection');
+    if (model.canReviewCertificate) {
+      return OutlinedButton(onPressed: retry, child: label);
+    }
+    return FilledButton(onPressed: retry, child: label);
+  }
+
   void _review(BuildContext context) {
     Navigator.pop(context);
     onReviewCertificate();

@@ -28,6 +28,16 @@ void main() {
     expect(find.textContaining('Connect by IP'), findsNothing);
     await startNearbySearch(tester);
     await tester.pumpAndSettle();
+    expect(find.widgetWithText(FilledButton, 'Search again'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Connect by IP'),
+      findsOneWidget,
+    );
+    final label = tester.element(find.text('Connect by IP'));
+    expect(
+      DefaultTextStyle.of(label).style.color,
+      Theme.of(label).colorScheme.primary,
+    );
     await tester.tap(find.text('Connect by IP'));
     await tester.pumpAndSettle();
     expect(find.byType(ManualAddressPage), findsOneWidget);
