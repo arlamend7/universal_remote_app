@@ -1,0 +1,640 @@
+[
+  {
+    "step": "connect",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "GET /query/device-info"
+      },
+      {
+        "ecp": "GET /query/apps"
+      },
+      {
+        "ecp": "GET /query/active-app"
+      },
+      {
+        "ecp": "GET /query/tv-channels"
+      }
+    ]
+  },
+  {
+    "step": "evidence",
+    "result": [
+      "applications:known",
+      "channelCatalog:known",
+      "channels:known",
+      "currentContent:verified",
+      "currentInput:known",
+      "inputs:known",
+      "instantReplay:known",
+      "mute:known",
+      "navigation:known",
+      "playbackScan:known",
+      "playbackToggle:known",
+      "power:known",
+      "textInput:known",
+      "volume:known"
+    ],
+    "wire": []
+  },
+  {
+    "step": "software",
+    "result": {
+      "model": "Parity TV",
+      "session": {
+        "operatingSystem": "Roku OS",
+        "operatingSystemVersion": "12.5.0",
+        "softwareVersion": null,
+        "firmwareVersion": null,
+        "buildNumber": "4178",
+        "manufacturer": "Roku",
+        "model": "Parity TV",
+        "hardwareModel": "7000X",
+        "protocolVersion": null,
+        "source": "protocolResponse",
+        "raw": {
+          "vendor-name": "Roku",
+          "model-name": "Parity TV",
+          "model-number": "7000X",
+          "software-version": "12.5.0",
+          "software-build": "4178",
+          "is-tv": "true"
+        }
+      }
+    },
+    "wire": []
+  },
+  {
+    "step": "volumeUp",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/VolumeUp"
+      }
+    ]
+  },
+  {
+    "step": "volumeDown",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/VolumeDown"
+      }
+    ]
+  },
+  {
+    "step": "readVolume",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setVolume(25)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setVolume(101)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setMuted(true)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleMute",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/VolumeMute"
+      }
+    ]
+  },
+  {
+    "step": "press(up)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Up"
+      }
+    ]
+  },
+  {
+    "step": "press(down)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Down"
+      }
+    ]
+  },
+  {
+    "step": "press(left)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Left"
+      }
+    ]
+  },
+  {
+    "step": "press(right)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Right"
+      }
+    ]
+  },
+  {
+    "step": "press(enter)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Select"
+      }
+    ]
+  },
+  {
+    "step": "press(back)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Back"
+      }
+    ]
+  },
+  {
+    "step": "press(home)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Home"
+      }
+    ]
+  },
+  {
+    "step": "channelUp",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/ChannelUp"
+      }
+    ]
+  },
+  {
+    "step": "channelDown",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/ChannelDown"
+      }
+    ]
+  },
+  {
+    "step": "channels",
+    "result": [
+      {
+        "id": "7.1",
+        "name": "Local",
+        "number": "7.1"
+      }
+    ],
+    "wire": [
+      {
+        "ecp": "GET /query/tv-channels"
+      }
+    ]
+  },
+  {
+    "step": "selectChannel",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(play)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(pause)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(stop)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(rewind)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Rev"
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(fastForward)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Fwd"
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(previous)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(next)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "togglePlayback",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Play"
+      }
+    ]
+  },
+  {
+    "step": "playbackState",
+    "result": true,
+    "wire": [
+      {
+        "ecp": "GET /query/media-player"
+      }
+    ]
+  },
+  {
+    "step": "turnOffScreen",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "turnOnScreen",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "movePointer",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "scroll",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "click",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit0)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit1)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit2)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit3)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit4)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit5)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit6)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit7)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit8)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit9)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(dash)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(enter)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(menu)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(info)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(guide)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(exit)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(red)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(green)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(yellow)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(blue)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(source)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(settings)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(mute)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/VolumeMute"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(replay)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/InstantReplay"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(liveTv)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(captions)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendText",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Lit_a"
+      },
+      {
+        "ecp": "POST /keypress/Lit_b"
+      },
+      {
+        "ecp": "POST /keypress/Lit_c"
+      }
+    ]
+  },
+  {
+    "step": "sendText(empty)",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "sendEnter",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/Enter"
+      }
+    ]
+  },
+  {
+    "step": "inputs",
+    "result": [
+      {
+        "id": "tvinput.hdmi1",
+        "name": "HDMI 1"
+      }
+    ],
+    "wire": []
+  },
+  {
+    "step": "selectInput",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/InputHDMI1"
+      }
+    ]
+  },
+  {
+    "step": "openInputPicker",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "applications",
+    "result": [
+      {
+        "id": "12",
+        "name": "Netflix",
+        "artwork": "http://127.0.0.1:61514/query/icon/12"
+      }
+    ],
+    "wire": []
+  },
+  {
+    "step": "reportedApplicationIds",
+    "result": [
+      "12"
+    ],
+    "wire": []
+  },
+  {
+    "step": "launchApplication",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /launch/12"
+      }
+    ]
+  },
+  {
+    "step": "launchApplication(contentId)",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /launch/12?contentId=42"
+      }
+    ]
+  },
+  {
+    "step": "launchApplication(web)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "currentApplication",
+    "result": "12",
+    "wire": [
+      {
+        "ecp": "GET /query/active-app"
+      },
+      {
+        "ecp": "GET /query/tv-active-channel"
+      },
+      {
+        "ecp": "GET /query/media-player"
+      }
+    ]
+  },
+  {
+    "step": "currentContent",
+    "result": {
+      "appId": "12",
+      "appName": "Netflix",
+      "channelName": null,
+      "channelNumber": null,
+      "liveTv": false,
+      "programTitle": null,
+      "position": 1000,
+      "duration": 5000
+    },
+    "wire": [
+      {
+        "ecp": "GET /query/active-app"
+      },
+      {
+        "ecp": "GET /query/tv-active-channel"
+      },
+      {
+        "ecp": "GET /query/media-player"
+      }
+    ]
+  },
+  {
+    "step": "currentInput",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "bluetoothAccessories",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleBluetoothAccessory",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "openAccessorySettings",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "startVoiceControl",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleGameMode",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "syncWatchCompanion",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "canWake",
+    "result": true,
+    "wire": []
+  },
+  {
+    "step": "wake",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/PowerOn"
+      }
+    ]
+  },
+  {
+    "step": "powerOff",
+    "result": null,
+    "wire": [
+      {
+        "ecp": "POST /keypress/PowerOff"
+      }
+    ]
+  },
+  {
+    "step": "disconnect",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "evidence(disconnected)",
+    "result": [],
+    "wire": []
+  }
+]

@@ -1,0 +1,221 @@
+[
+  {
+    "step": "connect",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "register",
+          "payload": {
+            "forcePairing": false,
+            "pairingType": "PROMPT",
+            "manifest": {
+              "manifestVersion": 1,
+              "appVersion": "1.0",
+              "permissions": [
+                "CONTROL_AUDIO",
+                "CONTROL_INPUT_TV",
+                "CONTROL_MOUSE_AND_KEYBOARD",
+                "CONTROL_POWER",
+                "LAUNCH",
+                "READ_INSTALLED_APPS",
+                "READ_INPUT_DEVICE_LIST",
+                "READ_NETWORK_STATE",
+                "READ_RUNNING_APPS",
+                "READ_CURRENT_CHANNEL",
+                "READ_TV_CHANNEL_LIST",
+                "CONTROL_INPUT_TEXT",
+                "READ_APP_STATUS",
+                "CONTROL_INPUT_MEDIA_PLAYBACK"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.update/getCurrentSWInformation",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/getVolume",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/listApps",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/getExternalInputList",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.networkinput/getPointerInputSocket",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.btaudiosrc/getPairedDevices",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "evidence",
+    "result": [
+      "absoluteVolume:known",
+      "accessorySettings:known",
+      "applications:known",
+      "bluetoothAccessories:unavailable",
+      "channelSelection:known",
+      "channels:known",
+      "currentContent:known",
+      "currentInput:known",
+      "inputs:unavailable",
+      "media:known",
+      "mute:known",
+      "navigation:known",
+      "pointer:known",
+      "power:known",
+      "screenPower:known",
+      "textInput:known",
+      "volume:known",
+      "volumeFeedback:unavailable"
+    ],
+    "wire": []
+  },
+  {
+    "step": "software",
+    "result": {
+      "model": "OLED55C2",
+      "session": {
+        "operatingSystem": "webOS",
+        "operatingSystemVersion": null,
+        "softwareVersion": null,
+        "firmwareVersion": "03.20.11",
+        "buildNumber": null,
+        "manufacturer": null,
+        "model": "OLED55C2",
+        "hardwareModel": null,
+        "protocolVersion": null,
+        "source": "authenticatedSession",
+        "raw": {
+          "model_name": "OLED55C2",
+          "product_name": "webOSTV 7.0",
+          "sw_type": "FIRMWARE",
+          "major_ver": "03",
+          "minor_ver": "20.11"
+        }
+      }
+    },
+    "wire": []
+  },
+  {
+    "step": "readVolume",
+    "error": "unavailable",
+    "wire": []
+  },
+  {
+    "step": "toggleMute",
+    "error": "unsupported",
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/getVolume",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "inputs",
+    "error": "unavailable",
+    "wire": []
+  },
+  {
+    "step": "currentContent",
+    "result": {
+      "appId": "com.webos.app.livetv",
+      "appName": "Live TV",
+      "channelName": "Local",
+      "channelNumber": "7-1",
+      "liveTv": true,
+      "programTitle": null,
+      "position": null,
+      "duration": null
+    },
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/getForegroundAppInfo",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/listApps",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/getCurrentChannel",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "currentInput",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "bluetoothAccessories",
+    "error": "unavailable",
+    "wire": []
+  },
+  {
+    "step": "openAccessorySettings",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://system.launcher/launch",
+          "payload": {
+            "id": "com.palm.app.settings",
+            "params": {
+              "target": "sound"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "disconnect",
+    "result": null,
+    "wire": []
+  }
+]

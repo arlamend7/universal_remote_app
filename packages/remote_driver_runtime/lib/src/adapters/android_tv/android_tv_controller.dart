@@ -12,6 +12,7 @@ final class AndroidTvController extends TVRemoteBase
     this._wake,
     this.canWake, {
     this.bindings,
+    this.remotePort = 6466,
   });
 
   RemoteDevice _device;
@@ -24,6 +25,9 @@ final class AndroidTvController extends TVRemoteBase
       : null;
   final CredentialStore credentials;
   final DriverBindings? bindings;
+
+  /// The Remote v2 control port; tests point it at a local TLS fixture.
+  final int remotePort;
   final Future<void> Function() _wake;
   final _states = StreamController<DeviceConnectionState>.broadcast();
   AndroidPairing? _pairing;
@@ -120,7 +124,11 @@ final class AndroidTvController extends TVRemoteBase
         ? await _pair(host, attempt)
         : PairedIdentity.decode(stored);
     _ensureCurrent(attempt);
-    final session = _session = AndroidRemoteSession(host, identity);
+    final session = _session = AndroidRemoteSession(
+      host,
+      identity,
+      port: remotePort,
+    );
     await session.connect(() => unawaited(disconnect()));
     _ensureCurrent(attempt);
     var audio = (

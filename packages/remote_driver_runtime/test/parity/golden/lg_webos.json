@@ -1,0 +1,1010 @@
+[
+  {
+    "step": "connect",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "register",
+          "payload": {
+            "forcePairing": false,
+            "pairingType": "PROMPT",
+            "manifest": {
+              "manifestVersion": 1,
+              "appVersion": "1.0",
+              "permissions": [
+                "CONTROL_AUDIO",
+                "CONTROL_INPUT_TV",
+                "CONTROL_MOUSE_AND_KEYBOARD",
+                "CONTROL_POWER",
+                "LAUNCH",
+                "READ_INSTALLED_APPS",
+                "READ_INPUT_DEVICE_LIST",
+                "READ_NETWORK_STATE",
+                "READ_RUNNING_APPS",
+                "READ_CURRENT_CHANNEL",
+                "READ_TV_CHANNEL_LIST",
+                "CONTROL_INPUT_TEXT",
+                "READ_APP_STATUS",
+                "CONTROL_INPUT_MEDIA_PLAYBACK"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.update/getCurrentSWInformation",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/getVolume",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/listApps",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/getExternalInputList",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.networkinput/getPointerInputSocket",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.btaudiosrc/getPairedDevices",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "evidence",
+    "result": [
+      "absoluteVolume:known",
+      "applications:known",
+      "bluetoothAccessories:known",
+      "channelSelection:known",
+      "channels:known",
+      "currentContent:known",
+      "currentInput:known",
+      "inputs:known",
+      "media:known",
+      "mute:known",
+      "navigation:known",
+      "pointer:known",
+      "power:known",
+      "screenPower:known",
+      "textInput:known",
+      "volume:known",
+      "volumeFeedback:verified"
+    ],
+    "wire": []
+  },
+  {
+    "step": "software",
+    "result": {
+      "model": "Fixture LG",
+      "session": {
+        "operatingSystem": "webOS",
+        "operatingSystemVersion": null,
+        "softwareVersion": null,
+        "firmwareVersion": "04.50.56",
+        "buildNumber": null,
+        "manufacturer": null,
+        "model": "Fixture LG",
+        "hardwareModel": null,
+        "protocolVersion": null,
+        "source": "authenticatedSession",
+        "raw": {
+          "model_name": "Fixture LG",
+          "product_name": "webOSTV 5.0",
+          "sw_type": "FIRMWARE",
+          "major_ver": "04",
+          "minor_ver": "50.56"
+        }
+      }
+    },
+    "wire": []
+  },
+  {
+    "step": "volumeUp",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/volumeUp",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "volumeDown",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/volumeDown",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "readVolume",
+    "result": {
+      "volume": 30,
+      "muted": false
+    },
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/getVolume",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "setVolume(25)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/setVolume",
+          "payload": {
+            "volume": 25
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "setVolume(101)",
+    "error": "argument",
+    "wire": []
+  },
+  {
+    "step": "setMuted(true)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/setMute",
+          "payload": {
+            "mute": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "toggleMute",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/getVolume",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://audio/setMute",
+          "payload": {
+            "mute": true
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(up)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:UP\n\n"
+      }
+    ]
+  },
+  {
+    "step": "press(down)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:DOWN\n\n"
+      }
+    ]
+  },
+  {
+    "step": "press(left)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:LEFT\n\n"
+      }
+    ]
+  },
+  {
+    "step": "press(right)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:RIGHT\n\n"
+      }
+    ]
+  },
+  {
+    "step": "press(enter)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:ENTER\n\n"
+      }
+    ]
+  },
+  {
+    "step": "press(back)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:BACK\n\n"
+      }
+    ]
+  },
+  {
+    "step": "press(home)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:HOME\n\n"
+      }
+    ]
+  },
+  {
+    "step": "channelUp",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/channelUp",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "channelDown",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/channelDown",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "channels",
+    "result": [
+      {
+        "id": "channel-7",
+        "name": "Local",
+        "number": "7"
+      }
+    ],
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/getChannelList",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "selectChannel",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/openChannel",
+          "payload": {
+            "channelId": "channel-7"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(play)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://media.controls/play",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(pause)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://media.controls/pause",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(stop)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://media.controls/stop",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(rewind)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://media.controls/rewind",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(fastForward)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://media.controls/fastForward",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(previous)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(next)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "togglePlayback",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "playbackState",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "turnOffScreen",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.tvpower/power/turnOffScreen",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "turnOnScreen",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.tvpower/power/turnOnScreen",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "movePointer",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:move\ndx:3\ndy:-4\ndown:0\n\n"
+      }
+    ]
+  },
+  {
+    "step": "scroll",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:scroll\ndx:0\ndy:5\ndown:0\n\n"
+      }
+    ]
+  },
+  {
+    "step": "click",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:click\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit0)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:0\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit1)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:1\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit2)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:2\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit3)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:3\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit4)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:4\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit5)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:5\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit6)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:6\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit7)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:7\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit8)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:8\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit9)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:9\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(dash)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:DASH\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(enter)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:ENTER\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(menu)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:MENU\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(info)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:INFO\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(guide)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:GUIDE\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(exit)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:EXIT\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(red)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:RED\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(green)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:GREEN\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(yellow)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:YELLOW\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(blue)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:BLUE\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(source)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:SOURCE\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(settings)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:MENU\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(mute)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:MUTE\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(replay)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:REPLAY\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(liveTv)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:LIVE_TV\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendKey(captions)",
+    "result": null,
+    "wire": [
+      {
+        "pointer": "type:button\nname:CAPTIONS\n\n"
+      }
+    ]
+  },
+  {
+    "step": "sendText",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.ime/insertText",
+          "payload": {
+            "text": "abc",
+            "replace": 0
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendText(empty)",
+    "error": "argument",
+    "wire": []
+  },
+  {
+    "step": "sendEnter",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.ime/sendEnterKey",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "inputs",
+    "result": [
+      {
+        "id": "HDMI_2",
+        "name": "Console"
+      }
+    ],
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/getExternalInputList",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "selectInput",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://tv/switchInput",
+          "payload": {
+            "inputId": "HDMI_2"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "openInputPicker",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "applications",
+    "result": [
+      {
+        "id": "device.actual.app",
+        "name": "Example",
+        "artwork": null
+      }
+    ],
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/listApps",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "reportedApplicationIds",
+    "result": [
+      "device.actual.app"
+    ],
+    "wire": []
+  },
+  {
+    "step": "launchApplication",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://system.launcher/launch",
+          "payload": {
+            "id": "device.actual.app"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "launchApplication(contentId)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://system.launcher/launch",
+          "payload": {
+            "id": "device.actual.app",
+            "contentId": "42"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "launchApplication(web)",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://system.launcher/open",
+          "payload": {
+            "target": "https://example.com/watch"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "currentApplication",
+    "result": "com.webos.app.hdmi2",
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/getForegroundAppInfo",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/listApps",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "currentContent",
+    "result": {
+      "appId": "com.webos.app.hdmi2",
+      "appName": null,
+      "channelName": null,
+      "channelNumber": null,
+      "liveTv": false,
+      "programTitle": null,
+      "position": null,
+      "duration": null
+    },
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.applicationManager/getForegroundAppInfo",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "currentInput",
+    "result": {
+      "id": "HDMI_2",
+      "name": "HDMI 2"
+    },
+    "wire": []
+  },
+  {
+    "step": "bluetoothAccessories",
+    "result": [
+      {
+        "id": "00:11:22:33:44:55",
+        "name": "Soundbar",
+        "connected": false
+      }
+    ],
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.btaudiosrc/getPairedDevices",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "toggleBluetoothAccessory",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.btaudiosrc/getPairedDevices",
+          "payload": {}
+        }
+      },
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://com.webos.service.btaudiosrc/connect",
+          "payload": {
+            "address": "00:11:22:33:44:55"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "openAccessorySettings",
+    "error": "unavailable",
+    "wire": []
+  },
+  {
+    "step": "startVoiceControl",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleGameMode",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "syncWatchCompanion",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "canWake",
+    "result": false,
+    "wire": []
+  },
+  {
+    "step": "wake",
+    "error": "wakeUnavailable",
+    "wire": []
+  },
+  {
+    "step": "powerOff",
+    "result": null,
+    "wire": [
+      {
+        "ssap": {
+          "type": "request",
+          "uri": "ssap://system/turnOff",
+          "payload": {}
+        }
+      }
+    ]
+  },
+  {
+    "step": "disconnect",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "evidence(disconnected)",
+    "result": [],
+    "wire": []
+  }
+]

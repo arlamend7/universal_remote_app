@@ -1,0 +1,959 @@
+[
+  {
+    "step": "connect",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "1": {
+            "1": 615,
+            "2": "GAEqEFVuaXZlcnNhbCBSZW1vdGUyAzEuMA=="
+          }
+        }
+      },
+      {
+        "remoteV2": {
+          "2": {
+            "1": 615
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "evidence",
+    "result": [
+      "absoluteVolume:known",
+      "applications:known",
+      "captionsKey:known",
+      "channels:known",
+      "currentContent:known",
+      "inputs:known",
+      "liveTvKey:known",
+      "media:known",
+      "mute:known",
+      "navigation:known",
+      "numericKeys:known",
+      "power:known",
+      "specialKeys:known",
+      "textInput:known",
+      "trackNavigation:known",
+      "tvSettings:known",
+      "volume:known",
+      "volumeFeedback:verified"
+    ],
+    "wire": []
+  },
+  {
+    "step": "software",
+    "result": {
+      "model": null,
+      "session": {
+        "operatingSystem": "Android TV",
+        "operatingSystemVersion": null,
+        "softwareVersion": null,
+        "firmwareVersion": null,
+        "buildNumber": null,
+        "manufacturer": null,
+        "model": null,
+        "hardwareModel": null,
+        "protocolVersion": "Remote v2",
+        "source": "authenticatedSession",
+        "raw": {}
+      }
+    },
+    "wire": []
+  },
+  {
+    "step": "volumeUp",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 24,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "volumeDown",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 25,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "readVolume",
+    "result": {
+      "volume": 40,
+      "muted": true
+    },
+    "wire": []
+  },
+  {
+    "step": "setVolume(25)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "50": {
+            "1": 3,
+            "2": 6,
+            "3": 1
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "setVolume(101)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setMuted(true)",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "toggleMute",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 164,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(up)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 19,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(down)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 20,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(left)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 21,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(right)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 22,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(enter)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 23,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(back)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 4,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(home)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 3,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "channelUp",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 166,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "channelDown",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 167,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "channels",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "selectChannel",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(play)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 126,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(pause)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 127,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(stop)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 86,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(rewind)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 89,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(fastForward)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 90,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(previous)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 88,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(next)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 87,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "togglePlayback",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "playbackState",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "turnOffScreen",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "turnOnScreen",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "movePointer",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "scroll",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "click",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit0)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 7,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit1)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 8,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit2)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 9,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit3)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 10,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit4)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 11,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit5)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 12,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit6)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 13,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit7)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 14,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit8)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 15,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit9)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 16,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(dash)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(enter)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 23,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(menu)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 82,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(info)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 165,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(guide)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 172,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(exit)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 4,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(red)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 183,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(green)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 184,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(yellow)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 185,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(blue)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 186,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(source)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 178,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(settings)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 176,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(mute)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 164,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(replay)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(liveTv)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 170,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(captions)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 175,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendText",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "21": {
+            "1": 9,
+            "2": 4,
+            "3": "EgkIAhAFGgNhYmM="
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendText(empty)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "21": {
+            "1": 9,
+            "2": 4,
+            "3": "EgYIAhAFGgA="
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendEnter",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "21": {
+            "1": 9,
+            "2": 4,
+            "3": "KgIIAw=="
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "inputs",
+    "result": [],
+    "wire": []
+  },
+  {
+    "step": "selectInput",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "openInputPicker",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 178,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "applications",
+    "result": [],
+    "wire": []
+  },
+  {
+    "step": "reportedApplicationIds",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "launchApplication",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "90": {
+            "1": "bWFya2V0Oi8vbGF1bmNoP2lkPWNvbS5leGFtcGxlLnR2"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "launchApplication(contentId)",
+    "error": "appLink",
+    "wire": []
+  },
+  {
+    "step": "launchApplication(web)",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "90": {
+            "1": "aHR0cHM6Ly9leGFtcGxlLmNvbS93YXRjaA=="
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "currentApplication",
+    "result": "com.example.tv",
+    "wire": []
+  },
+  {
+    "step": "currentContent",
+    "result": {
+      "appId": "com.example.tv",
+      "appName": null,
+      "channelName": null,
+      "channelNumber": null,
+      "liveTv": false,
+      "programTitle": null,
+      "position": null,
+      "duration": null
+    },
+    "wire": []
+  },
+  {
+    "step": "currentInput",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "bluetoothAccessories",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleBluetoothAccessory",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "openAccessorySettings",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "startVoiceControl",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleGameMode",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "syncWatchCompanion",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "canWake",
+    "result": true,
+    "wire": []
+  },
+  {
+    "step": "wake",
+    "result": null,
+    "wire": [
+      {
+        "wake": "wake-on-lan"
+      }
+    ]
+  },
+  {
+    "step": "powerOff",
+    "result": null,
+    "wire": [
+      {
+        "remoteV2": {
+          "10": {
+            "1": 223,
+            "2": 3
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "disconnect",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "evidence(disconnected)",
+    "result": [],
+    "wire": []
+  }
+]

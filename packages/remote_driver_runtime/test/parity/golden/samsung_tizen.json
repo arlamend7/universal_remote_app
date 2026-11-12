@@ -1,0 +1,1006 @@
+[
+  {
+    "step": "connect",
+    "result": null,
+    "wire": [
+      {
+        "open": {
+          "uri": "wss://192.168.1.42:8002/api/v2/channels/samsung.remote.control?name=VW5pdmVyc2FsIFJlbW90ZQ%3D%3D",
+          "pin": "AQID"
+        }
+      },
+      {
+        "samsung": {
+          "method": "ms.channel.emit",
+          "params": {
+            "event": "ed.installedApp.get",
+            "to": "host",
+            "data": ""
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "evidence",
+    "result": [
+      "applications:known",
+      "channels:known",
+      "inputs:known",
+      "media:known",
+      "mute:known",
+      "navigation:known",
+      "numericKeys:known",
+      "power:known",
+      "specialKeys:known",
+      "tvSettings:known",
+      "volume:known"
+    ],
+    "wire": []
+  },
+  {
+    "step": "software",
+    "result": {
+      "model": null,
+      "session": {
+        "operatingSystem": null,
+        "operatingSystemVersion": null,
+        "softwareVersion": null,
+        "firmwareVersion": null,
+        "buildNumber": null,
+        "manufacturer": null,
+        "model": null,
+        "hardwareModel": null,
+        "protocolVersion": null,
+        "source": null,
+        "raw": null
+      }
+    },
+    "wire": []
+  },
+  {
+    "step": "volumeUp",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_VOLUP",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "volumeDown",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_VOLDOWN",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "readVolume",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setVolume(25)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setVolume(101)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "setMuted(true)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleMute",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_MUTE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(up)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_UP",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(down)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_DOWN",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(left)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_LEFT",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(right)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_RIGHT",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(enter)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_ENTER",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(back)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_RETURN",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "press(home)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_HOME",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "channelUp",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_CHUP",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "channelDown",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_CHDOWN",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "channels",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "selectChannel",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(play)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_PLAY",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(pause)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_PAUSE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(stop)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_STOP",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(rewind)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_REWIND",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(fastForward)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_FF",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendMedia(previous)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendMedia(next)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "togglePlayback",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "playbackState",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "turnOffScreen",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "turnOnScreen",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "movePointer",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "scroll",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "click",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(digit0)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_0",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit1)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_1",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit2)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_2",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit3)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_3",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit4)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_4",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit5)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_5",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit6)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_6",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit7)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_7",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit8)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_8",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(digit9)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_9",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(dash)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(enter)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_ENTER",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(menu)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_MENU",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(info)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_INFO",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(guide)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_GUIDE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(exit)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_EXIT",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(red)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_RED",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(green)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_GREEN",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(yellow)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_YELLOW",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(blue)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_BLUE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(source)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_SOURCE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(settings)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_MENU",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(mute)",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_MUTE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "sendKey(replay)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(liveTv)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendKey(captions)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendText",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendText(empty)",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "sendEnter",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_ENTER",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "inputs",
+    "result": [],
+    "wire": []
+  },
+  {
+    "step": "selectInput",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "openInputPicker",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_SOURCE",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "applications",
+    "result": [
+      {
+        "id": "123",
+        "name": "Example",
+        "artwork": null
+      }
+    ],
+    "wire": []
+  },
+  {
+    "step": "reportedApplicationIds",
+    "result": [
+      "123"
+    ],
+    "wire": []
+  },
+  {
+    "step": "launchApplication",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.channel.emit",
+          "params": {
+            "event": "ed.apps.launch",
+            "to": "host",
+            "data": {
+              "appId": "123",
+              "action_type": "DEEP_LINK"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "launchApplication(contentId)",
+    "error": "appId",
+    "wire": []
+  },
+  {
+    "step": "launchApplication(web)",
+    "error": "appId",
+    "wire": []
+  },
+  {
+    "step": "currentApplication",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "currentContent",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "currentInput",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "bluetoothAccessories",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleBluetoothAccessory",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "openAccessorySettings",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "startVoiceControl",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "toggleGameMode",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "syncWatchCompanion",
+    "error": "unsupported",
+    "wire": []
+  },
+  {
+    "step": "canWake",
+    "result": true,
+    "wire": []
+  },
+  {
+    "step": "wake",
+    "result": null,
+    "wire": [
+      {
+        "wake": "wake-on-lan"
+      }
+    ]
+  },
+  {
+    "step": "powerOff",
+    "result": null,
+    "wire": [
+      {
+        "samsung": {
+          "method": "ms.remote.control",
+          "params": {
+            "Cmd": "Click",
+            "DataOfCmd": "KEY_POWER",
+            "Option": "false",
+            "TypeOfRemote": "SendRemoteKey"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "step": "disconnect",
+    "result": null,
+    "wire": []
+  },
+  {
+    "step": "evidence(disconnected)",
+    "result": [],
+    "wire": []
+  }
+]
