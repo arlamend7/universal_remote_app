@@ -1,0 +1,13 @@
+{
+  "label": "Google TV / Android TV",
+  "protocol": "bonjour",
+  "service": "_androidtvremote2._tcp",
+  "port": 6466,
+  "identity": {"source": "peer-identity", "peerPort": 6467, "template": "android-tv-{peer}", "profileFallback": true},
+  "endpoint": {"scheme": "tls", "port": 6466, "keepObservedPort": true},
+  "name": {"metadata": "name", "fallback": "Android TV"},
+  "category": "television",
+  "metadata": {"advertisedPeerIdentity": "{peer}"},
+  "addressProbe": {"kind": "peer-identity-pair", "ports": [6466, 6467]},
+  "unicastProbe": {"kind": "peer-identity", "metadata": ["verifiedPeerIdentity", "advertisedPeerIdentity"]}
+}

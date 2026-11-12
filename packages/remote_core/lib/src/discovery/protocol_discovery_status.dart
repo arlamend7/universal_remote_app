@@ -1,13 +1,12 @@
 import 'discovery_protocol.dart';
 import '../discovery.dart';
-import '../providers/models/provider_identity.dart';
 import 'discovery_status.dart';
 
 final class ProtocolDiscoveryStatus {
   const ProtocolDiscoveryStatus({
     required this.protocolId,
     required this.status,
-    this.provider = ProviderIdentity.custom,
+    this.providerLabel,
     this.providerId,
     this.serviceType,
     this.duration = Duration.zero,
@@ -17,7 +16,9 @@ final class ProtocolDiscoveryStatus {
   });
 
   final DiscoveryProtocol protocolId;
-  final ProviderIdentity provider;
+
+  /// The searching provider family's label; null for protocol-wide scans.
+  final String? providerLabel;
   final String? providerId;
   final String? serviceType;
   final DiscoveryStatus status;

@@ -10,8 +10,10 @@ final class LgIdentifier
 
   static final providerId = ProviderIdentity.lgWebOs.storageId;
 
-  @override
   ProviderIdentity get identity => ProviderIdentity.lgWebOs;
+
+  @override
+  String get label => identity.label;
 
   @override
   String get id => providerId;

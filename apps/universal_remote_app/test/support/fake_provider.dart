@@ -30,7 +30,7 @@ class FakeProvider implements ProviderIdentifier {
   bool supports(RemoteDevice device) => device.providerId == id;
 
   @override
-  ProviderIdentity get identity => ProviderIdentity.custom;
+  String get label => 'Custom provider';
 
   String get service => 'fixture.$id';
 

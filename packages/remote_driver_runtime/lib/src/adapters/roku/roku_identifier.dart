@@ -14,8 +14,10 @@ final class RokuIdentifier
 
   static final providerId = ProviderIdentity.roku.storageId;
 
-  @override
   ProviderIdentity get identity => ProviderIdentity.roku;
+
+  @override
+  String get label => identity.label;
   static const service = 'roku:ecp';
 
   @override

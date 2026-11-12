@@ -23,7 +23,7 @@ final class ManagedTvProvider
   get _descriptions => _drivers.descriptions(id);
 
   @override
-  ProviderIdentity get identity => ProviderIdentity.custom;
+  String get label => 'Custom provider';
 
   @override
   DiscoveryRequirements get requirements {

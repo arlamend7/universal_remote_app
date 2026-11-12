@@ -25,7 +25,7 @@ class DiscoveryController {
   final statuses =
       ValueNotifier<
         Map<
-          (ProviderIdentity, String?, DiscoveryProtocol, String?),
+          (String?, String?, DiscoveryProtocol, String?),
           ProtocolDiscoveryStatus
         >
       >(const {});
@@ -133,7 +133,7 @@ class DiscoveryController {
       return;
     }
     final key = (
-      status.provider,
+      status.providerLabel,
       status.providerId,
       status.protocolId,
       status.serviceType,

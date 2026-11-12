@@ -1,0 +1,17 @@
+{
+  "setup": {
+    "label": "Roku (local HTTP)",
+    "address": "local-ipv4",
+    "endpoint": {"scheme": "http", "port": 8060},
+    "defaultName": "Roku",
+    "manufacturer": "Roku",
+    "category": "mediaPlayer",
+    "messages": {"address": "Enter the Roku’s local IPv4 address."}
+  },
+  "wake": {
+    "kind": "engine",
+    "mapping": {"kind": "roku-ecp.key", "key": "PowerOn"},
+    "requiresCapability": "power",
+    "message": "This Roku has not reported TV power control."
+  }
+}

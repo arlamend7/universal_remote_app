@@ -1,0 +1,14 @@
+{
+  "setup": {
+    "label": "Google TV / Android TV",
+    "address": "numeric",
+    "endpoint": {"scheme": "tls", "port": 6466},
+    "defaultName": "Android TV",
+    "category": "television",
+    "messages": {
+      "secureOnly": "Android TV requires a secure connection.",
+      "address": "Enter the TV’s local IP address."
+    }
+  },
+  "wake": {"kind": "wake-on-lan", "message": "The TV’s MAC address is not known yet. Connect once so it can be learned."}
+}

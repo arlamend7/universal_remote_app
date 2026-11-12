@@ -8,8 +8,10 @@ final class AndroidTvIdentifier
 
   static final providerId = ProviderIdentity.androidTv.storageId;
 
-  @override
   ProviderIdentity get identity => ProviderIdentity.androidTv;
+
+  @override
+  String get label => identity.label;
   static const service = '_androidtvremote2._tcp';
   final Future<String?> Function(String) inspectIdentity;
 

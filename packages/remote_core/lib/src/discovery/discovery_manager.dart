@@ -146,7 +146,7 @@ final class DiscoveryManager {
     onStatus?.call(
       ProtocolDiscoveryStatus(
         protocolId: protocol,
-        provider: identifier.identity,
+        providerLabel: identifier.label,
         providerId: identifier.id,
         serviceType: service,
         status: DiscoveryStatus.searching,
@@ -171,7 +171,7 @@ final class DiscoveryManager {
     }
     final report = ProtocolDiscoveryStatus(
       protocolId: protocol,
-      provider: identifier.identity,
+      providerLabel: identifier.label,
       providerId: identifier.id,
       serviceType: service,
       status: _status(parent.isCancelled, matches.length, failure),

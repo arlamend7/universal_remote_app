@@ -5,13 +5,14 @@ import '../common/engine_parameters.dart';
 import '../contracts/engine_operation.dart';
 import '../contracts/engine_session.dart';
 import '../contracts/engine_session_context.dart';
+import '../contracts/offline_wake_engine.dart';
 import '../contracts/protocol_engine.dart';
 import 'roku_ecp_engine_session.dart';
 import 'roku_ecp_kinds.dart';
 import 'roku_ecp_operation.dart';
 
 /// Roku External Control Protocol over local HTTP (port 8060).
-final class RokuEcpEngine implements ProtocolEngine {
+final class RokuEcpEngine implements ProtocolEngine, OfflineWakeEngine {
   RokuEcpEngine({RokuEcpClient Function(Uri endpoint)? client})
     : _client = client ?? RokuEcpClient.new;
 
@@ -69,5 +70,18 @@ final class RokuEcpEngine implements ProtocolEngine {
       );
     }
     return RokuEcpEngineSession.open(context, _client(endpoint));
+  }
+
+  /// Sends a key in network standby; only documented key names compile.
+  @override
+  Future<void> wakeOffline(RemoteDevice device, EngineOperation operation) {
+    final endpoint = device.endpoints.singleOrNull;
+    if (endpoint == null || operation.kind != RokuEcpKinds.key) {
+      throw const RemoteException(
+        'wakeUnavailable',
+        'This device cannot be woken from the network.',
+      );
+    }
+    return _client(endpoint).key(operation.describe()['key']! as String);
   }
 }

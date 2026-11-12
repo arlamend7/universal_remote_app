@@ -6,7 +6,7 @@ class ObservationIdentifier implements ProviderIdentifier {
   final String id;
   final DiscoveryProtocol protocol;
   @override
-  ProviderIdentity get identity => ProviderIdentity.custom;
+  String get label => 'Custom provider';
   final String service;
 
   @override

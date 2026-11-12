@@ -1,0 +1,26 @@
+{
+  "setup": {
+    "label": "Samsung Tizen",
+    "advanced": true,
+    "address": "local",
+    "endpoint": {"scheme": "wss", "port": 8002, "path": "/api/v2/channels/samsung.remote.control"},
+    "defaultName": "Samsung TV",
+    "manufacturer": "Samsung",
+    "category": "television",
+    "fields": ["certificate", "mac", "broadcast"],
+    "messages": {
+      "secureOnly": "Samsung Tizen requires a secure connection.",
+      "address": "Enter the Samsung TV’s numeric local IP address.",
+      "certificate": "Enter a valid base64 DER certificate.",
+      "mac": "Enter a valid Samsung TV MAC address.",
+      "broadcast": "Enter an IPv4 broadcast address."
+    }
+  },
+  "policy": {
+    "sameConnection": ["trustedCertificateDer"],
+    "retryAfterWake": ["network", "timeout"],
+    "certificateReview": {"errorCode": "tls", "scheme": "wss"},
+    "mergeDiscovered": "discovered-endpoints"
+  },
+  "wake": {"kind": "wake-on-lan", "message": "Configure the Samsung TV’s MAC address first."}
+}

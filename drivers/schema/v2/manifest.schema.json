@@ -20,6 +20,7 @@
     "compatibility": {"$ref": "common.schema.json#/$defs/compatibility"},
     "profiles": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "common.schema.json#/$defs/profile"}},
     "capabilities": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "common.schema.json#/$defs/capability"}},
+    "priority": {"type": "integer", "minimum": 0, "maximum": 1000},
     "replaces": {"type": "array", "maxItems": 32, "items": {"$ref": "common.schema.json#/$defs/identifier"}}
   }
 }

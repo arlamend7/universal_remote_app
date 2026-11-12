@@ -1,0 +1,16 @@
+{
+  "label": "Roku",
+  "protocol": "ssdp",
+  "service": "roku:ecp",
+  "requireServiceHeader": true,
+  "address": "local-ipv4",
+  "location": "endpoint",
+  "identity": {"source": "usn", "pattern": "^uuid:roku:ecp:([a-z0-9-]+)$", "caseInsensitive": true, "template": "{providerId}:{1:lower}"},
+  "endpoint": {"scheme": "http", "port": 8060},
+  "name": {"template": "Roku ({1})"},
+  "manufacturer": "Roku",
+  "category": "mediaPlayer",
+  "metadata": {"usn": "{value}", "rokuSerial": "{1}"},
+  "addressProbe": {"kind": "ecp-serial"},
+  "unicastProbe": {"kind": "ecp-serial", "metadata": ["rokuSerial"], "fallbackMetadata": "discoveryIdentity"}
+}

@@ -1,0 +1,15 @@
+{
+  "label": "Samsung Tizen",
+  "protocol": "ssdp",
+  "service": "urn:samsung.com:service:MultiScreenService:1",
+  "requireServiceHeader": true,
+  "address": "local",
+  "identity": {"source": "usn", "pattern": "^uuid:[0-9a-f-]{16,64}$", "lowercase": true, "template": "{providerId}:{value}"},
+  "endpoint": {"scheme": "wss", "port": 8002, "path": "/api/v2/channels/samsung.remote.control"},
+  "name": {"metadata": "friendlyname", "fallback": "Samsung TV"},
+  "manufacturer": "Samsung",
+  "category": "television",
+  "model": "modelname",
+  "addressProbe": {"kind": "ssdp"},
+  "unicastProbe": {"kind": "certificate", "metadata": ["trustedCertificateDer"]}
+}

@@ -25,6 +25,7 @@ final class IntegrationManifest {
     required Iterable<RemoteCapability> capabilities,
     this.credentialScope = CredentialScope.device,
     this.lastUpdatedAt,
+    this.priority = 0,
     Iterable<String> replaces = const [],
   }) : profiles = List.unmodifiable(profiles),
        capabilities = Set.unmodifiable(capabilities),
@@ -40,6 +41,8 @@ final class IntegrationManifest {
           (profile) =>
               !this.capabilities.containsAll(profile.disabledCapabilities),
         ) ||
+        priority < 0 ||
+        priority > 1000 ||
         !this.replaces.every(IntegrationJson.isIdentifier)) {
       throw const FormatException('Invalid integration manifest.');
     }
@@ -80,6 +83,9 @@ final class IntegrationManifest {
           ? null
           : IntegrationJson.timestamp(updated, 'lastUpdatedAt'),
       replaces: IntegrationJson.list(json, 'replaces').map(_identifier),
+      priority: json['priority'] == null
+          ? 0
+          : IntegrationJson.integer(json, 'priority', maximum: 1000),
     );
   }
 
@@ -102,6 +108,7 @@ final class IntegrationManifest {
     'credentialScope',
     'lastUpdatedAt',
     'replaces',
+    'priority',
   };
 
   final IntegrationIdentity identity;
@@ -120,6 +127,10 @@ final class IntegrationManifest {
 
   /// Retired driver family IDs whose device assignments migrate here.
   final Set<String> replaces;
+
+  /// Preference among a provider's integrations before the device software
+  /// is known; the highest bootstraps the first connection.
+  final int priority;
 
   CompatibilityProfile get bootstrapProfile =>
       profiles.firstWhere((profile) => profile.stage == ProfileStage.bootstrap);
@@ -140,6 +151,7 @@ final class IntegrationManifest {
     if (lastUpdatedAt != null)
       'lastUpdatedAt': IntegrationJson.formatTimestamp(lastUpdatedAt!),
     if (replaces.isNotEmpty) 'replaces': replaces.toList(),
+    if (priority != 0) 'priority': priority,
   };
 
   static String _identifier(Object? value) {

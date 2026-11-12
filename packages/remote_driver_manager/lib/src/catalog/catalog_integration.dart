@@ -25,6 +25,8 @@ final class CatalogIntegration {
     required this.size,
     required Uint8List signature,
     required this.replaces,
+    required this.priority,
+    required this.device,
   }) : _signature = signature;
 
   factory CatalogIntegration.fromJson(Object? value) {
@@ -92,6 +94,10 @@ final class CatalogIntegration {
       ),
       signature: base64Decode(signature),
       replaces: Set.unmodifiable(IntegrationJson.labels(json, 'replaces')),
+      priority: json['priority'] == null
+          ? 0
+          : IntegrationJson.integer(json, 'priority', maximum: 1000),
+      device: _discovery(json['device']),
     );
   }
 
@@ -119,7 +125,9 @@ final class CatalogIntegration {
     ..._required,
     'conditionalCapabilities',
     'discovery',
+    'device',
     'replaces',
+    'priority',
   };
 
   /// Immutable delivery path: a new content hash is always a new object.
@@ -145,6 +153,13 @@ final class CatalogIntegration {
 
   /// Retired driver family IDs whose device assignments migrate here.
   final Set<String> replaces;
+
+  /// Bootstrap preference among a provider's integrations.
+  final int priority;
+
+  /// Manual setup, connection policy and wake rules (`device.json`), so a
+  /// provider can be offered before its package is installed.
+  final Map<String, Object?>? device;
 
   String get id => identity.integrationId;
   String get providerId => identity.providerId;

@@ -9,8 +9,10 @@ final class SamsungIdentifier
 
   static const service = 'urn:samsung.com:service:MultiScreenService:1';
 
-  @override
   ProviderIdentity get identity => ProviderIdentity.samsungTizen;
+
+  @override
+  String get label => identity.label;
 
   @override
   String get id => identity.storageId;

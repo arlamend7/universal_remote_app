@@ -1,0 +1,31 @@
+{
+  "setup": {
+    "label": "LG webOS",
+    "advanced": true,
+    "address": "numeric",
+    "endpoint": {"scheme": "wss", "port": 3001},
+    "legacyEndpoint": {"scheme": "ws", "port": 3000},
+    "defaultName": "LG TV",
+    "requireName": true,
+    "idTemplate": "{providerId}:profile:{profile}",
+    "manufacturer": "LG",
+    "category": "television",
+    "metadata": {"identitySource": "userProfile"},
+    "fields": ["certificate", "mac", "broadcast"],
+    "insecureMetadata": "allowInsecure",
+    "messages": {
+      "address": "Enter the TV’s numeric local IP address.",
+      "name": "Enter a name for the TV.",
+      "certificate": "Enter a valid base64 DER certificate, verified outside this connection.",
+      "mac": "Enter a valid TV MAC address.",
+      "broadcast": "Enter a numeric IPv4 broadcast address."
+    }
+  },
+  "policy": {
+    "sameConnection": ["trustedCertificateDer", "allowInsecure", "macAddress", "broadcastAddress"],
+    "retryAfterWake": ["network", "networkAccess", "connectionRefused", "timeout"],
+    "certificateReview": {"errorCode": "tls", "scheme": "wss"},
+    "mergeDiscovered": "replace-host"
+  },
+  "wake": {"kind": "wake-on-lan", "message": "Configure a verified TV MAC address and enable network wake first."}
+}

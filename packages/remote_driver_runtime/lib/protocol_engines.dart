@@ -7,6 +7,7 @@ export 'src/engines/contracts/engine_operation.dart';
 export 'src/engines/contracts/engine_session.dart';
 export 'src/engines/contracts/engine_session_context.dart';
 export 'src/engines/contracts/network_operation.dart';
+export 'src/engines/contracts/offline_wake_engine.dart';
 export 'src/engines/contracts/protocol_engine.dart';
 export 'src/engines/contracts/protocol_engine_registry.dart';
 export 'src/engines/json_websocket/json_websocket_engine.dart';
