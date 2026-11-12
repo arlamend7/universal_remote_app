@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 ///
 /// Set `UPDATE_PARITY_GOLDENS=1` only when recording the legacy baseline.
 void expectParityGolden(String name, List<Map<String, Object?>> transcript) {
-  final file = File('test/parity/golden/$name.json');
+  final file = _golden(name);
   final actual = '${const JsonEncoder.withIndent('  ').convert(transcript)}\n';
   if (Platform.environment['UPDATE_PARITY_GOLDENS'] == '1') {
     file.writeAsStringSync(actual);
@@ -28,4 +28,12 @@ void expectParityGolden(String name, List<Map<String, Object?>> transcript) {
     );
   }
   expect(recorded.length, expected.length);
+}
+
+/// Resolves the golden from the package or the repository root.
+File _golden(String name) {
+  const local = 'test/parity/golden';
+  const fromRoot = 'packages/remote_driver_runtime/$local';
+  final directory = Directory(local).existsSync() ? local : fromRoot;
+  return File('$directory/$name.json');
 }

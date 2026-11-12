@@ -495,7 +495,7 @@
       {
         "id": "12",
         "name": "Netflix",
-        "artwork": "http://127.0.0.1:61514/query/icon/12"
+        "artwork": "http:/query/icon/12"
       }
     ],
     "wire": []

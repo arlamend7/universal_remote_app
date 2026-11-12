@@ -7,7 +7,10 @@ Object? parityValue(Object? value) => switch (value) {
   DeviceApplication() => {
     'id': value.id,
     'name': value.name,
-    'artwork': value.artwork?.toString(),
+    // Loopback fixture ports are ephemeral; scheme and path are the contract.
+    'artwork': value.artwork == null
+        ? null
+        : '${value.artwork!.scheme}:${value.artwork!.path}',
   },
   DeviceChannel() => {
     'id': value.id,
