@@ -30,7 +30,7 @@ void main() {
     );
     expect(
       RemoteItemRegistry.resolve(adjustment.id),
-      isA<RemoteItemDefinition<TvRemoteDevice>>(),
+      isA<RemoteItemDefinition<GridRemoteViewModel>>(),
     );
     expect(
       RemoteItemRegistry.resolve(group.id),
@@ -84,7 +84,10 @@ void main() {
     };
     for (final entry in controls.entries) {
       final definition = RemoteItemRegistry.resolve(entry.key);
-      expect(definition.elements.single, isA<RemoteAction<TvRemoteDevice>>());
+      expect(
+        definition.elements.single,
+        isA<RemoteAction<GridRemoteViewModel>>(),
+      );
       expect(definition.isCompatibleWith({RemoteCapability.power}), isFalse);
       expect(definition.isCompatibleWith({entry.value}), isTrue);
     }
@@ -129,7 +132,7 @@ void main() {
 
   test('current input is a readout with its own capability', () {
     final input = RemoteItemRegistry.resolve('currentInput');
-    expect(input.elements.single, isA<RemoteInfo<TvRemoteDevice>>());
+    expect(input.elements.single, isA<RemoteInfo<GridRemoteViewModel>>());
     expect((input.width, input.height), (2, 1));
     expect(input.isCompatibleWith({RemoteCapability.inputs}), isFalse);
     expect(input.isCompatibleWith({RemoteCapability.currentInput}), isTrue);
@@ -171,7 +174,7 @@ void main() {
         );
         expect(
           definition.elements.single,
-          isA<RemoteCollection<TvRemoteDevice, BluetoothAccessory>>(),
+          isA<RemoteCollection<GridRemoteViewModel, BluetoothAccessory>>(),
         );
       }
     },

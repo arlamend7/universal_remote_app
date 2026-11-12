@@ -9,7 +9,7 @@ import '../../widgets/grid/models/remote_preview_data.dart';
 import '../../widgets/dialogs/device_choice_sheet.dart';
 import '../../widgets/dialogs/show_command_sent.dart';
 
-final class GridRemoteViewModel implements TvRemoteDevice {
+final class GridRemoteViewModel {
   GridRemoteViewModel(
     this.remote, {
     this.previewData,
@@ -42,7 +42,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     RemoteAction<Object> action,
     RemoteElementContext context,
   ) {
-    if (action is RemoteAction<TvRemoteDevice>) {
+    if (action is RemoteAction<GridRemoteViewModel>) {
       return action.builder(context, this);
     }
     if (action is RemoteAction<RemotePanel>) {
@@ -98,18 +98,20 @@ final class GridRemoteViewModel implements TvRemoteDevice {
       remote.connection.tvWith(capability);
   Future<void> execute(Future<void> Function() action) =>
       remote.connection.execute(action);
-  @override
   DeviceInput? get currentInput =>
       tv(RemoteCapability.currentInput)?.currentInput;
-  @override
   CurrentContent? get currentActivity => remote.content;
-  @override
-  Future<void> navigate(NavigationKey key) => execute(() async {
-    await tv(RemoteCapability.navigation)?.press(key);
+  Future<void> runTv(
+    RemoteCapability capability,
+    Future<void> Function(TVRemoteBase) action,
+  ) => execute(() async {
+    final driver = tv(capability);
+    if (driver != null) {
+      await action(driver);
+    }
   });
-  @override
+
   Future<void> channelUp() => _changeChannel((tv) => tv.channelUp());
-  @override
   Future<void> channelDown() => _changeChannel((tv) => tv.channelDown());
 
   Future<void> _changeChannel(Future<void> Function(TVRemoteBase tv) change) =>
@@ -120,7 +122,6 @@ final class GridRemoteViewModel implements TvRemoteDevice {
         }
         unawaited(remote.connection.refreshContent());
       });
-  @override
   Future<void> sendText(String text, {bool submit = false}) =>
       execute(() async {
         final keyboard = tv(RemoteCapability.textInput);
@@ -134,8 +135,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
         }
       });
 
-  @override
-  Future<List<DeviceInput>> installedInputs() {
+  Future<List<DeviceInput>> inputs() {
     final inputs = tv(RemoteCapability.inputs);
     if (inputs == null) {
       throw const RemoteException('inputs', 'This TV does not expose inputs.');
@@ -143,8 +143,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return inputs.inputs();
   }
 
-  @override
-  Future<List<DeviceChannel>> installedChannels() {
+  Future<List<DeviceChannel>> channels() {
     final channels =
         tv(RemoteCapability.channelSelection) ??
         tv(RemoteCapability.channelCatalog);
@@ -157,13 +156,9 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return channels.channels();
   }
 
-  @override
   Future<void> volumeUp() => _changeVolume((tv) => tv.volumeUp());
-  @override
   Future<void> volumeDown() => _changeVolume((tv) => tv.volumeDown());
-  @override
   void previewVolume(double value) => remote.previewVolume(value);
-  @override
   Future<void> setVolume(double value) => _changeVolume(
     (tv) => tv.setVolume(value.round()),
     capability: RemoteCapability.absoluteVolume,
@@ -178,8 +173,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
       await change(volume);
     }
   }, refreshVolume: true);
-  @override
-  Future<List<DeviceApplication>> installedApps() async {
+  Future<List<DeviceApplication>> applications() async {
     final apps = tv(RemoteCapability.applications);
     if (apps == null) {
       throw const RemoteException(
@@ -204,23 +198,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
         false;
   }
 
-  @override
-  Future<void> openInputPicker() => execute(() async {
-    await tv(RemoteCapability.inputs)?.openInputPicker();
-  });
-
-  @override
-  Future<void> turnOffScreen() => execute(() async {
-    await tv(RemoteCapability.screenPower)?.turnOffScreen();
-  });
-
-  @override
-  Future<void> turnOnScreen() => execute(() async {
-    await tv(RemoteCapability.screenPower)?.turnOnScreen();
-  });
-
-  @override
-  Future<void> launchApp(DeviceApplication app) => execute(() async {
+  Future<void> launchDashboardApp(DeviceApplication app) => execute(() async {
     final (id, name) = (app.id, app.name);
     final apps = tv(RemoteCapability.applications);
     if (apps == null) {
@@ -259,7 +237,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
   /// collection's sample entries.
   List<(String, String)> targets(
     GridItem item,
-    RemoteCollection<TvRemoteDevice, Object> collection,
+    RemoteCollection<GridRemoteViewModel, Object> collection,
   ) {
     final manual = item.config['appTarget']?.trim();
     if (manual != null && manual.isNotEmpty) {
@@ -283,13 +261,11 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return widgetTargets(device?.metadata['recentAppLaunches']);
   }
 
-  @override
-  Future<void> input(String id) => execute(() async {
+  Future<void> selectInput(String id) => execute(() async {
     await tv(RemoteCapability.inputs)?.selectInput(id);
     unawaited(remote.connection.refreshContent());
   });
-  @override
-  Future<void> channel(String id) => execute(() async {
+  Future<void> selectChannel(String id) => execute(() async {
     await tv(RemoteCapability.channelSelection)?.selectChannel(id);
     unawaited(remote.connection.refreshContent());
   });
@@ -303,10 +279,8 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return _playback[session] ??= ValueNotifier(false);
   }
 
-  @override
   bool get mediaPlaying => playbackChanges?.value ?? false;
 
-  @override
   Future<void> togglePlayback() => execute(() async {
     final device = tv(RemoteCapability.playbackToggle);
     if (device == null) {
@@ -317,8 +291,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     playbackChanges?.value = !playing;
   });
 
-  @override
-  Future<void> media(MediaAction action) => execute(() async {
+  Future<void> sendMedia(MediaAction action) => execute(() async {
     final controller = switch (action) {
       MediaAction.previous ||
       MediaAction.next => tv(RemoteCapability.trackNavigation),
@@ -338,8 +311,7 @@ final class GridRemoteViewModel implements TvRemoteDevice {
       playback?.value = false;
     }
   });
-  @override
-  Future<void> key(RemoteKey key) {
+  Future<void> sendKey(RemoteKey key) {
     if (key == RemoteKey.settings) {
       return remote.connection.openTvSettings();
     }
@@ -373,7 +345,6 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     });
   }
 
-  @override
   Future<void> move(double x, double y, {bool scroll = false}) async {
     final pointer = tv(RemoteCapability.pointer);
     if (pointer == null || !ready) {
@@ -392,11 +363,6 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     }
   }
 
-  @override
-  Future<void> click() => execute(() async {
-    await tv(RemoteCapability.pointer)?.click();
-  });
-  @override
   Future<void> mute(bool? value) => value == null
       ? _changeVolume(
           (tv) => tv.toggleMute(),
@@ -407,7 +373,6 @@ final class GridRemoteViewModel implements TvRemoteDevice {
           capability: RemoteCapability.mute,
         );
 
-  @override
   Future<List<BluetoothAccessory>> bluetoothAccessories() async {
     final driver = tv(RemoteCapability.bluetoothAccessories);
     if (driver == null) {
@@ -416,16 +381,10 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     return driver.bluetoothAccessories();
   }
 
-  @override
-  Future<void> toggleBluetoothAccessory(String id) => execute(() async {
-    await tv(RemoteCapability.bluetoothAccessories)
-        ?.toggleBluetoothAccessory(id);
-  });
-
   Future<void> choose<T>(
     BuildContext context,
     String title,
-    RemoteCollection<TvRemoteDevice, T> collection,
+    RemoteCollection<GridRemoteViewModel, T> collection,
   ) async {
     final owner = remote.connection.controller;
     List<T>? entries;
@@ -470,19 +429,4 @@ final class GridRemoteViewModel implements TvRemoteDevice {
     );
     await collection.onSelected(this, chosen);
   }
-
-  @override
-  Future<void> startVoiceControl() => execute(() async {
-    await tv(RemoteCapability.voice)?.startVoiceControl();
-  });
-
-  @override
-  Future<void> toggleGameMode() => execute(() async {
-    await tv(RemoteCapability.gameMode)?.toggleGameMode();
-  });
-
-  @override
-  Future<void> syncWatchCompanion() => execute(() async {
-    await tv(RemoteCapability.watch)?.syncWatchCompanion();
-  });
 }

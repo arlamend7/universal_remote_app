@@ -155,13 +155,13 @@ void main() {
     tester,
   ) async {
     final chosen = <String>[];
-    final definition = RemoteItemDefinition<TvRemoteDevice>(
+    final definition = RemoteItemDefinition<GridRemoteViewModel>(
       'spacer',
       'Demo list',
       RemoteItemCategory.utilities,
       layout: const CollectionLayout(CollectionPresentation.strip),
       elements: [
-        RemoteCollection<TvRemoteDevice, String>(
+        RemoteCollection<GridRemoteViewModel, String>(
           'demo_collection',
           title: 'Demo',
           icon: (_) => Icons.star,

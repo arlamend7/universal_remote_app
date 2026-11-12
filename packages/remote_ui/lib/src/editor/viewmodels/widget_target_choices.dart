@@ -52,7 +52,7 @@ final class WidgetTargetChoices {
   Future<List<(String, String)>> _query(String definitionId) async {
     final elements = RemoteItemRegistry.resolve(definitionId).elements;
     final collection = elements
-        .whereType<RemoteCollection<TvRemoteDevice, Object>>()
+        .whereType<RemoteCollection<GridRemoteViewModel, Object>>()
         .firstOrNull;
     if (collection == null) {
       return const [];

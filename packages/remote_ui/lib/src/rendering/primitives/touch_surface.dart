@@ -17,9 +17,9 @@ class TouchSurface extends StatelessWidget {
 
   List<RemoteElement<Object>> get _elements => item.definition.elements;
 
-  RemoteInput<TvRemoteDevice, _Motion> get _motion =>
+  RemoteInput<GridRemoteViewModel, _Motion> get _motion =>
       _elements.whereType<RemoteInput<Object, _Motion>>().first
-          as RemoteInput<TvRemoteDevice, _Motion>;
+          as RemoteInput<GridRemoteViewModel, _Motion>;
 
   RemoteAction<Object> get _click =>
       _elements.whereType<RemoteAction<Object>>().first;

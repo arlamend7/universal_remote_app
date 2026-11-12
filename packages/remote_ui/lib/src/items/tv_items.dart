@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' show Icon, IconData, Icons;
 import 'package:remote_core/remote_core.dart';
 
-import '../devices/tv_remote_device.dart';
+import '../rendering/viewmodels/grid_remote_viewmodel.dart';
 import '../elements/remote_action.dart';
 import '../elements/remote_collection.dart';
 import '../elements/remote_info.dart';
@@ -11,7 +11,7 @@ import '../widgets/apps/tv_app_icon.dart';
 import '../widgets/dialogs/show_command_sent.dart';
 
 abstract final class TvItems {
-  static final up = RemoteAction<TvRemoteDevice>(
+  static final up = RemoteAction<GridRemoteViewModel>(
     'nav_up',
     showLabel: false,
     holdable: true,
@@ -19,10 +19,13 @@ abstract final class TvItems {
       icon: Icons.keyboard_arrow_up,
       label: 'Up',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.up),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.up),
+      ),
     ),
   );
-  static final down = RemoteAction<TvRemoteDevice>(
+  static final down = RemoteAction<GridRemoteViewModel>(
     'nav_down',
     showLabel: false,
     holdable: true,
@@ -30,10 +33,13 @@ abstract final class TvItems {
       icon: Icons.keyboard_arrow_down,
       label: 'Down',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.down),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.down),
+      ),
     ),
   );
-  static final left = RemoteAction<TvRemoteDevice>(
+  static final left = RemoteAction<GridRemoteViewModel>(
     'nav_left',
     showLabel: false,
     holdable: true,
@@ -41,10 +47,13 @@ abstract final class TvItems {
       icon: Icons.keyboard_arrow_left,
       label: 'Left',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.left),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.left),
+      ),
     ),
   );
-  static final right = RemoteAction<TvRemoteDevice>(
+  static final right = RemoteAction<GridRemoteViewModel>(
     'nav_right',
     showLabel: false,
     holdable: true,
@@ -52,10 +61,13 @@ abstract final class TvItems {
       icon: Icons.keyboard_arrow_right,
       label: 'Right',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.right),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.right),
+      ),
     ),
   );
-  static final ok = RemoteAction<TvRemoteDevice>(
+  static final ok = RemoteAction<GridRemoteViewModel>(
     'nav_ok',
     showLabel: false,
     holdable: true,
@@ -63,10 +75,13 @@ abstract final class TvItems {
       icon: Icons.check,
       label: 'OK',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.enter),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.enter),
+      ),
     ),
   );
-  static final home = RemoteAction<TvRemoteDevice>(
+  static final home = RemoteAction<GridRemoteViewModel>(
     'nav_home',
     showLabel: false,
     holdable: true,
@@ -74,10 +89,13 @@ abstract final class TvItems {
       icon: Icons.home_outlined,
       label: 'Home',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.home),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.home),
+      ),
     ),
   );
-  static final back = RemoteAction<TvRemoteDevice>(
+  static final back = RemoteAction<GridRemoteViewModel>(
     'nav_back',
     showLabel: false,
     holdable: true,
@@ -85,30 +103,33 @@ abstract final class TvItems {
       icon: Icons.undo,
       label: 'Back',
       enabled: true,
-      execute: () => remote.navigate(NavigationKey.back),
+      execute: () => remote.runTv(
+        RemoteCapability.navigation,
+        (tv) => tv.press(NavigationKey.back),
+      ),
     ),
   );
-  static final play = RemoteAction<TvRemoteDevice>(
+  static final play = RemoteAction<GridRemoteViewModel>(
     'play',
     builder: (context, remote) => (
       icon: Icons.play_arrow,
       label: 'Play',
       enabled: true,
-      execute: () => remote.media(MediaAction.play),
+      execute: () => remote.sendMedia(MediaAction.play),
     ),
   );
-  static final pause = RemoteAction<TvRemoteDevice>(
+  static final pause = RemoteAction<GridRemoteViewModel>(
     'pause',
     builder: (context, remote) => (
       icon: Icons.pause,
       label: 'Pause',
       enabled: true,
-      execute: () => remote.media(MediaAction.pause),
+      execute: () => remote.sendMedia(MediaAction.pause),
     ),
   );
 
   /// One button that alternates Play and Pause, showing the next action.
-  static final playbackToggle = RemoteAction<TvRemoteDevice>(
+  static final playbackToggle = RemoteAction<GridRemoteViewModel>(
     'playback_toggle',
     builder: (_, remote) => (
       icon: remote.mediaPlaying
@@ -120,7 +141,7 @@ abstract final class TvItems {
     ),
   );
 
-  static final playPause = RemoteAction<TvRemoteDevice>(
+  static final playPause = RemoteAction<GridRemoteViewModel>(
     'play_pause',
     builder: (context, remote) {
       final playing = remote.mediaPlaying;
@@ -129,12 +150,12 @@ abstract final class TvItems {
         label: playing ? 'Pause' : 'Play',
         enabled: true,
         execute: () =>
-            remote.media(playing ? MediaAction.pause : MediaAction.play),
+            remote.sendMedia(playing ? MediaAction.pause : MediaAction.play),
       );
     },
   );
 
-  static final playStop = RemoteAction<TvRemoteDevice>(
+  static final playStop = RemoteAction<GridRemoteViewModel>(
     'play_stop',
     builder: (context, remote) {
       final playing = remote.mediaPlaying;
@@ -143,234 +164,234 @@ abstract final class TvItems {
         label: playing ? 'Stop' : 'Play',
         enabled: true,
         execute: () =>
-            remote.media(playing ? MediaAction.stop : MediaAction.play),
+            remote.sendMedia(playing ? MediaAction.stop : MediaAction.play),
       );
     },
   );
 
-  static final stop = RemoteAction<TvRemoteDevice>(
+  static final stop = RemoteAction<GridRemoteViewModel>(
     'stop',
     builder: (context, remote) => (
       icon: Icons.stop,
       label: 'Stop',
       enabled: true,
-      execute: () => remote.media(MediaAction.stop),
+      execute: () => remote.sendMedia(MediaAction.stop),
     ),
   );
-  static final previous = RemoteAction<TvRemoteDevice>(
+  static final previous = RemoteAction<GridRemoteViewModel>(
     'previous',
     builder: (context, remote) => (
       icon: Icons.skip_previous,
       label: 'Previous',
       enabled: true,
-      execute: () => remote.media(MediaAction.previous),
+      execute: () => remote.sendMedia(MediaAction.previous),
     ),
   );
-  static final next = RemoteAction<TvRemoteDevice>(
+  static final next = RemoteAction<GridRemoteViewModel>(
     'next',
     builder: (context, remote) => (
       icon: Icons.skip_next,
       label: 'Next',
       enabled: true,
-      execute: () => remote.media(MediaAction.next),
+      execute: () => remote.sendMedia(MediaAction.next),
     ),
   );
-  static final rewind = RemoteAction<TvRemoteDevice>(
+  static final rewind = RemoteAction<GridRemoteViewModel>(
     'rewind',
     builder: (context, remote) => (
       icon: Icons.fast_rewind,
       label: 'Rewind',
       enabled: true,
-      execute: () => remote.media(MediaAction.rewind),
+      execute: () => remote.sendMedia(MediaAction.rewind),
     ),
   );
-  static final fastForward = RemoteAction<TvRemoteDevice>(
+  static final fastForward = RemoteAction<GridRemoteViewModel>(
     'fast_forward',
     builder: (context, remote) => (
       icon: Icons.fast_forward,
       label: 'Fast forward',
       enabled: true,
-      execute: () => remote.media(MediaAction.fastForward),
+      execute: () => remote.sendMedia(MediaAction.fastForward),
     ),
   );
-  static final menu = RemoteAction<TvRemoteDevice>(
+  static final menu = RemoteAction<GridRemoteViewModel>(
     'key_menu',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'menu',
       enabled: true,
-      execute: () => remote.key(RemoteKey.menu),
+      execute: () => remote.sendKey(RemoteKey.menu),
     ),
   );
-  static final info = RemoteAction<TvRemoteDevice>(
+  static final info = RemoteAction<GridRemoteViewModel>(
     'key_info',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'info',
       enabled: true,
-      execute: () => remote.key(RemoteKey.info),
+      execute: () => remote.sendKey(RemoteKey.info),
     ),
   );
-  static final guide = RemoteAction<TvRemoteDevice>(
+  static final guide = RemoteAction<GridRemoteViewModel>(
     'key_guide',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'guide',
       enabled: true,
-      execute: () => remote.key(RemoteKey.guide),
+      execute: () => remote.sendKey(RemoteKey.guide),
     ),
   );
-  static final exit = RemoteAction<TvRemoteDevice>(
+  static final exit = RemoteAction<GridRemoteViewModel>(
     'key_exit',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'exit',
       enabled: true,
-      execute: () => remote.key(RemoteKey.exit),
+      execute: () => remote.sendKey(RemoteKey.exit),
     ),
   );
-  static final red = RemoteAction<TvRemoteDevice>(
+  static final red = RemoteAction<GridRemoteViewModel>(
     'key_red',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'red',
       enabled: true,
-      execute: () => remote.key(RemoteKey.red),
+      execute: () => remote.sendKey(RemoteKey.red),
     ),
   );
-  static final green = RemoteAction<TvRemoteDevice>(
+  static final green = RemoteAction<GridRemoteViewModel>(
     'key_green',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'green',
       enabled: true,
-      execute: () => remote.key(RemoteKey.green),
+      execute: () => remote.sendKey(RemoteKey.green),
     ),
   );
-  static final yellow = RemoteAction<TvRemoteDevice>(
+  static final yellow = RemoteAction<GridRemoteViewModel>(
     'key_yellow',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'yellow',
       enabled: true,
-      execute: () => remote.key(RemoteKey.yellow),
+      execute: () => remote.sendKey(RemoteKey.yellow),
     ),
   );
-  static final blue = RemoteAction<TvRemoteDevice>(
+  static final blue = RemoteAction<GridRemoteViewModel>(
     'key_blue',
     builder: (context, remote) => (
       icon: Icons.keyboard_command_key,
       label: 'blue',
       enabled: true,
-      execute: () => remote.key(RemoteKey.blue),
+      execute: () => remote.sendKey(RemoteKey.blue),
     ),
   );
-  static final keyDigit1 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit1 = RemoteAction<GridRemoteViewModel>(
     'key_digit1',
     builder: (context, remote) => (
       icon: null,
       label: '1',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit1),
+      execute: () => remote.sendKey(RemoteKey.digit1),
     ),
   );
-  static final keyDigit2 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit2 = RemoteAction<GridRemoteViewModel>(
     'key_digit2',
     builder: (context, remote) => (
       icon: null,
       label: '2',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit2),
+      execute: () => remote.sendKey(RemoteKey.digit2),
     ),
   );
-  static final keyDigit3 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit3 = RemoteAction<GridRemoteViewModel>(
     'key_digit3',
     builder: (context, remote) => (
       icon: null,
       label: '3',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit3),
+      execute: () => remote.sendKey(RemoteKey.digit3),
     ),
   );
-  static final keyDigit4 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit4 = RemoteAction<GridRemoteViewModel>(
     'key_digit4',
     builder: (context, remote) => (
       icon: null,
       label: '4',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit4),
+      execute: () => remote.sendKey(RemoteKey.digit4),
     ),
   );
-  static final keyDigit5 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit5 = RemoteAction<GridRemoteViewModel>(
     'key_digit5',
     builder: (context, remote) => (
       icon: null,
       label: '5',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit5),
+      execute: () => remote.sendKey(RemoteKey.digit5),
     ),
   );
-  static final keyDigit6 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit6 = RemoteAction<GridRemoteViewModel>(
     'key_digit6',
     builder: (context, remote) => (
       icon: null,
       label: '6',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit6),
+      execute: () => remote.sendKey(RemoteKey.digit6),
     ),
   );
-  static final keyDigit7 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit7 = RemoteAction<GridRemoteViewModel>(
     'key_digit7',
     builder: (context, remote) => (
       icon: null,
       label: '7',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit7),
+      execute: () => remote.sendKey(RemoteKey.digit7),
     ),
   );
-  static final keyDigit8 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit8 = RemoteAction<GridRemoteViewModel>(
     'key_digit8',
     builder: (context, remote) => (
       icon: null,
       label: '8',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit8),
+      execute: () => remote.sendKey(RemoteKey.digit8),
     ),
   );
-  static final keyDigit9 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit9 = RemoteAction<GridRemoteViewModel>(
     'key_digit9',
     builder: (context, remote) => (
       icon: null,
       label: '9',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit9),
+      execute: () => remote.sendKey(RemoteKey.digit9),
     ),
   );
-  static final keyDash = RemoteAction<TvRemoteDevice>(
+  static final keyDash = RemoteAction<GridRemoteViewModel>(
     'key_dash',
     builder: (context, remote) => (
       icon: null,
       label: '−',
       enabled: true,
-      execute: () => remote.key(RemoteKey.dash),
+      execute: () => remote.sendKey(RemoteKey.dash),
     ),
   );
-  static final keyDigit0 = RemoteAction<TvRemoteDevice>(
+  static final keyDigit0 = RemoteAction<GridRemoteViewModel>(
     'key_digit0',
     builder: (context, remote) => (
       icon: null,
       label: '0',
       enabled: true,
-      execute: () => remote.key(RemoteKey.digit0),
+      execute: () => remote.sendKey(RemoteKey.digit0),
     ),
   );
-  static final keyEnter = RemoteAction<TvRemoteDevice>(
+  static final keyEnter = RemoteAction<GridRemoteViewModel>(
     'key_enter',
     builder: (context, remote) => (
       icon: null,
       label: 'Enter',
       enabled: true,
-      execute: () => remote.key(RemoteKey.enter),
+      execute: () => remote.sendKey(RemoteKey.enter),
     ),
   );
   static final keypad = [
@@ -413,38 +434,42 @@ abstract final class TvItems {
     RemoteKey.captions,
   );
 
-  static final screenOff = RemoteAction<TvRemoteDevice>(
+  static final screenOff = RemoteAction<GridRemoteViewModel>(
     'screen_off',
     builder: (context, remote) => (
       icon: Icons.tv_off_outlined,
       label: 'Screen off',
       enabled: true,
-      execute: remote.turnOffScreen,
+      execute: () => remote.runTv(
+        RemoteCapability.screenPower,
+        (tv) => tv.turnOffScreen(),
+      ),
     ),
   );
-  static final screenOn = RemoteAction<TvRemoteDevice>(
+  static final screenOn = RemoteAction<GridRemoteViewModel>(
     'screen_on',
     builder: (context, remote) => (
       icon: Icons.tv_outlined,
       label: 'Screen on',
       enabled: true,
-      execute: remote.turnOnScreen,
+      execute: () =>
+          remote.runTv(RemoteCapability.screenPower, (tv) => tv.turnOnScreen()),
     ),
   );
 
-  static RemoteAction<TvRemoteDevice> _remoteKey(
+  static RemoteAction<GridRemoteViewModel> _remoteKey(
     String id,
     String label,
     IconData icon,
     RemoteKey key,
-  ) => RemoteAction<TvRemoteDevice>(
+  ) => RemoteAction<GridRemoteViewModel>(
     id,
     builder: (context, remote) => (
       icon: icon,
       label: label,
       enabled: true,
       execute: () async {
-        await remote.key(key);
+        await remote.sendKey(key);
         if (key == RemoteKey.settings) {
           showCommandSent(context.buildContext);
         }
@@ -452,7 +477,7 @@ abstract final class TvItems {
     ),
   );
 
-  static final muteToggle = RemoteAction<TvRemoteDevice>(
+  static final muteToggle = RemoteAction<GridRemoteViewModel>(
     'mute_toggle',
     builder: (context, remote) {
       final muted = context.remote.volume?.muted;
@@ -471,7 +496,7 @@ abstract final class TvItems {
       );
     },
   );
-  static final muteOn = RemoteAction<TvRemoteDevice>(
+  static final muteOn = RemoteAction<GridRemoteViewModel>(
     'mute_on',
     builder: (context, remote) => (
       icon: Icons.volume_off_outlined,
@@ -480,7 +505,7 @@ abstract final class TvItems {
       execute: () => remote.mute(true),
     ),
   );
-  static final muteOff = RemoteAction<TvRemoteDevice>(
+  static final muteOff = RemoteAction<GridRemoteViewModel>(
     'mute_off',
     builder: (context, remote) => (
       icon: Icons.volume_up_outlined,
@@ -489,43 +514,46 @@ abstract final class TvItems {
       execute: () => remote.mute(false),
     ),
   );
-  static final voice = RemoteAction<TvRemoteDevice>(
+  static final voice = RemoteAction<GridRemoteViewModel>(
     'voice',
     builder: (context, remote) => (
       icon: Icons.mic_none,
       label: 'Voice',
       enabled: true,
-      execute: () => remote.startVoiceControl(),
+      execute: () =>
+          remote.runTv(RemoteCapability.voice, (tv) => tv.startVoiceControl()),
     ),
   );
-  static final gameMode = RemoteAction<TvRemoteDevice>(
+  static final gameMode = RemoteAction<GridRemoteViewModel>(
     'game_mode',
     builder: (context, remote) => (
       icon: Icons.sports_esports_outlined,
       label: 'Game mode',
       enabled: true,
-      execute: () => remote.toggleGameMode(),
+      execute: () =>
+          remote.runTv(RemoteCapability.gameMode, (tv) => tv.toggleGameMode()),
     ),
   );
-  static final watch = RemoteAction<TvRemoteDevice>(
+  static final watch = RemoteAction<GridRemoteViewModel>(
     'watch_companion',
     builder: (context, remote) => (
       icon: Icons.watch_outlined,
       label: 'Watch companion',
       enabled: true,
-      execute: () => remote.syncWatchCompanion(),
+      execute: () =>
+          remote.runTv(RemoteCapability.watch, (tv) => tv.syncWatchCompanion()),
     ),
   );
-  static final pointerClick = RemoteAction<TvRemoteDevice>(
+  static final pointerClick = RemoteAction<GridRemoteViewModel>(
     'pointer_click',
     builder: (context, remote) => (
       icon: Icons.mouse_outlined,
       label: 'Click',
       enabled: true,
-      execute: () => remote.click(),
+      execute: () => remote.runTv(RemoteCapability.pointer, (tv) => tv.click()),
     ),
   );
-  static final volumeUp = RemoteAction<TvRemoteDevice>(
+  static final volumeUp = RemoteAction<GridRemoteViewModel>(
     'volume_up',
     showLabel: false,
     holdable: true,
@@ -536,7 +564,7 @@ abstract final class TvItems {
       execute: () => remote.volumeUp(),
     ),
   );
-  static final volumeDown = RemoteAction<TvRemoteDevice>(
+  static final volumeDown = RemoteAction<GridRemoteViewModel>(
     'volume_down',
     showLabel: false,
     holdable: true,
@@ -547,7 +575,7 @@ abstract final class TvItems {
       execute: () => remote.volumeDown(),
     ),
   );
-  static final volumePreset = RemoteAction<TvRemoteDevice>(
+  static final volumePreset = RemoteAction<GridRemoteViewModel>(
     'volume_preset',
     builder: (context, remote) => (
       icon: Icons.volume_up_outlined,
@@ -561,7 +589,7 @@ abstract final class TvItems {
       ),
     ),
   );
-  static final channelUp = RemoteAction<TvRemoteDevice>(
+  static final channelUp = RemoteAction<GridRemoteViewModel>(
     'channel_up',
     showLabel: false,
     holdable: true,
@@ -572,7 +600,7 @@ abstract final class TvItems {
       execute: remote.channelUp,
     ),
   );
-  static final channelDown = RemoteAction<TvRemoteDevice>(
+  static final channelDown = RemoteAction<GridRemoteViewModel>(
     'channel_down',
     showLabel: false,
     holdable: true,
@@ -585,21 +613,21 @@ abstract final class TvItems {
   );
 
   static final touchpad =
-      RemoteInput<TvRemoteDevice, ({double x, double y, bool scroll})>(
+      RemoteInput<GridRemoteViewModel, ({double x, double y, bool scroll})>(
         'touchpad',
         icon: (_) => Icons.touch_app_outlined,
         commit: (remote, motion) =>
             remote.move(motion.x, motion.y, scroll: motion.scroll),
       );
   static final keyboard =
-      RemoteInput<TvRemoteDevice, ({String text, bool submit})>(
+      RemoteInput<GridRemoteViewModel, ({String text, bool submit})>(
         'keyboard',
         icon: (_) => Icons.keyboard_outlined,
         slots: 4,
         commit: (remote, entry) =>
             remote.sendText(entry.text, submit: entry.submit),
       );
-  static final activity = RemoteInfo<TvRemoteDevice>(
+  static final activity = RemoteInfo<GridRemoteViewModel>(
     'current_activity',
     defaultLabel: 'Activity',
     showLabelByDefault: false,
@@ -623,7 +651,7 @@ abstract final class TvItems {
       );
     },
   );
-  static final app = RemoteInfo<TvRemoteDevice>(
+  static final app = RemoteInfo<GridRemoteViewModel>(
     'current_app',
     defaultLabel: 'App',
     hiddenWhenOffline: true,
@@ -636,7 +664,7 @@ abstract final class TvItems {
   static RemoteReading _inputReading(DeviceInput? input) =>
       RemoteReading(input?.name ?? 'Current input unavailable');
 
-  static final channelNumber = RemoteInfo<TvRemoteDevice>(
+  static final channelNumber = RemoteInfo<GridRemoteViewModel>(
     'channel_number',
     defaultLabel: 'CH',
     supportsOfflineIndicator: true,
@@ -644,7 +672,7 @@ abstract final class TvItems {
     read: (context) =>
         RemoteReading(context.remote.content?.channelNumber ?? '—'),
   );
-  static final channelName = RemoteInfo<TvRemoteDevice>(
+  static final channelName = RemoteInfo<GridRemoteViewModel>(
     'channel_name',
     defaultLabel: 'Channel',
     icon: (_) => Icons.live_tv,
@@ -652,7 +680,7 @@ abstract final class TvItems {
       context.remote.content?.channelName ?? 'Channel unavailable',
     ),
   );
-  static final currentInput = RemoteInfo<TvRemoteDevice>(
+  static final currentInput = RemoteInfo<GridRemoteViewModel>(
     'current_input',
     defaultLabel: 'Input',
     slots: 2,
@@ -663,42 +691,44 @@ abstract final class TvItems {
         .map(_inputReading),
     read: (context) => _inputReading(context.remote.currentInput),
   );
-  static final inputs = RemoteCollection<TvRemoteDevice, DeviceInput>(
+  static final inputs = RemoteCollection<GridRemoteViewModel, DeviceInput>(
     'pinned_inputs',
     title: 'Inputs',
     icon: (_) => Icons.input,
-    load: (remote) => remote.installedInputs(),
+    load: (remote) => remote.inputs(),
     entryId: (input) => input.id,
     entryName: (input) => input.name,
     fromOption: DeviceInput.new,
     sample: (data) => data.inputs,
-    onSelected: (remote, input) => remote.input(input.id),
-    onEmpty: (remote) => remote.openInputPicker(),
+    onSelected: (remote, input) => remote.selectInput(input.id),
+    onEmpty: (remote) =>
+        remote.runTv(RemoteCapability.inputs, (tv) => tv.openInputPicker()),
   );
-  static final channels = RemoteCollection<TvRemoteDevice, DeviceChannel>(
+  static final channels = RemoteCollection<GridRemoteViewModel, DeviceChannel>(
     'pinned_channels',
     title: 'Channels',
     icon: (_) => Icons.live_tv,
-    load: (remote) => remote.installedChannels(),
+    load: (remote) => remote.channels(),
     entryId: (channel) => channel.id,
     entryName: (channel) => '${channel.number} ${channel.name}'.trim(),
     fromOption: (id, name) => DeviceChannel(id, name, ''),
     sample: (data) => data.channels,
-    onSelected: (remote, channel) => remote.channel(channel.id),
+    onSelected: (remote, channel) => remote.selectChannel(channel.id),
   );
-  static final channelCatalog = RemoteCollection<TvRemoteDevice, DeviceChannel>(
-    'channel_catalog',
-    title: 'Reported channels',
-    icon: (_) => Icons.live_tv,
-    load: (remote) => remote.installedChannels(),
-    entryId: (channel) => channel.id,
-    entryName: (channel) => '${channel.number} ${channel.name}'.trim(),
-    fromOption: (id, name) => DeviceChannel(id, name, ''),
-    sample: (data) => data.channels,
-    onSelected: (_, _) async {},
-    readOnly: true,
-  );
-  static final volume = RemoteInfo<TvRemoteDevice>(
+  static final channelCatalog =
+      RemoteCollection<GridRemoteViewModel, DeviceChannel>(
+        'channel_catalog',
+        title: 'Reported channels',
+        icon: (_) => Icons.live_tv,
+        load: (remote) => remote.channels(),
+        entryId: (channel) => channel.id,
+        entryName: (channel) => '${channel.number} ${channel.name}'.trim(),
+        fromOption: (id, name) => DeviceChannel(id, name, ''),
+        sample: (data) => data.channels,
+        onSelected: (_, _) async {},
+        readOnly: true,
+      );
+  static final volume = RemoteInfo<GridRemoteViewModel>(
     'current_volume',
     defaultLabel: 'VOL',
     supportsOfflineIndicator: true,
@@ -713,7 +743,7 @@ abstract final class TvItems {
       );
     },
   );
-  static final volumeSlider = RemoteInput<TvRemoteDevice, double>(
+  static final volumeSlider = RemoteInput<GridRemoteViewModel, double>(
     'volume_slider',
     icon: (_) => Icons.tune,
     slots: 2,
@@ -721,34 +751,37 @@ abstract final class TvItems {
     preview: (remote, value) => remote.previewVolume(value),
     commit: (remote, value) => remote.setVolume(value),
   );
-  static final accessories = RemoteCollection<TvRemoteDevice, BluetoothAccessory>(
-    'bluetooth_accessories',
-    title: 'Bluetooth devices',
-    icon: (_) => Icons.bluetooth,
-    load: (remote) => remote.bluetoothAccessories(),
-    entryId: (accessory) => accessory.id,
-    entryName: (accessory) => accessory.name,
-    choiceName: (accessory) =>
-        '${accessory.name} · ${accessory.connected ? 'Disconnect' : 'Connect'}',
-    fromOption: BluetoothAccessory.new,
-    sample: (_) => [('sample-soundbar', 'Soundbar')],
-    onSelected: (remote, accessory) =>
-        remote.toggleBluetoothAccessory(accessory.id),
-  );
+  static final accessories =
+      RemoteCollection<GridRemoteViewModel, BluetoothAccessory>(
+        'bluetooth_accessories',
+        title: 'Bluetooth devices',
+        icon: (_) => Icons.bluetooth,
+        load: (remote) => remote.bluetoothAccessories(),
+        entryId: (accessory) => accessory.id,
+        entryName: (accessory) => accessory.name,
+        choiceName: (accessory) =>
+            '${accessory.name} · ${accessory.connected ? 'Disconnect' : 'Connect'}',
+        fromOption: BluetoothAccessory.new,
+        sample: (_) => [('sample-soundbar', 'Soundbar')],
+        onSelected: (remote, accessory) => remote.runTv(
+          RemoteCapability.bluetoothAccessories,
+          (tv) => tv.toggleBluetoothAccessory(accessory.id),
+        ),
+      );
 
   static final applications =
-      RemoteCollection<TvRemoteDevice, DeviceApplication>(
+      RemoteCollection<GridRemoteViewModel, DeviceApplication>(
         'pinned_apps',
         title: 'Apps',
         icon: (_) => Icons.apps,
         trackedByDevice: true,
         artwork: (app) => app.artwork,
         leading: (id, name) => TvAppIcon(appId: id, name: name),
-        load: (remote) => remote.installedApps(),
+        load: (remote) => remote.applications(),
         entryId: (app) => app.id,
         entryName: (app) => app.name,
         fromOption: DeviceApplication.new,
         sample: (data) => data.applications,
-        onSelected: (remote, app) => remote.launchApp(app),
+        onSelected: (remote, app) => remote.launchDashboardApp(app),
       );
 }

@@ -23,9 +23,9 @@ class CollectionView extends StatelessWidget {
   final GridRemoteViewModel model;
   static const _gap = SquareGridMetrics.gap;
 
-  RemoteCollection<TvRemoteDevice, Object> get _collection => definition
+  RemoteCollection<GridRemoteViewModel, Object> get _collection => definition
       .elements
-      .whereType<RemoteCollection<TvRemoteDevice, Object>>()
+      .whereType<RemoteCollection<GridRemoteViewModel, Object>>()
       .first;
   CollectionPresentation get _layout =>
       (definition.layout as CollectionLayout).presentation;

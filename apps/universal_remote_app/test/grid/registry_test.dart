@@ -2,9 +2,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
-import '../support/muted_remote_panel.dart';
+import 'package:universal_remote_app/app/app_bootstrap.dart';
+import 'package:universal_remote_app/presentation/views/remote/viewmodels/remote_viewmodel.dart';
+
+import '../support/fake_controller.dart';
+import '../support/fake_provider.dart';
+import '../support/memory_storage.dart';
+import '../support/test_device.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('every persisted definitionId resolves to one definition that owns its renderer', () {
     final ids = <String>{};
     for (final definition in RemoteItemRegistry.definitions) {
@@ -83,43 +90,45 @@ void main() {
   });
 
   test('play and pause toggle alternates the command it sends', () async {
-    final device = _MediaDevice();
-    final panel = MutedRemotePanel(muted: false);
-    final context = RemoteElementContext(remote: panel);
-    ResolvedAction resolve() => TvItems.playPause.builder(context, device);
+    final sent = <MediaAction>[];
+    final model = await _mediaModel(sent);
+    final context = RemoteElementContext(remote: model.remote);
+    ResolvedAction resolve() => TvItems.playPause.builder(context, model);
     expect(resolve().label, 'Play');
     await resolve().execute();
     expect(resolve().label, 'Pause');
     await resolve().execute();
     expect(resolve().label, 'Play');
-    expect(device.sent, [MediaAction.play, MediaAction.pause]);
+    expect(sent, [MediaAction.play, MediaAction.pause]);
   });
 
   test('play and stop toggle alternates play and stop', () async {
-    final device = _MediaDevice();
-    final context = RemoteElementContext(
-      remote: MutedRemotePanel(muted: false),
-    );
-    ResolvedAction resolve() => TvItems.playStop.builder(context, device);
+    final sent = <MediaAction>[];
+    final model = await _mediaModel(sent);
+    final context = RemoteElementContext(remote: model.remote);
+    ResolvedAction resolve() => TvItems.playStop.builder(context, model);
     expect(resolve().label, 'Play');
     await resolve().execute();
     expect(resolve().label, 'Stop');
     await resolve().execute();
-    expect(device.sent, [MediaAction.play, MediaAction.stop]);
+    expect(sent, [MediaAction.play, MediaAction.stop]);
   });
 }
 
-final class _MediaDevice implements TvRemoteDevice {
-  final sent = <MediaAction>[];
-  @override
-  bool get mediaPlaying => sent.lastOrNull == MediaAction.play;
-  @override
-  Future<void> togglePlayback() =>
-      media(mediaPlaying ? MediaAction.pause : MediaAction.play);
-  @override
-  Future<void> media(MediaAction action) async => sent.add(action);
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw UnsupportedError(
-    '${invocation.memberName} is not part of this fake',
+Future<GridRemoteViewModel> _mediaModel(List<MediaAction> sent) async {
+  final registry = ProviderRegistry()
+    ..registerDefinition(
+      ProviderDefinition(
+        identifier: FakeProvider(),
+        createController: (device) =>
+            FakeController(device, enabledControls: true, mediaCommands: sent),
+      ),
+    );
+  final app = await AppBootstrap.initialize(
+    storage: MemoryStorage(),
+    registry: registry,
   );
+  addTearDown(app.dispose);
+  await app.connection.connect(tv);
+  return GridRemoteViewModel(RemoteViewModel(app));
 }

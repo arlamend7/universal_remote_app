@@ -4,7 +4,6 @@ export 'definitions/enums/item_axis.dart';
 export 'definitions/enums/remote_item_category.dart';
 export 'definitions/remote_item_definition.dart';
 export 'definitions/remote_item_registry.dart';
-export 'devices/tv_remote_device.dart';
 export 'elements/remote_action.dart';
 export 'elements/remote_collection.dart';
 export 'elements/remote_element.dart';

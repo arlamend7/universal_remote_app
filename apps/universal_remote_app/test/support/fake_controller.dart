@@ -19,6 +19,7 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
     this.enableContentFeedback = true,
     this.enabledControls = false,
     this.wakeAddress,
+    this.mediaCommands,
   });
   @override
   final RemoteDevice device;
@@ -28,6 +29,7 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
   final bool enabledControls;
   final bool enableContentFeedback;
   final String? wakeAddress;
+  final List<MediaAction>? mediaCommands;
   @override
   Future<DeviceWakeAddress?> readWakeAddress() async => wakeAddress == null
       ? null
@@ -55,6 +57,7 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
             RemoteCapability.volumeFeedback,
             RemoteCapability.mute,
             RemoteCapability.navigation,
+            if (mediaCommands != null) RemoteCapability.media,
             RemoteCapability.applications,
             RemoteCapability.inputs,
             RemoteCapability.channels,
@@ -110,7 +113,15 @@ class FakeController extends TVRemoteBase implements DeviceWakeAddressSource {
   @override
   Future<void> selectChannel(String id) => _unavailable('channelSelection');
   @override
-  Future<void> sendMedia(MediaAction action) => _unavailable('media');
+  Future<void> sendMedia(MediaAction action) async {
+    final commands = mediaCommands;
+    if (commands == null) {
+      await _unavailable<void>('media');
+      return;
+    }
+    commands.add(action);
+  }
+
   @override
   Future<void> movePointer(double dx, double dy) => _unavailable('pointer');
   @override

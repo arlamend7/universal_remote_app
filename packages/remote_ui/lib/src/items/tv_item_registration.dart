@@ -1,6 +1,6 @@
 import 'package:remote_core/remote_core.dart';
 
-import '../devices/tv_remote_device.dart';
+import '../rendering/viewmodels/grid_remote_viewmodel.dart';
 import '../definitions/enums/item_axis.dart';
 import '../definitions/enums/remote_item_category.dart';
 import '../definitions/layouts/layouts.dart';
@@ -9,7 +9,7 @@ import '../definitions/remote_item_definition.dart';
 import 'tv_items.dart';
 
 /// Display, rendering and behavior for each TV control.
-final tvItemDefinitions = <RemoteItemDefinition<TvRemoteDevice>>[
+final tvItemDefinitions = <RemoteItemDefinition<GridRemoteViewModel>>[
   RemoteItemDefinition(
     'tvSettings',
     'Open TV settings',
