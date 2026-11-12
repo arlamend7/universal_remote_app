@@ -67,3 +67,16 @@ const _shareable = {
   'discovery.json',
   'mappings.json',
 };
+
+/// Finds an integration source from any directory inside this repository.
+Map<String, String> readRepositoryDriverSource(String folder) {
+  var directory = Directory.current.absolute;
+  while (directory.path != directory.parent.path) {
+    final providers = Directory('${directory.path}/drivers/providers');
+    if (providers.existsSync()) {
+      return readDriverSourceFiles(Directory('${providers.path}/$folder'));
+    }
+    directory = directory.parent;
+  }
+  throw const FileSystemException('Driver source directory was not found.');
+}

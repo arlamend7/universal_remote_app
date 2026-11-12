@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
+import 'package:remote_driver_runtime/authoring.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
 import 'static_plan_planner.dart';
@@ -21,7 +20,10 @@ ProviderRegistry integrationProviders(CredentialStore credentials) {
       'android-tv/remote-v2',
       'samsung-tizen/tizen-supported',
     ])
-      IntegrationDefinition.compile(_files(folder), engines),
+      IntegrationDefinition.compile(
+        readRepositoryDriverSource(folder),
+        engines,
+      ),
   ];
   final registry = ProviderRegistry();
   final source = IntegrationProviderSource(
@@ -45,17 +47,4 @@ ProviderRegistry integrationProviders(CredentialStore credentials) {
     registry.registerDefinition(definition);
   }
   return registry;
-}
-
-Map<String, String> _files(String folder) {
-  var directory = Directory.current.absolute;
-  while (!Directory('${directory.path}/drivers/providers').existsSync()) {
-    directory = directory.parent;
-  }
-  final source = Directory('${directory.path}/drivers/providers/$folder');
-  return {
-    for (final file in source.listSync(recursive: true).whereType<File>())
-      if (file.path.endsWith('.json'))
-        file.path.substring(source.path.length + 1): file.readAsStringSync(),
-  };
 }
