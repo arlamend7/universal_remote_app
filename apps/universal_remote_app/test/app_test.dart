@@ -137,6 +137,9 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Connect'));
       await tester.pumpAndSettle();
+      expect(find.text('TV connected!'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pumpAndSettle();
       expect(find.byTooltip('OK'), findsOneWidget);
       final ok = tester.widget<ActionButton>(
         find

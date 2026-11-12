@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:remote_ui/remote_ui.dart';
 
+import '../../../shared/localization/journey_text.dart';
 import 'pairing_code_card.dart';
 import 'pairing_code_slots.dart';
 
@@ -10,10 +11,16 @@ class PairingCodeCardState extends State<PairingCodeCard> {
   String? _error;
   bool _submitting = false;
 
+  String _text(String en, String pt) => journeyText(context, en, pt);
+  int get _length => widget.receiver.pairingCodeFormat.length;
+
   @override
   Widget build(BuildContext context) => AppSheet(
-    title: 'Pair TV',
-    subtitle: 'Enter the six characters shown on ${widget.deviceName}.',
+    title: _text('Pair TV', 'Parear TV'),
+    subtitle: _text(
+      'Enter the code shown on ${widget.deviceName}.',
+      'Digite o código exibido em ${widget.deviceName}.',
+    ),
     onClose: widget.onCancel,
     child: _codeEntry(),
     footer: _actions(),
@@ -22,11 +29,11 @@ class PairingCodeCardState extends State<PairingCodeCard> {
   Widget _actions() => AppSheetActions(
     secondary: OutlinedButton(
       onPressed: widget.onCancel,
-      child: const Text('Cancel connection'),
+      child: Text(_text('Cancel connection', 'Cancelar conexão')),
     ),
     primary: FilledButton(
       onPressed: _submitting ? null : _submit,
-      child: const Text('Connect'),
+      child: Text(_text('Connect', 'Conectar')),
     ),
   );
 
@@ -40,7 +47,8 @@ class PairingCodeCardState extends State<PairingCodeCard> {
           children: [
             ValueListenableBuilder(
               valueListenable: _code,
-              builder: (_, value, _) => PairingCodeSlots(code: value.text),
+              builder: (_, value, _) =>
+                  PairingCodeSlots(code: value.text, length: _length),
             ),
             Positioned.fill(child: _field()),
           ],
@@ -54,7 +62,10 @@ class PairingCodeCardState extends State<PairingCodeCard> {
     ),
   );
 
-  Widget _field() => Semantics(label: 'TV pairing code', child: _input());
+  Widget _field() => Semantics(
+    label: _text('TV pairing code', 'Código de pareamento da TV'),
+    child: _input(),
+  );
 
   Widget _input() => TextField(
     controller: _code,
@@ -70,8 +81,15 @@ class PairingCodeCardState extends State<PairingCodeCard> {
     autocorrect: false,
     textCapitalization: TextCapitalization.characters,
     textInputAction: TextInputAction.done,
-    inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9a-fA-F]'))],
-    maxLength: 6,
+    keyboardType: widget.receiver.pairingCodeFormat.numeric
+        ? TextInputType.number
+        : TextInputType.text,
+    inputFormatters: [
+      FilteringTextInputFormatter.allow(
+        RegExp(widget.receiver.pairingCodeFormat.characters),
+      ),
+    ],
+    maxLength: _length,
     decoration: const InputDecoration(
       filled: false,
       border: InputBorder.none,
@@ -86,8 +104,13 @@ class PairingCodeCardState extends State<PairingCodeCard> {
     if (_submitting) {
       return;
     }
-    if (_code.text.length != 6) {
-      setState(() => _error = 'Enter all six characters.');
+    if (_code.text.length != _length) {
+      setState(
+        () => _error = _text(
+          'Enter all $_length characters.',
+          'Digite os $_length caracteres.',
+        ),
+      );
       return;
     }
     setState(() {
@@ -100,7 +123,10 @@ class PairingCodeCardState extends State<PairingCodeCard> {
     }
     setState(() {
       _submitting = false;
-      _error = 'Check the six characters on your TV.';
+      _error = _text(
+        'Check the code on your TV.',
+        'Confira o código na sua TV.',
+      );
     });
   }
 

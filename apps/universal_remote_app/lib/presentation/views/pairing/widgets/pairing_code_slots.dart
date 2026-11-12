@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 class PairingCodeSlots extends StatelessWidget {
-  const PairingCodeSlots({super.key, required this.code});
+  const PairingCodeSlots({super.key, required this.code, required this.length});
 
   final String code;
+  final int length;
 
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
     child: Row(
       children: [
-        for (var index = 0; index < 6; index++)
+        for (var index = 0; index < length; index++)
           Expanded(child: _slot(context, index)),
       ],
     ),

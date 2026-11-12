@@ -41,7 +41,7 @@ void main() {
     final connect = find.widgetWithText(FilledButton, 'Connect');
     await tester.tap(connect);
     await tester.pumpAndSettle();
-    expect(find.text('Enter all six characters.'), findsOneWidget);
+    expect(find.text('Enter all 6 characters.'), findsOneWidget);
     expect(receiver.submitted, isEmpty);
 
     await tester.enterText(find.byType(TextField), 'A1B2C3');

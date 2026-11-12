@@ -7,6 +7,7 @@ import 'package:remote_ui/remote_ui.dart';
 
 import '../../devices/widgets/discovery_progress.dart';
 import '../../devices/modals/edit_device.dart';
+import '../../pairing/modals/show_device_pairing.dart';
 import '../../../../domains/discovery/models/connection_issue_type.dart';
 import '../widgets/discovery_details.dart';
 import '../widgets/discovery_issue.dart';
@@ -293,15 +294,26 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
   );
   Future<void> _connectByIp() async {
     final device = await editDevice(context, widget.dependencies);
-    if (mounted && device != null) {
-      Navigator.pop(context, device);
+    if (device != null && mounted) {
+      await _pair(device);
     }
   }
 
   Future<void> _add(RemoteDevice device) async {
     final selected = await model.add(device);
     if (selected != null && mounted) {
-      Navigator.pop(context, selected);
+      await _pair(selected);
+    }
+  }
+
+  Future<void> _pair(RemoteDevice device) async {
+    final connected = await showDevicePairing(
+      context,
+      widget.dependencies,
+      device,
+    );
+    if (connected != null && mounted) {
+      Navigator.pop(context, connected);
     }
   }
 }

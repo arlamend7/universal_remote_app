@@ -4,6 +4,7 @@ import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
 import '../../devices/modals/edit_device.dart';
+import '../../pairing/modals/show_device_pairing.dart';
 import 'device_discovery_sheet.dart';
 import 'device_preparation_sheet.dart';
 
@@ -19,7 +20,11 @@ Future<RemoteDevice?> showDeviceDiscovery(
     return null;
   }
   if (!search) {
-    return editDevice(context, dependencies);
+    final device = await editDevice(context, dependencies);
+    if (device == null || !context.mounted) {
+      return null;
+    }
+    return showDevicePairing(context, dependencies, device);
   }
   return showAppModal<RemoteDevice>(
     context,

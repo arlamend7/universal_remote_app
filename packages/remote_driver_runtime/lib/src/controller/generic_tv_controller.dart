@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:remote_core/remote_core.dart';
+
+import '../remote_v2/protocol/android_pairing.dart';
+
 import 'package:remote_network/remote_network.dart';
 
 import '../engines/contracts/content_reading.dart';
@@ -227,6 +230,10 @@ final class GenericTvController extends TVRemoteBase
 
   @override
   bool get awaitingPairingCode => _pairing != null;
+
+  @override
+  ({int length, String characters, bool numeric}) get pairingCodeFormat =>
+      AndroidPairing.codeFormat;
 
   /// True while the integration package is being downloaded and verified.
   bool get installing => _installing;
