@@ -3,7 +3,7 @@ import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
 import '../modals/edit_device.dart';
-import '../../discovery/modals/show_device_discovery.dart';
+import '../../discovery/pages/show_device_discovery.dart';
 import '../modals/show_device_details.dart';
 
 import 'package:remote_ui/remote_ui.dart';

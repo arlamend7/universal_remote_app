@@ -13,6 +13,8 @@ final class DiscoveryViewModel extends ChangeNotifier {
     dependencies.discovery.unresolved.addListener(notifyListeners);
     dependencies.discovery.busy.addListener(notifyListeners);
     dependencies.discovery.error.addListener(notifyListeners);
+    dependencies.discovery.catalogOffline.addListener(notifyListeners);
+    dependencies.discovery.issue.addListener(notifyListeners);
     dependencies.discovery.statuses.addListener(notifyListeners);
     dependencies.savedDevices.devices.addListener(notifyListeners);
   }
@@ -37,10 +39,6 @@ final class DiscoveryViewModel extends ChangeNotifier {
         };
   }
 
-  List<String> get searchingProtocols => statuses
-      .where((status) => status.status == DiscoveryStatus.searching)
-      .map(searchLabel)
-      .toList();
   String get diagnosticReport => const JsonEncoder.withIndent('  ').convert({
     'searchId': dependencies.discovery.searchId,
     'protocols': [
@@ -64,8 +62,6 @@ final class DiscoveryViewModel extends ChangeNotifier {
   );
   RemoteDevice? registered(RemoteDevice candidate) =>
       profiles.registered(candidate);
-  List<RemoteDevice> get fresh =>
-      found.where((item) => registered(item) == null).toList();
   List<RemoteDevice> get known =>
       found.where((item) => registered(item) != null).toList();
   Future<void> search() async {
@@ -132,6 +128,8 @@ final class DiscoveryViewModel extends ChangeNotifier {
     dependencies.discovery.unresolved.removeListener(notifyListeners);
     dependencies.discovery.busy.removeListener(notifyListeners);
     dependencies.discovery.error.removeListener(notifyListeners);
+    dependencies.discovery.catalogOffline.removeListener(notifyListeners);
+    dependencies.discovery.issue.removeListener(notifyListeners);
     dependencies.discovery.statuses.removeListener(notifyListeners);
     dependencies.savedDevices.devices.removeListener(notifyListeners);
     super.dispose();

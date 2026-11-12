@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import '../../diagnostics/models/enums/app_log_level.dart';
 import '../../diagnostics/services/diagnostic_logger.dart';
 import '../functions/discovery_diagnostic_fields.dart';
 import '../functions/discovery_failure_message.dart';
+import '../models/connection_issue_type.dart';
 
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
@@ -29,12 +31,19 @@ class DiscoveryController {
           ProtocolDiscoveryStatus
         >
       >(const {});
+  final _protocolsByDevice = <(String, String), Set<DiscoveryProtocol>>{};
+  Set<DiscoveryProtocol> protocolsFor(RemoteDevice device) => Set.unmodifiable(
+    _protocolsByDevice[(device.providerId, device.id)] ?? {},
+  );
+
   int searchId = 0;
   final devices = ValueNotifier<List<RemoteDevice>>([]);
   final recentDevices = ValueNotifier<List<RemoteDevice>>(const []);
   Timer? _presenceExpiry;
   final busy = ValueNotifier(false);
   final error = ValueNotifier<String?>(null);
+  final issue = ValueNotifier<ConnectionIssueType?>(null);
+  final catalogOffline = ValueNotifier(false);
   DiscoveryCancellation? _cancellation;
   bool get cancelled => _cancellation?.isCancelled ?? false;
   bool _disposed = false;
@@ -58,15 +67,18 @@ class DiscoveryController {
     final cancellation = DiscoveryCancellation();
     _cancellation = cancellation;
     searchId++;
+    _protocolsByDevice.clear();
     final elapsed = Stopwatch()..start();
     statuses.value = const {};
     unresolved.value = const [];
     busy.value = true;
     _record('discovery.started');
     error.value = null;
+    issue.value = null;
+    catalogOffline.value = false;
     devices.value = [];
     _clearPresence();
-    unawaited(_refreshDrivers());
+    unawaited(refreshCatalog());
     try {
       await acquireNetwork();
       if (cancellation.isCancelled) {
@@ -76,14 +88,10 @@ class DiscoveryController {
       if (_disposed || cancellation.isCancelled) {
         return;
       }
-      final reports = statuses.value.values;
-      if (reports.isNotEmpty &&
-          reports.every((report) => report.status == DiscoveryStatus.failed)) {
-        error.value = discoveryFailureMessage(reports.first.failure!.error);
-      }
+      _reportSearchFailure();
     } catch (failure) {
       if (!_disposed && !cancellation.isCancelled) {
-        error.value = discoveryFailureMessage(failure);
+        _reportFailure(failure);
       }
     } finally {
       await _releaseNetwork();
@@ -99,18 +107,66 @@ class DiscoveryController {
     }
   }
 
-  Future<void> _refreshDrivers() async {
+  void _reportSearchFailure() {
+    final reports = statuses.value.values;
+    if (reports.isEmpty || devices.value.isNotEmpty) {
+      return;
+    }
+    final failures = reports.map((report) => report.failure?.error).nonNulls;
+    final permission = failures
+        .where((error) => discoveryFailureCode(error) == 'localNetworkDenied')
+        .firstOrNull;
+    if (permission != null) {
+      _reportFailure(permission);
+      return;
+    }
+    if (reports.every((report) => report.status == DiscoveryStatus.failed)) {
+      _reportFailure(failures.first);
+    }
+  }
+
+  void _reportFailure(Object failure) {
+    issue.value = switch (discoveryFailureCode(failure)) {
+      'localNetworkDenied' => ConnectionIssueType.localNetworkPermissionDenied,
+      'noNetworkInterface' ||
+      'networkUnreachable' => ConnectionIssueType.networkUnavailable,
+      _ => null,
+    };
+    error.value = discoveryFailureMessage(failure);
+  }
+
+  Future<void> refreshCatalog() async {
+    final search = searchId;
     try {
       await refreshDriverCatalog?.call();
+      if (!_disposed && searchId == search) {
+        catalogOffline.value = false;
+      }
+    } on SocketException {
+      _reportCatalogOffline(search);
+    } on TimeoutException {
+      _reportCatalogOffline(search);
     } on Exception {
       _record('discovery.driverCatalogUnavailable');
     }
+  }
+
+  void _reportCatalogOffline(int search) {
+    if (_disposed || cancelled || searchId != search) {
+      return;
+    }
+    catalogOffline.value = true;
+    _record('discovery.driverCatalogUnavailable');
   }
 
   Future<void> _discover(DiscoveryCancellation cancellation) async {
     final updates = manager.watch(
       cancellation: cancellation,
       onStatus: (report) => _updateStatus(report, cancellation),
+      onMatch: (match) {
+        final key = (match.profile.device.providerId, match.profile.id);
+        (_protocolsByDevice[key] ??= {}).add(match.evidence.protocolId);
+      },
       onUnresolved: (observation) {
         if (!_disposed &&
             !cancellation.isCancelled &&
@@ -203,6 +259,8 @@ class DiscoveryController {
     devices.dispose();
     busy.dispose();
     error.dispose();
+    issue.dispose();
+    catalogOffline.dispose();
     statuses.dispose();
     unresolved.dispose();
   }

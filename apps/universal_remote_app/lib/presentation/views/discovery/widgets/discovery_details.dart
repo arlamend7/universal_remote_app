@@ -15,17 +15,17 @@ class DiscoveryDetails extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      ...model.statuses.map(_protocol),
+      ...model.statuses.map((report) => _protocol(context, report)),
       TextButton.icon(
         onPressed: () =>
             Clipboard.setData(ClipboardData(text: model.diagnosticReport)),
         icon: const Icon(Icons.copy),
-        label: const Text('Copy diagnostics'),
+        label: Text('Copy diagnostics'),
       ),
     ],
   );
 
-  Widget _protocol(ProtocolDiscoveryStatus report) {
+  Widget _protocol(BuildContext context, ProtocolDiscoveryStatus report) {
     final fields = discoveryDiagnosticFields(report);
     final code = fields['code'];
     final stage = fields['stage'];
@@ -41,13 +41,18 @@ class DiscoveryDetails extends StatelessWidget {
       DiscoveryStatus.failed => 'Search failed',
       DiscoveryStatus.cancelled => 'Cancelled',
     };
+    final notes = [
+      status,
+      if (failure != null) '$code · $operation',
+      if (failure != null) discoveryFailureMessage(failure.error),
+      if (report.observations.isNotEmpty)
+        report.observations.entries
+            .map((entry) => '${entry.key}: ${entry.value}')
+            .join(' · '),
+    ];
     return ListTile(
       title: Text(model.searchLabel(report)),
-      subtitle: Text(
-        failure == null
-            ? status
-            : '$status · $code\n$operation\n${discoveryFailureMessage(failure.error)}',
-      ),
+      subtitle: Text(notes.join('\n')),
     );
   }
 }

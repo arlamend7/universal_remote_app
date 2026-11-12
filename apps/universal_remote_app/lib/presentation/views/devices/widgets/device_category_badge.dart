@@ -9,16 +9,21 @@ class DeviceCategoryBadge extends StatelessWidget {
     required this.category,
     required this.connected,
     required this.possiblyAwake,
+    this.showStatus = true,
   });
 
   final DeviceCategory category;
   final bool connected;
   final bool possiblyAwake;
+  final bool showStatus;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    if (!showStatus) {
+      return _iconBox(colors);
+    }
     return Semantics(
       label: connected
           ? 'Connected'

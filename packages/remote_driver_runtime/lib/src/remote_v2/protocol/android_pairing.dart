@@ -19,6 +19,12 @@ final class AndroidPairing {
     this.stepTimeout = const Duration(seconds: 10),
   });
 
+  static const codeFormat = (
+    length: 6,
+    characters: '[0-9a-fA-F]',
+    numeric: false,
+  );
+
   final String host;
   final int port;
 
@@ -56,7 +62,7 @@ final class AndroidPairing {
         );
       }
       await _exchange(channel, 10, {1: 'atvremote', 2: 'Universal Remote'}, 11);
-      final encoding = WireMessage.encode({1: 3, 2: 6});
+      final encoding = WireMessage.encode({1: 3, 2: codeFormat.length});
       await _exchange(channel, 20, {1: encoding, 3: 1}, 20);
       await _exchange(channel, 30, {1: encoding, 2: 1}, 31);
       _peer = peer;

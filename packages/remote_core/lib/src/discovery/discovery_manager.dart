@@ -39,6 +39,7 @@ final class DiscoveryManager {
     DiscoveryCancellation? cancellation,
     void Function(ProtocolDiscoveryStatus)? onStatus,
     void Function(DiscoveryObservation)? onUnresolved,
+    void Function(ProviderMatch)? onMatch,
   }) => Stream.multi((stream) {
     final token = cancellation ?? DiscoveryCancellation();
     var finished = false;
@@ -54,6 +55,7 @@ final class DiscoveryManager {
         onDevices: stream.add,
         onStatus: onStatus,
         onUnresolved: onUnresolved,
+        onMatch: onMatch,
       ).then(
         (_) {
           finished = true;
@@ -74,6 +76,7 @@ final class DiscoveryManager {
     void Function(List<RemoteDevice>)? onDevices,
     void Function(ProtocolDiscoveryStatus)? onStatus,
     void Function(DiscoveryObservation)? onUnresolved,
+    void Function(ProviderMatch)? onMatch,
   }) async {
     if (timeout <= Duration.zero) {
       throw ArgumentError('Discovery timeout must be positive.');
@@ -93,6 +96,7 @@ final class DiscoveryManager {
         return;
       }
       _resolver.add(matches, match);
+      onMatch?.call(match);
       onDevices?.call(_devices(matches));
     }
 

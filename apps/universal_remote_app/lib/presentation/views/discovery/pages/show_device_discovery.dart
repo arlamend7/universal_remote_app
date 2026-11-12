@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:remote_ui/remote_ui.dart';
 import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
-import 'device_discovery_sheet.dart';
+import '../../../shared/widgets/setup/push_setup_page.dart';
+import 'device_preparation_page.dart';
 
 Future<RemoteDevice?> showDeviceDiscovery(
   BuildContext context,
   AppDependencies dependencies,
-) => showAppModal<RemoteDevice>(
+) => pushSetupPage<RemoteDevice>(
   context,
-  builder: (_) => DeviceDiscoverySheet(dependencies: dependencies),
+  DevicePreparationPage(dependencies: dependencies),
 );

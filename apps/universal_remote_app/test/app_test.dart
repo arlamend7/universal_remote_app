@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'support/start_nearby_search.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
@@ -128,10 +130,27 @@ void main() {
         releaseNetwork: () async {},
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
-      await tester.tap(find.byTooltip('Find Nearby Devices'));
+      await startNearbySearch(tester);
       await tester.pumpAndSettle();
       expect(find.text('Living room'), findsOneWidget);
       await tester.tap(find.text('Connect'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pumpAndSettle();
+      expect(find.text('STEP 4 OF 4'), findsOneWidget);
+      expect(find.text('Supported controls'), findsOneWidget);
+      final attempt = dependencies.connection.attempt;
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('STEP 2 OF 4'), findsOneWidget);
+      await tester.tap(find.text('Connect'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 450));
+      await tester.pumpAndSettle();
+      expect(dependencies.connection.attempt, attempt);
+      expect(find.text('STEP 4 OF 4'), findsOneWidget);
+      expect(find.text('Directional pad'), findsNothing);
+      await tester.tap(find.text('Start controlling'));
       await tester.pumpAndSettle();
       expect(find.byTooltip('OK'), findsOneWidget);
       final ok = tester.widget<ActionButton>(

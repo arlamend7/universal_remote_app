@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A17D8E0C0000000000000011 /* BonjourSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17D8E0C0000000000000012 /* BonjourSearch.swift */; };
 		A17D8E0C0000000000000001 /* PreferencesChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17D8E0C0000000000000002 /* PreferencesChannel.swift */; };
+		A17D8E0C0000000000000003 /* LocalNetworkChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17D8E0C0000000000000004 /* LocalNetworkChannel.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -46,6 +47,7 @@
 /* Begin PBXFileReference section */
 		A17D8E0C0000000000000012 /* BonjourSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourSearch.swift; sourceTree = "<group>"; };
 		A17D8E0C0000000000000002 /* PreferencesChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../apple/PreferencesChannel.swift; sourceTree = SOURCE_ROOT; };
+		A17D8E0C0000000000000004 /* LocalNetworkChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ../apple/LocalNetworkChannel.swift; sourceTree = SOURCE_ROOT; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				A17D8E0C0000000000000002 /* PreferencesChannel.swift */,
+				A17D8E0C0000000000000004 /* LocalNetworkChannel.swift */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -290,6 +293,7 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				A17D8E0C0000000000000011 /* BonjourSearch.swift in Sources */,
 				A17D8E0C0000000000000001 /* PreferencesChannel.swift in Sources */,
+				A17D8E0C0000000000000003 /* LocalNetworkChannel.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 			);

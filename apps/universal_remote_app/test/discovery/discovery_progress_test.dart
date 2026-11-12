@@ -1,10 +1,13 @@
 import 'dart:io';
 
+import '../support/start_nearby_search.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
+import 'package:universal_remote_app/presentation/views/devices/widgets/discovery_progress.dart';
 
 import '../support/memory_storage.dart';
 import '../support/fixture_protocols.dart';
@@ -22,19 +25,19 @@ void main() {
         discoveryProtocols: fixtureProtocols([provider]),
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-      expect(find.byType(LinearProgressIndicator), findsNothing);
-      await tester.tap(find.byTooltip('Find Nearby Devices'));
+      expect(find.byType(DiscoveryProgress), findsNothing);
+      await startNearbySearch(tester);
       await tester.pump();
       await tester.pump();
       expect(find.text('Searching for nearby devices…'), findsOneWidget);
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byType(DiscoveryProgress), findsOneWidget);
       expect(find.text('Cancel search'), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));
       expect(provider.calls, 1);
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.byType(DiscoveryProgress), findsOneWidget);
       provider.response.complete([tv]);
       await tester.pumpAndSettle();
-      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.byType(DiscoveryProgress), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(find.text('Searching for nearby devices…'), findsNothing);
       expect(find.text('Living room'), findsOneWidget);
@@ -52,16 +55,16 @@ void main() {
       discoveryProtocols: fixtureProtocols([provider]),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.byTooltip('Find Nearby Devices'));
+    await startNearbySearch(tester);
     await tester.pump();
     await tester.pump();
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(find.byType(DiscoveryProgress), findsOneWidget);
     provider.response.completeError(
       const SocketException('unreachable', osError: OSError('unreachable', 65)),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(LinearProgressIndicator), findsNothing);
-    expect(find.textContaining('code 65'), findsOneWidget);
+    expect(find.byType(DiscoveryProgress), findsNothing);
+    expect(find.text('No network route'), findsOneWidget);
     expect(find.text('Search again'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();

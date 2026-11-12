@@ -3,6 +3,7 @@ import 'package:remote_core/remote_core.dart';
 
 import '../viewmodels/devices_viewmodel.dart';
 import 'device_category_badge.dart';
+import 'device_row_surface.dart';
 
 class DeviceTile extends StatelessWidget {
   const DeviceTile({
@@ -19,22 +20,12 @@ class DeviceTile extends StatelessWidget {
   final VoidCallback onLongPress;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final active = model.isConnected(device);
-    final border = BorderSide(
-      color: active ? colors.primary : colors.outlineVariant,
-    );
-    return Material(
-      shape: Border(top: border, bottom: border),
-      color: active ? colors.surfaceContainerHigh : colors.surfaceContainerLow,
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        child: _content(context),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => DeviceRowSurface(
+    highlighted: model.isConnected(device),
+    onTap: onTap,
+    onLongPress: onLongPress,
+    child: _content(context),
+  );
 
   Widget _content(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

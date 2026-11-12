@@ -356,15 +356,21 @@ class ConnectionController implements RemotePanelSession {
     if (!_isCurrent(generation)) {
       return;
     }
-    errorCode.value = exception is RemoteException ? exception.code : 'unknown';
-    error.value = exception is RemoteException
-        ? exception.message
-        : 'The operation failed. Please try again.';
+    errorCode.value = switch (exception) {
+      RemoteException(:final code) => code,
+      TimeoutException() => 'timeout',
+      _ => 'unknown',
+    };
+    error.value = switch (exception) {
+      RemoteException(:final message) => message,
+      TimeoutException() => 'The TV did not respond in time. Please try again.',
+      _ => 'The operation failed. Please try again.',
+    };
     state.value = DeviceConnectionState.disconnected;
     logger.record(
       AppLogLevel.warning,
       'connect_failed',
-      errorCode: exception is RemoteException ? exception.code : 'unknown',
+      errorCode: errorCode.value,
     );
   }
 
