@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../widgets/layout/content_page.dart';
+import '../../../widgets/layout/page_title.dart';
 import '../viewmodels/settings_viewmodel.dart';
 import '../widgets/appearance_settings.dart';
 import '../widgets/preference_settings.dart';
@@ -15,7 +16,7 @@ class SettingsViewport extends StatelessWidget {
     maxWidth: 480,
     padding: const EdgeInsets.fromLTRB(17, 16, 17, 24),
     children: [
-      _header(context),
+      PageTitle(title: 'Settings', leading: _activeDevice(context)),
       const SizedBox(height: 20),
       _heading(context, 'Appearance'),
       AppearanceSettings(model: model),
@@ -29,17 +30,6 @@ class SettingsViewport extends StatelessWidget {
         style: Theme.of(context).textTheme.labelSmall
             ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
-    ],
-  );
-
-  Widget _header(BuildContext context) => Row(
-    children: [
-      Expanded(child: _activeDevice(context)),
-      Text(
-        'Settings',
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18),
-      ),
-      const Spacer(),
     ],
   );
 

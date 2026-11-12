@@ -139,16 +139,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('STEP 4 OF 4'), findsOneWidget);
       expect(find.text('Supported controls'), findsOneWidget);
-      final attempt = dependencies.connection.attempt;
-      await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
-      expect(find.text('STEP 2 OF 4'), findsOneWidget);
-      await tester.tap(find.text('Connect'));
-      await tester.pumpAndSettle();
-      await tester.pump(const Duration(milliseconds: 450));
-      await tester.pumpAndSettle();
-      expect(dependencies.connection.attempt, attempt);
-      expect(find.text('STEP 4 OF 4'), findsOneWidget);
       expect(find.text('Directional pad'), findsNothing);
       await tester.tap(find.text('Start controlling'));
       await tester.pumpAndSettle();
@@ -164,6 +154,49 @@ void main() {
       expect(ok.onPressed, isNull); // No NavigationCapability was supplied.
       expect(dependencies.savedDevices.devices.value.single.id, tv.id);
       expect(find.byTooltip('Connected'), findsOneWidget);
+      expect(
+        tester
+            .widget<GridRemoteCanvas>(find.byType(GridRemoteCanvas))
+            .layout
+            .columns,
+        4,
+      );
+      expect(
+        tester
+            .widget<GridRemoteCanvas>(find.byType(GridRemoteCanvas))
+            .layout
+            .rows,
+        6,
+      );
+      await tester.tap(find.byTooltip('Customize remote'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Add control at column 4, row 6'), findsOneWidget);
+      expect(find.byTooltip('Add control at column 5, row 1'), findsNothing);
+      expect(find.byTooltip('Add control at column 1, row 7'), findsNothing);
+      await tester.tap(find.byTooltip('Grid Settings'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<ChoiceChip>(
+              find.widgetWithText(ChoiceChip, '4×6 · Default'),
+            )
+            .selected,
+        isTrue,
+      );
+      await tester.tap(find.widgetWithText(ChoiceChip, '5×7'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply Grid'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Add control at column 5, row 7'), findsOneWidget);
+      expect(dependencies.grids.forDevice(tv), isNull);
+      await tester.tap(find.byTooltip('Done'));
+      await tester.pumpAndSettle();
+      final saved = dependencies.grids.forDevice(tv)!;
+      expect((saved.columns, saved.rows), (5, 7));
+      final remote = tester
+          .widget<GridRemoteCanvas>(find.byType(GridRemoteCanvas))
+          .layout;
+      expect((remote.columns, remote.rows), (5, 7));
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
       // Let stream cancellation callbacks complete in their originating event loop.
@@ -179,6 +212,7 @@ void main() {
       storage: MemoryStorage(),
       registry: ProviderRegistry()..registerDefinition(provider.definition),
     );
+    await dependencies.savedDevices.save(tv);
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
     unawaited(dependencies.connection.connect(tv));
     await tester.pump();
@@ -227,7 +261,7 @@ void main() {
       registry: integrationProviders(SecureCredentialStore(MemoryStorage())),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
-    await tester.tap(find.byTooltip('Connect by IP'));
+    await tester.tap(find.text('Connect by IP address'));
     await tester.pumpAndSettle();
     expect(find.text('Detect automatically'), findsOneWidget);
     await tester.tap(find.text('Detect automatically'));

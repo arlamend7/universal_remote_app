@@ -12,16 +12,13 @@ import '../support/start_nearby_search.dart';
 import '../support/test_device.dart';
 
 void main() {
-  testWidgets('preparation offers manual IP before scanning', (tester) async {
+  testWidgets('welcome offers manual IP before scanning', (tester) async {
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
       registry: ProviderRegistry(),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.byTooltip('Find Nearby Devices'));
-    await tester.pumpAndSettle();
-    expect(find.text('My TV is on'), findsOneWidget);
-    await tester.tap(find.text('Connect by IP'));
+    await tester.tap(find.text('Connect by IP address'));
     await tester.pumpAndSettle();
     expect(find.byType(DeviceEditor), findsOneWidget);
     expect(app.discovery.searchId, 0);
@@ -104,6 +101,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<FilledButton>(connect).onPressed, isNotNull);
     expect(app.discovery.searchId, 1);
+    expect(app.savedDevices.devices.value, isEmpty);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });

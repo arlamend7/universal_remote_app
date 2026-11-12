@@ -144,7 +144,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     expect(app.discovery.busy.value, isTrue);
     expect(provider.token!.isCancelled, isFalse);
-    await tester.tap(find.byTooltip('Back'));
+    await tester.tap(find.text('Cancel search'));
     await tester.pumpAndSettle();
     expect(provider.token!.isCancelled, isTrue);
     expect(releases, 1);

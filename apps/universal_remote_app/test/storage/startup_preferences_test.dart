@@ -33,6 +33,8 @@ void main() {
     final storage = NativePreferencesStorage(channel: channel);
     final app = await AppBootstrap.initialize(storage: storage);
     expect(app.settings.autoReconnect.value, isFalse);
+    expect(app.settings.welcomeCompleted.value, isFalse);
+    await app.settings.completeWelcome();
     await app.dispose();
 
     final settings = SettingsController(
@@ -42,6 +44,7 @@ void main() {
     );
     await settings.initialize();
     expect(awake, [true]);
+    expect(settings.welcomeCompleted.value, isTrue);
     await settings.setScreenAwake(false);
     await settings.setAutoReconnect(true);
     expect(awake, [true, false]);

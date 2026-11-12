@@ -10,6 +10,8 @@ class SettingsController {
   final ApplicationStorage storage;
   final DiagnosticLogger logger;
   final Future<void> Function(bool)? applyScreenAwake;
+  final welcomeCompleted = ValueNotifier(false);
+  static const _welcomeKey = 'settings.welcomeCompleted';
   final screenAwake = ValueNotifier(false);
   final autoReconnect = ValueNotifier(true);
   final theme = ValueNotifier(ThemeMode.dark);
@@ -17,7 +19,11 @@ class SettingsController {
   final feedback = ValueNotifier(true);
   final accent = ValueNotifier<int>(_defaultAccent);
   static const _defaultAccent = 0xff245b45;
-  Future<void> initialize() async {
+  Future<void> initialize({bool hasSavedDevices = false}) async {
+    welcomeCompleted.value = await storage.read(_welcomeKey) == 'true';
+    if (hasSavedDevices && !welcomeCompleted.value) {
+      await completeWelcome();
+    }
     final raw = await storage.read('settings.theme');
     theme.value =
         ThemeMode.values.where((e) => e.name == raw).firstOrNull ??
@@ -33,6 +39,11 @@ class SettingsController {
     autoReconnect.value =
         await storage.read('settings.autoReconnect') != 'false';
     await _restoreScreenAwake();
+  }
+
+  Future<void> completeWelcome() async {
+    await storage.write(_welcomeKey, 'true');
+    welcomeCompleted.value = true;
   }
 
   Future<void> _restoreScreenAwake() async {
@@ -91,6 +102,7 @@ class SettingsController {
   }
 
   void dispose() {
+    welcomeCompleted.dispose();
     theme.dispose();
     accent.dispose();
     screenAwake.dispose();

@@ -20,18 +20,19 @@ internal class LocalNetworkChannel(
     init {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
-                "snapshot" -> result.success(snapshot())
+                "snapshot" -> result.success(snapshot(call.arguments != false))
                 "requestNamePermission" -> requestNamePermission(result)
                 else -> result.notImplemented()
             }
         }
     }
 
-    private fun snapshot(): Map<String, Any> {
+    private fun snapshot(includeName: Boolean): Map<String, Any> {
         val connectivity = activity.getSystemService(ConnectivityManager::class.java)
         val network = connectivity?.getNetworkCapabilities(connectivity.activeNetwork)
         return when {
-            network?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> wifiSnapshot()
+            network?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true ->
+                if (includeName) wifiSnapshot() else mapOf("transport" to "wifi")
             network?.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) == true ->
                 mapOf("transport" to "ethernet")
             else -> mapOf("transport" to "offline")

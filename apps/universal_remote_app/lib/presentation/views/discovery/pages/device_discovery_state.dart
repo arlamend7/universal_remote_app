@@ -280,7 +280,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoveryPage> {
       return;
     }
     _lastConnectionId = device.id;
-    final selected = await model.add(device);
+    final selected = model.connectionTarget(device);
     if (selected != null && mounted) {
       await _pair(selected);
     }

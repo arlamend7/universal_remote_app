@@ -9,6 +9,10 @@ import '../presentation/containers/main/main_shell.dart';
 import '../presentation/views/settings/settings_page.dart';
 import '../presentation/views/devices/devices_page.dart';
 import '../presentation/views/remote/remote_page.dart';
+import '../presentation/views/discovery/pages/device_preparation_page.dart';
+import '../presentation/views/discovery/pages/discovery_entry.dart';
+import '../presentation/views/welcome/welcome_page.dart';
+import '../presentation/views/network/startup_network_prompt.dart';
 
 /// Route definitions and navigation decisions live outside presentation widgets.
 final class AppRoutes {
@@ -32,6 +36,12 @@ final class AppRoutes {
     if (recent.isNotEmpty) {
       dependencies.connection.selected.value ??= recent.last;
     }
+    final saved = dependencies.savedDevices.devices;
+    _startedWithoutDevices = saved.value.isEmpty;
+    _discoveryEntry = ValueNotifier(
+      saved.value.isEmpty ? DiscoveryEntry.preparation : null,
+    );
+    saved.addListener(_redirectIfEmpty);
     router = createMaterialRouter(
       appTitle: 'Universal Remote',
       routes: [RouteDefiner<void>.simple(path: '/', builder: _home)],
@@ -42,6 +52,9 @@ final class AppRoutes {
   static const _remoteIndex = 0;
   static const _devicesIndex = 1;
   late final ValueNotifier<int> _selectedPage;
+  late final ValueNotifier<DiscoveryEntry?> _discoveryEntry;
+  late final bool _startedWithoutDevices;
+  bool _savingWelcome = false;
   late final _settings = SettingsPage(dependencies: dependencies);
   late final _devices = DevicesPage(
     dependencies: dependencies,
@@ -69,8 +82,79 @@ final class AppRoutes {
     return dependencies.providers.mergeDiscovered(saved, device);
   }
 
-  Widget _home(BuildContext context) =>
-      ValueListenableBuilder(valueListenable: _selectedPage, builder: _shell);
+  void _redirectIfEmpty() {
+    if (dependencies.savedDevices.devices.value.isEmpty &&
+        _discoveryEntry.value == null) {
+      _discoveryEntry.value = DiscoveryEntry.preparation;
+      select(_devicesIndex);
+    }
+  }
+
+  Future<void> _finishWelcome(
+    BuildContext context,
+    DiscoveryEntry entry,
+  ) async {
+    if (_savingWelcome) {
+      return;
+    }
+    _savingWelcome = true;
+    try {
+      _discoveryEntry.value = dependencies.savedDevices.devices.value.isEmpty
+          ? entry
+          : null;
+      await dependencies.settings.completeWelcome();
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not save setup progress. Please retry.'),
+          ),
+        );
+      }
+    } finally {
+      _savingWelcome = false;
+    }
+  }
+
+  void _finishDiscovery(RemoteDevice? device) {
+    if (dependencies.savedDevices.devices.value.isEmpty) {
+      return;
+    }
+    if (device != null) {
+      connect(device);
+    }
+    _discoveryEntry.value = null;
+  }
+
+  Widget _home(BuildContext context) => StartupNetworkPrompt(
+    child: ListenableBuilder(
+      listenable: Listenable.merge([
+        _selectedPage,
+        _discoveryEntry,
+        dependencies.settings.welcomeCompleted,
+      ]),
+      builder: _entry,
+    ),
+  );
+
+  Widget _entry(BuildContext context, Widget? child) {
+    if (_startedWithoutDevices &&
+        !dependencies.settings.welcomeCompleted.value) {
+      return WelcomePage(
+        dependencies: dependencies,
+        onContinue: _finishWelcome,
+      );
+    }
+    final discovery = _discoveryEntry.value;
+    if (discovery != null) {
+      return DevicePreparationPage(
+        dependencies: dependencies,
+        openManualAddress: discovery == DiscoveryEntry.manualAddress,
+        onSetupFinished: _finishDiscovery,
+      );
+    }
+    return _shell(context, _selectedPage.value, child);
+  }
 
   Widget _shell(BuildContext context, int index, Widget? child) => MainShell(
     index: index,
@@ -87,7 +171,9 @@ final class AppRoutes {
   );
 
   void dispose() {
+    dependencies.savedDevices.devices.removeListener(_redirectIfEmpty);
     router.dispose();
+    _discoveryEntry.dispose();
     _selectedPage.dispose();
   }
 }

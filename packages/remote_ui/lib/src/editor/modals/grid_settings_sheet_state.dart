@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../functions/default_remote_grid.dart';
 import '../../layout/models/grid_layout.dart';
+import '../../layout/models/square_grid_metrics.dart';
 import '../../widgets/sheets/app_sheet.dart';
 import '../../widgets/sheets/app_sheet_actions.dart';
 import '../widgets/editor_number_field.dart';
@@ -32,10 +34,9 @@ class GridSettingsSheetState extends State<GridSettingsSheet> {
 
   int get _minimumRows => math.max(_fittingRows, widget.layout.occupiedRows);
 
-  bool get _canReset =>
-      widget.layout.pageStarts.length == 1 &&
-      widget.layout.occupiedColumns <= GridLayout.defaultColumns &&
-      widget.layout.occupiedRows <= GridLayout.defaultRows;
+  bool _fitsControls(({int columns, int rows}) size) =>
+      size.columns >= _minimumColumns &&
+      size.rows >= widget.layout.occupiedRows;
 
   @override
   Widget build(BuildContext context) => AppSheet(
@@ -51,6 +52,7 @@ class GridSettingsSheetState extends State<GridSettingsSheet> {
           columns: _columns,
           rows: _rows,
         ),
+        _presets(context),
         _dimensions(),
         if (_error != null) Text(_error!),
       ],
@@ -66,10 +68,39 @@ class GridSettingsSheetState extends State<GridSettingsSheet> {
         label: const Text('Apply Grid'),
       ),
       secondary: OutlinedButton(
-        onPressed: _canReset ? _reset : null,
-        child: const Text('Reset (4×8)'),
+        onPressed: _fitsControls(starterGridSize)
+            ? () => _applyPreset(starterGridSize)
+            : null,
+        child: Text(
+          'Reset (${starterGridSize.columns}×${starterGridSize.rows})',
+        ),
       ),
     ),
+  );
+
+  Widget _presets(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    spacing: 4,
+    children: [
+      Text('Grid presets', style: Theme.of(context).textTheme.titleSmall),
+      Wrap(
+        spacing: 8,
+        children: [
+          for (final size in remoteGridSizePresets)
+            ChoiceChip(
+              label: Text(
+                size == starterGridSize
+                    ? '${size.columns}×${size.rows} · Default'
+                    : '${size.columns}×${size.rows}',
+              ),
+              selected: _columns == size.columns && _rows == size.rows,
+              onSelected: _fitsControls(size)
+                  ? (_) => _applyPreset(size)
+                  : null,
+            ),
+        ],
+      ),
+    ],
   );
 
   Widget _dimensions() => Card(
@@ -98,8 +129,8 @@ class GridSettingsSheetState extends State<GridSettingsSheet> {
           Text('${_fittingRows} rows fit without scrolling.'),
           if (_columns > widget.metrics.fittingColumns)
             const Text('Swipe sideways to see all columns on this screen.'),
-          if (!_canReset)
-            const Text('Move controls inside the 4×8 area to reset.'),
+          if (!_fitsControls(starterGridSize))
+            const Text('Move controls inside the starter grid to reset.'),
         ],
       ),
     ),
@@ -142,11 +173,13 @@ class GridSettingsSheetState extends State<GridSettingsSheet> {
     });
   }
 
-  void _reset() => setState(() {
-    _columns = GridLayout.defaultColumns;
-    _rows = GridLayout.defaultRows;
-    _extraRows = 0;
-    _cellSize = widget.metrics.cellSize(_columns);
+  void _applyPreset(({int columns, int rows}) size) => setState(() {
+    _columns = size.columns;
+    _rows = size.rows;
+    _cellSize = size == starterGridSize
+        ? SquareGridMetrics.minimumCell
+        : widget.metrics.cellSize(size.columns);
+    _extraRows = math.max(0, _rows - _minimumRows);
     _error = null;
   });
 }

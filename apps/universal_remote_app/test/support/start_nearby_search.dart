@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> startNearbySearch(WidgetTester tester) async {
-  await tester.tap(find.byTooltip('Find Nearby Devices'));
+  final welcome = find.text('Find Nearby TVs');
+  await tester.tap(
+    welcome.evaluate().isNotEmpty ? welcome : find.text('Connect'),
+  );
   await tester.pumpAndSettle();
   await tester.tap(find.text('My TV is on'));
   await tester.pump();

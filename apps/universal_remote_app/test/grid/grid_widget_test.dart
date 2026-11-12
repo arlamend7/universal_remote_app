@@ -135,9 +135,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(provider.last!.appControl.launched, 'test.youtube');
       await captureDesign(tester, key, '12-grid-runtime');
-      await tester.tap(find.byTooltip('Remote options'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Customize remote'));
+      await tester.tap(find.byTooltip('Customize remote'));
       await tester.pumpAndSettle();
       final emptyApps = find.byWidgetPredicate(
         (widget) => widget is GridEditTile && widget.item.id == 'empty-apps',
@@ -234,9 +232,7 @@ void main() {
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
     await tester.tap(find.text('Living room'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Remote options'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Customize remote'));
+    await tester.tap(find.byTooltip('Customize remote'));
     await tester.pumpAndSettle();
     final tile = find.byType(GridEditTile);
     await tester.tap(tile);

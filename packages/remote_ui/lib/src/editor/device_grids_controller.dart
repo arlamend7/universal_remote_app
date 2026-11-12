@@ -20,6 +20,9 @@ final class DeviceGridsController {
   GridLayout? forDevice(RemoteDevice device) =>
       _decode(_dashboards[_key(device)] ?? _dashboards[device.id]);
 
+  GridLayout layoutFor(RemoteDevice device) =>
+      forDevice(device) ?? defaultRemoteGrid();
+
   String _key(RemoteDevice device) => deviceKey?.call(device) ?? device.id;
 
   GridLayout? _decode(String? raw) {

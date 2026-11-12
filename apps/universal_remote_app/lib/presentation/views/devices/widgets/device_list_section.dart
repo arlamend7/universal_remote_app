@@ -70,7 +70,7 @@ class DeviceListSection extends StatelessWidget {
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Text(
-        'No displays configured yet. Use Nearby to find a TV or IP to enter its address.',
+        'No displays configured yet. Tap Connect to add a TV.',
         style: Theme.of(context).textTheme.bodyMedium,
         textAlign: TextAlign.center,
       ),

@@ -79,7 +79,7 @@ class RemoteViewModel implements RemotePanel {
   DeviceConnectionState get state => connection.state.value;
   String? get error => connection.error.value;
   GridLayout? get grid =>
-      device == null ? null : dependencies.grids.forDevice(device!);
+      device == null ? null : dependencies.grids.layoutFor(device!);
   String get displayName =>
       dependencies.savedDevices.byId(device?.id)?.name ??
       device?.name ??
@@ -117,25 +117,12 @@ class RemoteViewModel implements RemotePanel {
   @override
   DeviceInput? get currentInput =>
       connection.tvWith(RemoteCapability.currentInput)?.currentInput;
-  bool get canOpenTvSettings => ready && supports(RemoteCapability.tvSettings);
-  bool get canOpenAccessorySettings =>
-      ready && supports(RemoteCapability.accessorySettings);
-
-  Future<void> menu(BuildContext context, String choice) async {
+  Future<void> customize(BuildContext context) async {
     final current = device;
     if (current == null) {
       return;
     }
-    switch (choice) {
-      case 'layout':
-        await openRemoteEditor(context, dependencies, current);
-      case 'tv-settings':
-        await connection.openTvSettings();
-      case 'accessories':
-        await connection.openAccessorySettings();
-      case 'details':
-        await details_dialog.showDeviceDetails(context, dependencies, current);
-    }
+    await openRemoteEditor(context, dependencies, current);
   }
 
   Future<void> switchDevice(BuildContext context) async {
@@ -286,7 +273,7 @@ class RemoteViewModel implements RemotePanel {
       current,
       certificate.derBase64,
     );
-    await dependencies.savedDevices.save(trusted);
+    await dependencies.savedDevices.updateExisting(trusted.id, (_) => trusted);
     if (!identical(device, current) || !offline) {
       return;
     }

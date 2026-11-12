@@ -70,33 +70,17 @@ final class DiscoveryViewModel extends ChangeNotifier {
   }
 
   void cancel() => dependencies.discovery.cancel();
-  Future<RemoteDevice?> add(RemoteDevice candidate) async {
-    if (adding) {
-      return null;
+  RemoteDevice? connectionTarget(RemoteDevice candidate) {
+    final existing = registered(candidate);
+    if (existing != null) {
+      return existing;
     }
-    adding = true;
-    saveError = null;
-    notifyListeners();
-    try {
-      final existing = registered(candidate);
-      if (existing != null) {
-        return existing;
-      }
-      if (dependencies.savedDevices.byId(candidate.id) != null) {
-        saveError = 'This result conflicts with a saved device. Verify the TV and edit its address in Devices.';
-        return null;
-      }
-      await dependencies.savedDevices.save(candidate);
+    if (dependencies.savedDevices.byId(candidate.id) == null) {
       return candidate;
-    } catch (_) {
-      saveError = 'Could not add this device. Please retry.';
-      return null;
-    } finally {
-      adding = false;
-      if (!_disposed) {
-        notifyListeners();
-      }
     }
+    saveError = 'This result conflicts with a saved device. Verify the TV and edit its address in Devices.';
+    notifyListeners();
+    return null;
   }
 
   Future<void> updateAddress(RemoteDevice candidate) async {

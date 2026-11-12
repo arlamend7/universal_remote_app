@@ -20,7 +20,7 @@ final class LocalNetworkChannel: NSObject, CLLocationManagerDelegate {
     channel.setMethodCallHandler { call, result in
       switch call.method {
       case "snapshot":
-        handler.snapshot(result)
+        handler.snapshot(includeName: call.arguments as? Bool != false, result: result)
       case "requestNamePermission":
         handler.requestNamePermission(result)
       default:
@@ -34,13 +34,19 @@ final class LocalNetworkChannel: NSObject, CLLocationManagerDelegate {
     location.delegate = self
   }
 
-  private func snapshot(_ result: @escaping FlutterResult) {
+  private func snapshot(includeName: Bool, result: @escaping FlutterResult) {
     let monitor = NWPathMonitor()
     monitor.pathUpdateHandler = { path in
       let transport = Self.transport(for: path)
       monitor.pathUpdateHandler = nil
       monitor.cancel()
-      DispatchQueue.main.async { self.readName(transport, result: result) }
+      DispatchQueue.main.async {
+        guard includeName else {
+          result(["transport": transport])
+          return
+        }
+        self.readName(transport, result: result)
+      }
     }
     monitor.start(queue: DispatchQueue.global(qos: .utility))
   }

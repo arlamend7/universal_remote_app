@@ -261,9 +261,7 @@ void main() {
       );
       await tester.tap(find.text('Living room'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Remote options'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Customize remote'));
+      await tester.tap(find.byTooltip('Customize remote'));
       await tester.pumpAndSettle();
       expect(find.byType(GridEditorPage), findsOneWidget);
       expect(find.byType(NavigationDestination), findsNothing);

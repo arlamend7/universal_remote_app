@@ -26,6 +26,13 @@ class DevicePreparationState extends State<DevicePreparationPage> {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _refreshNetwork);
     unawaited(_refreshNetwork());
+    if (widget.openManualAddress) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          unawaited(_connectByIp());
+        }
+      });
+    }
   }
 
   @override
@@ -101,16 +108,12 @@ class DevicePreparationState extends State<DevicePreparationPage> {
   Widget build(BuildContext context) => SetupStepPage(
     step: 1,
     title: 'Preparation',
+    showBack: widget.onSetupFinished == null,
     body: _requirements(context),
     primary: FilledButton.icon(
       onPressed: _confirmed ? _search : null,
       icon: const Icon(Icons.radar),
       label: const Text('Search for devices'),
-    ),
-    secondary: OutlinedButton.icon(
-      onPressed: _connectByIp,
-      icon: const Icon(Icons.link),
-      label: const Text('Connect by IP'),
     ),
     footerLink: TextButton(
       onPressed: _connectionDetails,
@@ -184,7 +187,15 @@ class DevicePreparationState extends State<DevicePreparationPage> {
   }
 
   void _finish(RemoteDevice? device) {
-    if (device != null && mounted) {
+    if (!mounted) {
+      return;
+    }
+    final finish = widget.onSetupFinished;
+    if (finish != null) {
+      finish(device);
+      return;
+    }
+    if (device != null) {
       Navigator.pop(context, device);
     }
   }

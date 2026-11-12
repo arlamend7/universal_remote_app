@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 
 import '../../../../app/app_dependencies.dart';
-import '../modals/edit_device.dart';
 import '../../discovery/pages/show_device_discovery.dart';
 import '../modals/show_device_details.dart';
 
@@ -77,14 +76,6 @@ final class DevicesViewModel {
   String? platformOf(RemoteDevice device) =>
       dependencies.providers.manualSetups[device.providerId]?.label ??
       device.manufacturer;
-  Future<void> add(BuildContext context) async {
-    final device = await editDevice(context, dependencies);
-    if (device == null) {
-      return;
-    }
-    onConnect(device);
-  }
-
   Future<void> edit(BuildContext context, RemoteDevice device) =>
       DeviceDetailsViewModel(dependencies, device).edit(context);
 

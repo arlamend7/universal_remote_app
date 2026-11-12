@@ -90,7 +90,7 @@ class PreferenceSettings extends StatelessWidget {
   Widget _support(BuildContext context, Widget? child) => Column(
     children: [
       const Text(
-        'Keep your TV and this device on the same network. Use Nearby or connect by IP, then approve pairing on the TV. If discovery fails, open Search details to copy diagnostics.',
+        'Keep your TV and this device on the same network. In Devices, tap Connect and follow the setup steps. If discovery fails, open Search details to copy diagnostics.',
       ),
       _switch(
         context,

@@ -16,7 +16,7 @@ class RemoteHeader extends StatelessWidget {
     child: Row(
       children: [
         Expanded(child: _device(context)),
-        _menu(context),
+        _customize(context),
         _status(context),
         RemotePowerControl(model: model),
       ],
@@ -48,23 +48,9 @@ class RemoteHeader extends StatelessWidget {
           : Theme.of(context).colorScheme.primary,
     ),
   );
-  Widget _menu(BuildContext context) => PopupMenuButton<String>(
-    tooltip: 'Remote options',
-    icon: const Icon(Icons.more_horiz),
-    onSelected: (choice) => model.menu(context, choice),
-    itemBuilder: (_) => [
-      const PopupMenuItem(value: 'layout', child: Text('Customize remote')),
-      if (model.canOpenTvSettings)
-        const PopupMenuItem(
-          value: 'tv-settings',
-          child: Text('Open TV settings'),
-        ),
-      if (model.canOpenAccessorySettings)
-        const PopupMenuItem(
-          value: 'accessories',
-          child: Text('Bluetooth & accessories'),
-        ),
-      const PopupMenuItem(value: 'details', child: Text('View details')),
-    ],
+  Widget _customize(BuildContext context) => IconButton(
+    tooltip: 'Customize remote',
+    icon: const Icon(Icons.palette_outlined),
+    onPressed: () => model.customize(context),
   );
 }

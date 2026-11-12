@@ -13,10 +13,13 @@ const PreparationNetwork unknownPreparationNetwork = (
   canRequestName: false,
 );
 
-Future<PreparationNetwork> readPreparationNetwork() async {
+Future<PreparationNetwork> readPreparationNetwork({
+  bool includeName = true,
+}) async {
   try {
     final snapshot = await _channel.invokeMapMethod<String, Object?>(
       'snapshot',
+      includeName ? null : false,
     );
     return (
       transport: snapshot?['transport'] as String?,

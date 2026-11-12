@@ -85,7 +85,7 @@ abstract final class AppBootstrap {
     final network = MulticastNetworkAccess();
     await saved.initialize();
     await _migrateSavedDevices(drivers, saved);
-    await settings.initialize();
+    await settings.initialize(hasSavedDevices: saved.devices.value.isNotEmpty);
     final grids = DeviceGridsController(
       LocalDashboardRepository(preferences),
       deviceKey: (device) => saved.logicalDevice(device.id)?.id ?? device.id,
@@ -115,7 +115,7 @@ abstract final class AppBootstrap {
             device,
             certificate.derBase64,
           );
-          await saved.save(trusted);
+          await saved.updateExisting(trusted.id, (_) => trusted);
           return trusted;
         } on Object {
           return null;

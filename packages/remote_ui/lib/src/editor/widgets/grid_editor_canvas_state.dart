@@ -50,12 +50,12 @@ class GridEditorCanvasState extends State<GridEditorCanvas>
       start: start,
       columns: model.isGroup
           ? model.columns
-          : layout.pageColumns(index) + (last ? 1 + _extraColumns : 0),
+          : layout.pageColumns(index) + (last ? _extraColumns : 0),
       rows: model.isGroup
           ? model.maxRows
           : math.min(
               model.maxRows,
-              layout.pageRows(index) + 1 + (_extraRows[start] ?? 0),
+              layout.pageRows(index) + (_extraRows[start] ?? 0),
             ),
       left: left,
       side: layout.pageCellSize(index),

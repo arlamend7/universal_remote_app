@@ -6,6 +6,7 @@ import 'package:universal_remote_app/presentation/views/devices/widgets/swipe_de
 import 'package:universal_remote_app/presentation/views/devices/widgets/device_category_badge.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
+import 'package:universal_remote_app/presentation/widgets/layout/page_title.dart';
 
 import '../support/fake_wake_provider.dart';
 
@@ -16,41 +17,64 @@ import '../support/memory_storage.dart';
 import '../support/test_device.dart';
 
 void main() {
-  testWidgets('IP sheet aligns its title, fields and equal-width actions', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(390, 844));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final app = await AppBootstrap.initialize(
-      storage: MemoryStorage(),
-      registry: integrationProviders(SecureCredentialStore(MemoryStorage())),
-    );
-    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.byTooltip('Connect by IP'));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'floating Connect opens preparation and keeps IP setup available',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final app = await AppBootstrap.initialize(
+        storage: MemoryStorage(),
+        registry: integrationProviders(SecureCredentialStore(MemoryStorage())),
+      );
+      await app.savedDevices.save(tv);
+      await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+      final heading = find.descendant(
+        of: find.byType(PageTitle),
+        matching: find.text('Devices'),
+      );
+      final addDevice = find.widgetWithText(FilledButton, 'Connect');
+      expect(tester.getCenter(heading).dx, closeTo(195, 1));
+      expect(find.text('Nearby'), findsNothing);
+      expect(find.text('IP'), findsNothing);
+      expect(tester.getRect(addDevice).top, greaterThan(700));
+      expect(
+        tester.getRect(addDevice).bottom,
+        lessThan(tester.getRect(find.byType(NavigationBar)).top),
+      );
+      await tester.tap(addDevice);
+      await tester.pumpAndSettle();
+      expect(find.text('STEP 1 OF 4'), findsOneWidget);
+      await tester.tap(find.text('Connect by IP'));
+      await tester.pumpAndSettle();
 
-    final title = tester.getRect(find.text('Connect by IP'));
-    final platform = tester.getRect(
-      find.byType(DropdownButtonFormField<String>),
-    );
-    final name = tester.getRect(find.byType(TextField).first);
-    final cancel = tester.getRect(
-      find.widgetWithText(OutlinedButton, 'Cancel'),
-    );
-    final connect = tester.getRect(
-      find.widgetWithText(FilledButton, 'Connect'),
-    );
-    expect(title.left, platform.left);
-    expect(platform.left, cancel.left);
-    expect(connect.right, platform.right);
-    expect(cancel.width, closeTo(connect.width, .01));
-    expect(cancel.height, connect.height);
-    expect(name.top - platform.bottom, 16);
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-  });
+      final title = tester.getRect(
+        find.descendant(
+          of: find.byType(AppSheet),
+          matching: find.text('Connect by IP'),
+        ),
+      );
+      final platform = tester.getRect(
+        find.byType(DropdownButtonFormField<String>),
+      );
+      final name = tester.getRect(find.byType(TextField).first);
+      final cancel = tester.getRect(
+        find.widgetWithText(OutlinedButton, 'Cancel'),
+      );
+      final connect = tester.getRect(
+        find.widgetWithText(FilledButton, 'Connect'),
+      );
+      expect(title.left, platform.left);
+      expect(platform.left, cancel.left);
+      expect(connect.right, platform.right);
+      expect(cancel.width, closeTo(connect.width, .01));
+      expect(cancel.height, connect.height);
+      expect(name.top - platform.bottom, 16);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('compact cards use live status and wake the correct TV', (
     tester,

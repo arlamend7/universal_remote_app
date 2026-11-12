@@ -7,9 +7,16 @@ import '../viewmodels/settings_viewmodel.dart';
 import 'accent_swatches.dart';
 
 class AppearanceSettings extends StatelessWidget {
-  const AppearanceSettings({super.key, required this.model});
+  const AppearanceSettings({
+    super.key,
+    required this.model,
+    this.header,
+    this.footer,
+  });
 
   final SettingsViewModel model;
+  final Widget? header;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -22,10 +29,12 @@ class AppearanceSettings extends StatelessWidget {
   Widget _content(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      if (header != null) ...[header!, const Divider()],
       LayoutBuilder(builder: _theme),
       const SizedBox(height: 10),
       const Divider(height: 1),
       _accent(context),
+      if (footer != null) footer!,
     ],
   );
 
@@ -33,6 +42,13 @@ class AppearanceSettings extends StatelessWidget {
     if (constraints.maxWidth < 270 ||
         MediaQuery.textScalerOf(context).scale(14) > 18) {
       return _themeDropdown(context);
+    }
+    if (header != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 8,
+        children: [const Text('Display theme'), _segments(context)],
+      );
     }
     return Row(
       children: [

@@ -11,6 +11,7 @@ class SetupStepPage extends StatelessWidget {
     required this.body,
     this.subtitle,
     this.onBack,
+    this.showBack = true,
     this.bodyPadding = const EdgeInsets.all(20),
     this.primary,
     this.secondary,
@@ -23,6 +24,7 @@ class SetupStepPage extends StatelessWidget {
   final Widget body;
   final String? subtitle;
   final VoidCallback? onBack;
+  final bool showBack;
   final EdgeInsetsGeometry bodyPadding;
   final Widget? primary;
   final Widget? secondary;
@@ -69,7 +71,7 @@ class SetupStepPage extends StatelessWidget {
         step: step,
         title: title,
         subtitle: subtitle,
-        onBack: onBack ?? () => Navigator.maybePop(context),
+        onBack: showBack ? onBack ?? () => Navigator.maybePop(context) : null,
       ),
       if (banner != null) banner!,
       Padding(padding: bodyPadding, child: body),

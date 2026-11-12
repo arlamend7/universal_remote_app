@@ -214,9 +214,7 @@ void main() {
       if (size.width > 1000) {
         await captureDesign(tester, key, '07-desktop-remote');
       }
-      await tester.tap(find.byTooltip('Remote options'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Customize remote'));
+      await tester.tap(find.byTooltip('Customize remote'));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);

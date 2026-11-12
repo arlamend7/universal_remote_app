@@ -18,6 +18,7 @@ final class NativePreferencesStorage implements ApplicationStorage {
     'settings.feedback',
     'settings.autoReconnect',
     'settings.screenAwake',
+    'settings.welcomeCompleted',
   };
   void _validate(String key) {
     if (keys.contains(key)) {

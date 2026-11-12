@@ -4,6 +4,7 @@ import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
 import '../support/memory_storage.dart';
+import '../support/test_device.dart';
 
 void main() {
   testWidgets('custom accent applies and persists only after confirmation', (
@@ -14,6 +15,7 @@ void main() {
     final storage = MemoryStorage();
     final app = await AppBootstrap.initialize(storage: storage);
     final original = app.settings.accent.value;
+    await app.savedDevices.save(tv);
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
     await tester.tap(find.widgetWithText(NavigationDestination, 'Settings'));
     await tester.pumpAndSettle();

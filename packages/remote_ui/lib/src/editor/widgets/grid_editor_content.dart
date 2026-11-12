@@ -230,13 +230,9 @@ class GridEditorContent extends StatelessWidget {
     }
     final size = renderBox.size;
     final width = size.width - 24;
-    final dotsHeight = GridPageDots.heightFor(
-      count: model.draft.pageStarts.length,
-      width: width,
-    );
     await actions.gridSettings(
       context,
-      SquareGridMetrics(width: width, height: size.height - 28 - dotsHeight),
+      SquareGridMetrics(width: width, height: size.height - 28),
     );
     if (!context.mounted) {
       return;

@@ -1,0 +1,1 @@
+enum DiscoveryEntry { preparation, manualAddress }

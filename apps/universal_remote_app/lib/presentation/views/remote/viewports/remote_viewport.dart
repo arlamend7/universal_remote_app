@@ -22,7 +22,10 @@ class RemoteViewport extends StatelessWidget {
   );
 
   Widget _controls() {
-    final grid = model.grid ?? defaultRemoteGrid();
+    final grid = model.grid;
+    if (grid == null) {
+      return const SizedBox.shrink();
+    }
     if (grid.items.isEmpty) {
       return const Center(
         child: Text(

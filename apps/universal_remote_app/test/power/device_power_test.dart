@@ -34,19 +34,10 @@ void main() {
         tester.getTopLeft(find.byType(NavigationSurface).first),
         controlsPosition,
       );
-      await tester.tap(find.byTooltip('Remote options'));
+      expect(find.byIcon(Icons.palette_outlined), findsOneWidget);
+      await tester.tap(find.byTooltip('Customize remote'));
       await tester.pumpAndSettle();
-      expect(
-        find.widgetWithText(PopupMenuItem<String>, 'Power off'),
-        findsNothing,
-      );
-      expect(
-        find.widgetWithText(PopupMenuItem<String>, 'Disconnect'),
-        findsNothing,
-      );
-      expect(find.text('Preferences'), findsNothing);
-      await tester.tap(find.text('Customize remote'));
-      await tester.pumpAndSettle();
+      expect(find.byType(GridEditorPage), findsOneWidget);
       await tester.tap(find.byTooltip('Back to remote'));
       await tester.pumpAndSettle();
       final controller = provider.last!;

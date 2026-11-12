@@ -11,7 +11,7 @@ class SetupStepHeader extends StatelessWidget {
 
   final int step;
   final String title;
-  final VoidCallback onBack;
+  final VoidCallback? onBack;
   final String? subtitle;
 
   @override
@@ -25,11 +25,7 @@ class SetupStepHeader extends StatelessWidget {
           Row(
             spacing: 8,
             children: [
-              IconButton.filledTonal(
-                tooltip: 'Back',
-                onPressed: onBack,
-                icon: const Icon(Icons.chevron_left),
-              ),
+              _backButton(),
               Expanded(child: _title(theme)),
               const SizedBox(width: 44),
             ],
@@ -45,6 +41,18 @@ class SetupStepHeader extends StatelessWidget {
           ExcludeSemantics(child: _progress(theme.colorScheme)),
         ],
       ),
+    );
+  }
+
+  Widget _backButton() {
+    final back = onBack;
+    if (back == null) {
+      return const SizedBox(width: 44);
+    }
+    return IconButton.filledTonal(
+      tooltip: 'Back',
+      onPressed: back,
+      icon: const Icon(Icons.chevron_left),
     );
   }
 

@@ -21,7 +21,7 @@ final class GridEditorViewModel extends ChangeNotifier {
     this.reservedRows = 0,
   }) : _groupColumns = columns,
        _groupRows = maxRows,
-       draft = initial ?? grids.forDevice(device) ?? defaultRemoteGrid();
+       draft = initial ?? grids.layoutFor(device);
   final DeviceGridsController grids;
   final RemoteDevice device;
   final int? _groupColumns, _groupRows;
