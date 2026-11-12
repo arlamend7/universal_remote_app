@@ -31,6 +31,11 @@ class DiscoveryController {
           ProtocolDiscoveryStatus
         >
       >(const {});
+  final _protocolsByDevice = <(String, String), Set<DiscoveryProtocol>>{};
+  Set<DiscoveryProtocol> protocolsFor(RemoteDevice device) => Set.unmodifiable(
+    _protocolsByDevice[(device.providerId, device.id)] ?? {},
+  );
+
   int searchId = 0;
   final devices = ValueNotifier<List<RemoteDevice>>([]);
   final recentDevices = ValueNotifier<List<RemoteDevice>>(const []);
@@ -62,6 +67,7 @@ class DiscoveryController {
     final cancellation = DiscoveryCancellation();
     _cancellation = cancellation;
     searchId++;
+    _protocolsByDevice.clear();
     final elapsed = Stopwatch()..start();
     statuses.value = const {};
     unresolved.value = const [];
@@ -82,16 +88,7 @@ class DiscoveryController {
       if (_disposed || cancellation.isCancelled) {
         return;
       }
-      final reports = statuses.value.values;
-      if (reports.isNotEmpty &&
-          reports.every((report) => report.status == DiscoveryStatus.failed)) {
-        final failures = reports.map((report) => report.failure!.error);
-        final failure = failures.firstWhere(
-          (error) => discoveryFailureCode(error) == 'localNetworkDenied',
-          orElse: () => failures.first,
-        );
-        _reportFailure(failure);
-      }
+      _reportSearchFailure();
     } catch (failure) {
       if (!_disposed && !cancellation.isCancelled) {
         _reportFailure(failure);
@@ -107,6 +104,24 @@ class DiscoveryController {
       if (!_disposed) {
         busy.value = false;
       }
+    }
+  }
+
+  void _reportSearchFailure() {
+    final reports = statuses.value.values;
+    if (reports.isEmpty || devices.value.isNotEmpty) {
+      return;
+    }
+    final failures = reports.map((report) => report.failure?.error).nonNulls;
+    final permission = failures
+        .where((error) => discoveryFailureCode(error) == 'localNetworkDenied')
+        .firstOrNull;
+    if (permission != null) {
+      _reportFailure(permission);
+      return;
+    }
+    if (reports.every((report) => report.status == DiscoveryStatus.failed)) {
+      _reportFailure(failures.first);
     }
   }
 
@@ -148,6 +163,10 @@ class DiscoveryController {
     final updates = manager.watch(
       cancellation: cancellation,
       onStatus: (report) => _updateStatus(report, cancellation),
+      onMatch: (match) {
+        final key = (match.profile.device.providerId, match.profile.id);
+        (_protocolsByDevice[key] ??= {}).add(match.evidence.protocolId);
+      },
       onUnresolved: (observation) {
         if (!_disposed &&
             !cancellation.isCancelled &&

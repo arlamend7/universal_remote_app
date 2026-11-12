@@ -12,4 +12,8 @@ The design brief is the visual reference for this branch. The application uses t
 | Remote controls | `RemoteItemRegistry.search`, `RemoteItemDefinition` | Use resolved capability evidence and existing category metadata. |
 | Navigation | `AppRoutes`, `MainShell`, `openRemoteEditor` | Return to the existing dashboard or editor. |
 
-The current app has no app-string localization catalog. New journey copy needs an English and Portuguese catalog, with English fallback for other locales. Local-network authorization and catalog refresh are distinct. A failed catalog request must leave local discovery available. The platform network adapters do not currently expose a Wi-Fi SSID.
+Device setup uses English copy. Local-network authorization and catalog refresh are distinct, so a failed catalog request leaves local discovery available. Preparation gives Wi-Fi and Ethernet guidance because the current platform adapters do not expose a Wi-Fi SSID.
+
+## Physical device verification
+
+Automated tests cover the UI and connection workflow with test providers. Verify discovery and pairing on a physical phone and TV separately. Use a signed iOS build and check that local-network access is enabled. Try discovery, code entry or approval on the TV, manual IP, and the remote dashboard. See [platform permissions](../security.md) for signing and local-network setup.

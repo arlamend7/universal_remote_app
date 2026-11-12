@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 
-import '../../../shared/localization/journey_text.dart';
 import '../../devices/widgets/device_category_badge.dart';
 import '../../devices/widgets/device_row_surface.dart';
 
@@ -45,11 +44,7 @@ class DiscoveredDeviceTile extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     children: [
       IconButton(
-        tooltip: journeyText(
-          context,
-          'Device details',
-          'Detalhes do dispositivo',
-        ),
+        tooltip: 'Device details',
         onPressed: onDetails,
         icon: const Icon(Icons.info_outline),
       ),

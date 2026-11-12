@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/localization/journey_text.dart';
-
 class DiscoveryProgress extends StatelessWidget {
   const DiscoveryProgress({super.key});
 
@@ -14,13 +12,7 @@ class DiscoveryProgress extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 6,
         children: [
-          Text(
-            journeyText(
-              context,
-              'Searching for nearby devices…',
-              'Buscando dispositivos próximos…',
-            ),
-          ),
+          Text('Searching for nearby devices…'),
           const LinearProgressIndicator(minHeight: 3),
         ],
       ),

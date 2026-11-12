@@ -62,8 +62,6 @@ final class DiscoveryViewModel extends ChangeNotifier {
   );
   RemoteDevice? registered(RemoteDevice candidate) =>
       profiles.registered(candidate);
-  List<RemoteDevice> get fresh =>
-      found.where((item) => registered(item) == null).toList();
   List<RemoteDevice> get known =>
       found.where((item) => registered(item) != null).toList();
   Future<void> search() async {

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
-import '../../../shared/localization/journey_text.dart';
 import '../../../shared/widgets/connection_issue_page.dart';
 import '../../remote/viewmodels/remote_viewmodel.dart';
 import '../widgets/pairing_progress_card.dart';
@@ -24,8 +23,6 @@ class DevicePairingState extends State<DevicePairingSheet> {
       }
     });
   }
-
-  String _text(String en, String pt) => journeyText(context, en, pt);
 
   Future<void> _connect() async {
     await _model.connection.connect(_target);
@@ -58,7 +55,7 @@ class DevicePairingState extends State<DevicePairingSheet> {
   Widget _content(BuildContext context, Widget? child) {
     if (_success != null && _model.state == DeviceConnectionState.connected) {
       return AppSheet(
-        title: _text('TV connected!', 'TV conectada!'),
+        title: 'TV connected!',
         subtitle: _model.device?.name ?? _target.name,
         onClose: _close,
         child: Icon(
@@ -78,20 +75,17 @@ class DevicePairingState extends State<DevicePairingSheet> {
     title: _target.name,
     onClose: _close,
     child: ConnectionIssuePage(
-      title: _text('Could not connect', 'Não foi possível conectar'),
+      title: 'Could not connect',
       description: _model.error!,
       icon: Icons.link_off,
       actions: [
         if (_model.canReviewCertificate)
           OutlinedButton(
             onPressed: _reviewCertificate,
-            child: Text(_text('Review certificate', 'Verificar certificado')),
+            child: Text('Review certificate'),
           ),
-        TextButton(onPressed: _close, child: Text(_text('Back', 'Voltar'))),
-        FilledButton(
-          onPressed: _connect,
-          child: Text(_text('Try again', 'Tentar novamente')),
-        ),
+        TextButton(onPressed: _close, child: Text('Back')),
+        FilledButton(onPressed: _connect, child: Text('Try again')),
       ],
     ),
   );

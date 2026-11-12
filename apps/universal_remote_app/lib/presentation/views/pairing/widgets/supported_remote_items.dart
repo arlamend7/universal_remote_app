@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_ui/remote_ui.dart';
 
-import '../../../shared/localization/journey_text.dart';
 import '../../remote/viewmodels/remote_viewmodel.dart';
 import 'supported_remote_item_card.dart';
 
@@ -18,13 +17,7 @@ class SupportedRemoteItems extends StatelessWidget {
   Widget _content(BuildContext context, Widget? child) {
     final controller = remote.connection.controller;
     if (controller == null || remote.state != DeviceConnectionState.connected) {
-      return Text(
-        journeyText(
-          context,
-          'The TV disconnected. Open the remote to reconnect.',
-          'A TV desconectou. Abra o controle para reconectar.',
-        ),
-      );
+      return Text('The TV disconnected. Open the remote to reconnect.');
     }
     final items = RemoteItemRegistry.search(
       capabilities: resolvedCapabilities(controller),
@@ -60,7 +53,7 @@ class SupportedRemoteItems extends StatelessWidget {
       Semantics(
         header: true,
         child: Text(
-          _title(context, group.key),
+          _title(group.key),
           style: Theme.of(context).textTheme.titleSmall,
         ),
       ),
@@ -91,48 +84,29 @@ class SupportedRemoteItems extends StatelessWidget {
     );
   }
 
-  String _title(BuildContext context, RemoteItemCategory category) {
-    String tr(String en, String pt) => journeyText(context, en, pt);
+  String _title(RemoteItemCategory category) {
     return switch (category) {
-      RemoteItemCategory.apps => tr('Apps', 'Aplicativos'),
-      RemoteItemCategory.inputs => tr('Inputs', 'Entradas'),
-      RemoteItemCategory.channels => tr('Channels', 'Canais'),
-      RemoteItemCategory.audio => tr('Audio', 'Áudio'),
-      RemoteItemCategory.navigation => tr('Navigation', 'Navegação'),
-      RemoteItemCategory.keypad => tr('Numeric keypad', 'Teclado numérico'),
-      RemoteItemCategory.keys => tr('Keys', 'Teclas'),
-      RemoteItemCategory.media => tr('Media', 'Mídia'),
-      RemoteItemCategory.information => tr('Information', 'Informações'),
-      RemoteItemCategory.utilities => tr('Utilities', 'Utilitários'),
-      RemoteItemCategory.climate => tr('Climate', 'Climatização'),
-      RemoteItemCategory.volume => tr('Volume', 'Volume'),
-      RemoteItemCategory.mute => tr('Mute', 'Silenciar'),
-      RemoteItemCategory.channelArrows => tr(
-        'Channel controls',
-        'Controles de canal',
-      ),
-      RemoteItemCategory.favouriteChannels => tr(
-        'Favorite channels',
-        'Canais favoritos',
-      ),
-      RemoteItemCategory.directionPad => tr(
-        'Direction pad',
-        'Controle direcional',
-      ),
-      RemoteItemCategory.pinnedApps => tr(
-        'App shortcuts',
-        'Atalhos de aplicativos',
-      ),
-      RemoteItemCategory.pinnedInputs => tr(
-        'Input shortcuts',
-        'Atalhos de entradas',
-      ),
-      RemoteItemCategory.activity => tr('Activity', 'Atividade'),
-      RemoteItemCategory.accessories => tr(
-        'Bluetooth accessories',
-        'Acessórios Bluetooth',
-      ),
-      RemoteItemCategory.groups => tr('Groups', 'Grupos'),
+      RemoteItemCategory.apps => 'Apps',
+      RemoteItemCategory.inputs => 'Inputs',
+      RemoteItemCategory.channels => 'Channels',
+      RemoteItemCategory.audio => 'Audio',
+      RemoteItemCategory.navigation => 'Navigation',
+      RemoteItemCategory.keypad => 'Numeric keypad',
+      RemoteItemCategory.keys => 'Keys',
+      RemoteItemCategory.media => 'Media',
+      RemoteItemCategory.information => 'Information',
+      RemoteItemCategory.utilities => 'Utilities',
+      RemoteItemCategory.climate => 'Climate',
+      RemoteItemCategory.volume => 'Volume',
+      RemoteItemCategory.mute => 'Mute',
+      RemoteItemCategory.channelArrows => 'Channel controls',
+      RemoteItemCategory.favouriteChannels => 'Favorite channels',
+      RemoteItemCategory.directionPad => 'Direction pad',
+      RemoteItemCategory.pinnedApps => 'App shortcuts',
+      RemoteItemCategory.pinnedInputs => 'Input shortcuts',
+      RemoteItemCategory.activity => 'Activity',
+      RemoteItemCategory.accessories => 'Bluetooth accessories',
+      RemoteItemCategory.groups => 'Groups',
     };
   }
 }

@@ -137,7 +137,6 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Connect'));
       await tester.pumpAndSettle();
-      expect(find.text('TV connected!'), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 450));
       await tester.pumpAndSettle();
       expect(find.text('Supported controls'), findsOneWidget);

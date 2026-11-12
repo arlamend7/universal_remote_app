@@ -12,17 +12,22 @@ import '../../../../domains/discovery/models/connection_issue_type.dart';
 import '../widgets/discovery_details.dart';
 import '../widgets/discovery_issue.dart';
 import '../widgets/discovered_device_tile.dart';
-import '../../../shared/localization/journey_text.dart';
 import '../viewmodels/discovery_viewmodel.dart';
 import 'device_discovery_sheet.dart';
 
 class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
   String? _selectedId;
 
-  String _text(String en, String pt) => journeyText(context, en, pt);
-
   RemoteDevice? get _selected =>
-      model.fresh.where((device) => device.id == _selectedId).firstOrNull;
+      model.found.where((device) => device.id == _selectedId).firstOrNull;
+  List<RemoteDevice> get _selectable => model.found
+      .where(
+        (device) =>
+            device.id == _selectedId || model.registered(device) == null,
+      )
+      .toList();
+  List<RemoteDevice> get _registeredResults =>
+      model.known.where((device) => device.id != _selectedId).toList();
   bool _offlineDismissed = false;
   late final model = DiscoveryViewModel(widget.dependencies);
   @override
@@ -48,25 +53,15 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
   Widget build(BuildContext context) =>
       ListenableBuilder(listenable: model, builder: _sheet);
 
-  Widget _sheet(BuildContext context, Widget? child) => AppSheet(
-    title: _text('Find Nearby Devices', 'Encontrar dispositivos próximos'),
-    child: _body(),
-    footer: _footer(),
-  );
+  Widget _sheet(BuildContext context, Widget? child) =>
+      AppSheet(title: 'Find Nearby Devices', child: _body(), footer: _footer());
 
   Widget _body() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     mainAxisSize: MainAxisSize.min,
     children: [
       if (model.searching) const DiscoveryProgress(),
-      if (widget.dependencies.discovery.issue.value case final issue?)
-        DiscoveryIssue(
-          type: issue,
-          retry: _search,
-          dismiss: () => Navigator.pop(context),
-        )
-      else if (model.error != null)
-        _message(Icons.info_outline, model.error!),
+      if (_connectionIssue() case final issue?) issue,
       if (widget.dependencies.discovery.catalogOffline.value &&
           !_offlineDismissed)
         DiscoveryIssue(
@@ -75,30 +70,21 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           dismiss: () => setState(() => _offlineDismissed = true),
         ),
       if (!model.searching && model.cancelled)
-        _message(
-          Icons.pause_circle_outline,
-          _text('Search cancelled.', 'Busca cancelada.'),
-        ),
+        _message(Icons.pause_circle_outline, 'Search cancelled.'),
       if (_showEmpty) _empty(),
       if (model.unresolvedCount > 0)
         _message(
           Icons.help_outline,
-          _text(
-            '${model.unresolvedCount} unrecognized discovery responses',
-            '${model.unresolvedCount} respostas de descoberta não reconhecidas',
-          ),
+          '${model.unresolvedCount} unrecognized discovery responses',
         ),
-      if (model.fresh.isNotEmpty) _resultsHeading(),
-      ...model.fresh.map(_newDevice),
-      if (model.known.isNotEmpty) _registered(),
-      if (model.fresh.isNotEmpty)
+      if (_selectable.isNotEmpty) _resultsHeading(),
+      ..._selectable.map(_newDevice),
+      if (_registeredResults.isNotEmpty) _registered(),
+      if (_selectable.isNotEmpty)
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Text(
-            _text(
-              'Keep your TV on and on the same local network.',
-              'Mantenha a TV ligada e na mesma rede local.',
-            ),
+            'Keep your TV on and on the same local network.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -106,34 +92,50 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
         ExpansionTile(
           key: ValueKey(widget.dependencies.discovery.searchId),
           tilePadding: EdgeInsets.zero,
-          title: Text(_text('Search details', 'Detalhes da busca')),
+          title: Text('Search details'),
           children: [DiscoveryDetails(model: model)],
         ),
     ],
   );
 
+  Widget? _connectionIssue() {
+    final issue = widget.dependencies.discovery.issue.value;
+    if (issue != null) {
+      return DiscoveryIssue(
+        type: issue,
+        retry: _search,
+        dismiss: () => Navigator.pop(context),
+      );
+    }
+    final error = model.error;
+    return error == null ? null : _message(Icons.info_outline, error);
+  }
+
   bool get _showEmpty =>
       !model.searching &&
       !model.cancelled &&
       model.error == null &&
-      model.found.isEmpty &&
-      model.unresolvedCount == 0;
+      model.found.isEmpty;
 
   Widget _footer() => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.stretch,
+    spacing: 8,
     children: [
-      if (model.fresh.isNotEmpty)
+      if (_selectable.isNotEmpty)
         FilledButton(
           onPressed: _selected == null || model.adding ? null : _connect,
-          child: Text(_text('Connect', 'Conectar')),
+          child: Text('Connect'),
         ),
       _actions(),
     ],
   );
 
   Future<void> _search() {
-    setState(() => _offlineDismissed = false);
+    setState(() {
+      _offlineDismissed = false;
+      _selectedId = null;
+    });
     return model.search();
   }
 
@@ -141,7 +143,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     secondary: OutlinedButton.icon(
       onPressed: model.adding ? null : _connectByIp,
       icon: const Icon(Icons.link, size: 18),
-      label: Text(_text('Connect by IP', 'Conectar por IP')),
+      label: Text('Connect by IP'),
     ),
     primary: FilledButton.icon(
       onPressed: model.adding
@@ -150,11 +152,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           ? model.cancel
           : _search,
       icon: Icon(model.searching ? Icons.close : Icons.refresh, size: 18),
-      label: Text(
-        model.searching
-            ? _text('Cancel search', 'Cancelar busca')
-            : _text('Search again', 'Buscar novamente'),
-      ),
+      label: Text(model.searching ? 'Cancel search' : 'Search again'),
     ),
   );
 
@@ -168,32 +166,23 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           color: Theme.of(context).colorScheme.primary,
         ),
         Text(
-          _text('No Displays Found', 'Nenhum dispositivo encontrado'),
+          'No Displays Found',
           style: Theme.of(context).textTheme.titleMedium,
         ),
         Text(
-          _text(
-            'Check that your TV is on and reachable on the local network.',
-            'Confira se a TV está ligada e acessível na rede local.',
-          ),
+          'Check that your TV is on and reachable on the local network.',
           textAlign: TextAlign.center,
         ),
-        TextButton(
-          onPressed: _showTips,
-          child: Text(_text('Connection tips', 'Ver dicas de conexão')),
-        ),
+        TextButton(onPressed: _showTips, child: Text('Connection tips')),
       ],
     ),
   );
 
   Future<void> _showTips() => showAppSheet<void>(
     context,
-    title: _text('Connection tips', 'Dicas de conexão'),
+    title: 'Connection tips',
     child: Text(
-      _text(
-        'Keep the TV on. Use the same local network on both devices. A wired TV works too. If you know the TV’s address, use Connect by IP.',
-        'Mantenha a TV ligada. Use a mesma rede local nos dois dispositivos. Uma TV conectada por cabo também funciona. Se souber o endereço da TV, use Conectar por IP.',
-      ),
+      'Keep the TV on. Use the same local network on both devices. A wired TV works too. If you know the TV’s address, use Connect by IP.',
     ),
   );
 
@@ -207,13 +196,8 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
       alignment: WrapAlignment.spaceBetween,
       spacing: 8,
       children: [
-        Text(_text('Discovered Displays', 'Dispositivos encontrados')),
-        Text(
-          _text(
-            '${model.fresh.length} found',
-            '${model.fresh.length} encontrados',
-          ),
-        ),
+        Text('Discovered Displays'),
+        Text('${_selectable.length} found'),
       ],
     ),
   );
@@ -247,23 +231,38 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
       spacing: 8,
       children: [
         if (device.manufacturer case final value?)
-          Text('${_text('Manufacturer', 'Fabricante')} · $value'),
-        if (device.model case final value?)
-          Text('${_text('Model', 'Modelo')} · $value'),
+          Text('Manufacturer · $value'),
+        if (device.model case final value?) Text('Model · $value'),
         if (device.endpoints.firstOrNull case final endpoint?) ...[
           Text('IP · ${endpoint.host}'),
-          Text(
-            '${_text('Connection protocol', 'Protocolo de conexão')} · ${endpoint.scheme}',
-          ),
+          Text('Connection protocol · ${endpoint.scheme}'),
         ],
         if (device.softwareInformation?.operatingSystemVersion
             case final value?)
-          Text('${_text('OS version', 'Versão do sistema')} · $value'),
+          Text('OS version · $value'),
         if (device.softwareInformation?.firmwareVersion case final value?)
-          Text('${_text('Firmware', 'Firmware')} · $value'),
+          Text('Firmware · $value'),
+        if (_discoveryProtocols(device) case final protocols?)
+          Text('Discovered via · $protocols'),
       ],
     ),
   );
+
+  String? _discoveryProtocols(RemoteDevice device) {
+    final protocols = widget.dependencies.discovery.protocolsFor(device);
+    if (protocols.isEmpty) {
+      return null;
+    }
+    return protocols
+        .map(
+          (protocol) => switch (protocol) {
+            DiscoveryProtocol.ssdp => 'SSDP',
+            DiscoveryProtocol.bonjour => 'Bonjour',
+            DiscoveryProtocol.unicast => 'Unicast',
+          },
+        )
+        .join(', ');
+  }
 
   Future<void> _connect() async {
     final device = _selected;
@@ -275,13 +274,8 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
 
   Widget _registered() => ExpansionTile(
     tilePadding: EdgeInsets.zero,
-    title: Text(
-      _text(
-        'Already added (${model.known.length})',
-        'Já adicionados (${model.known.length})',
-      ),
-    ),
-    children: model.known.map(_knownDevice).toList(),
+    title: Text('Already added (${_registeredResults.length})'),
+    children: _registeredResults.map(_knownDevice).toList(),
   );
   Widget _knownDevice(RemoteDevice device) => ListTile(
     contentPadding: EdgeInsets.zero,
@@ -290,7 +284,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     subtitle: Text('Registered · ${device.endpoints.firstOrNull?.host ?? ''}'),
     trailing: TextButton(
       onPressed: model.adding ? null : () => model.updateAddress(device),
-      child: Text(_text('Update address', 'Atualizar endereço')),
+      child: Text('Update address'),
     ),
   );
   Future<void> _connectByIp() async {

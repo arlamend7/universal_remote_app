@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:remote_ui/remote_ui.dart';
 
-import '../../../shared/localization/journey_text.dart';
 import 'pairing_code_card.dart';
 import 'pairing_code_slots.dart';
 
@@ -11,16 +10,12 @@ class PairingCodeCardState extends State<PairingCodeCard> {
   String? _error;
   bool _submitting = false;
 
-  String _text(String en, String pt) => journeyText(context, en, pt);
   int get _length => widget.receiver.pairingCodeFormat.length;
 
   @override
   Widget build(BuildContext context) => AppSheet(
-    title: _text('Pair TV', 'Parear TV'),
-    subtitle: _text(
-      'Enter the code shown on ${widget.deviceName}.',
-      'Digite o código exibido em ${widget.deviceName}.',
-    ),
+    title: 'Pair TV',
+    subtitle: 'Enter the code shown on ${widget.deviceName}.',
     onClose: widget.onCancel,
     child: _codeEntry(),
     footer: _actions(),
@@ -29,11 +24,11 @@ class PairingCodeCardState extends State<PairingCodeCard> {
   Widget _actions() => AppSheetActions(
     secondary: OutlinedButton(
       onPressed: widget.onCancel,
-      child: Text(_text('Cancel connection', 'Cancelar conexão')),
+      child: Text('Cancel connection'),
     ),
     primary: FilledButton(
       onPressed: _submitting ? null : _submit,
-      child: Text(_text('Connect', 'Conectar')),
+      child: Text('Connect'),
     ),
   );
 
@@ -62,10 +57,7 @@ class PairingCodeCardState extends State<PairingCodeCard> {
     ),
   );
 
-  Widget _field() => Semantics(
-    label: _text('TV pairing code', 'Código de pareamento da TV'),
-    child: _input(),
-  );
+  Widget _field() => Semantics(label: 'TV pairing code', child: _input());
 
   Widget _input() => TextField(
     controller: _code,
@@ -105,12 +97,7 @@ class PairingCodeCardState extends State<PairingCodeCard> {
       return;
     }
     if (_code.text.length != _length) {
-      setState(
-        () => _error = _text(
-          'Enter all $_length characters.',
-          'Digite os $_length caracteres.',
-        ),
-      );
+      setState(() => _error = 'Enter all $_length characters.');
       return;
     }
     setState(() {
@@ -123,10 +110,7 @@ class PairingCodeCardState extends State<PairingCodeCard> {
     }
     setState(() {
       _submitting = false;
-      _error = _text(
-        'Check the code on your TV.',
-        'Confira o código na sua TV.',
-      );
+      _error = 'Check the code on your TV.';
     });
   }
 
