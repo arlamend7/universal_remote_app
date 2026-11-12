@@ -133,6 +133,8 @@ void main() {
       await startNearbySearch(tester);
       await tester.pumpAndSettle();
       expect(find.text('Living room'), findsOneWidget);
+      await tester.tap(find.text('Living room'));
+      await tester.pump();
       await tester.tap(find.text('Connect'));
       await tester.pumpAndSettle();
       expect(find.byTooltip('OK'), findsOneWidget);

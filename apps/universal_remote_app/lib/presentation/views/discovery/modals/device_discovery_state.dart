@@ -10,11 +10,19 @@ import '../../devices/modals/edit_device.dart';
 import '../../../../domains/discovery/models/connection_issue_type.dart';
 import '../widgets/discovery_details.dart';
 import '../widgets/discovery_issue.dart';
+import '../widgets/discovered_device_tile.dart';
+import '../../../shared/localization/journey_text.dart';
 import '../viewmodels/discovery_viewmodel.dart';
 import 'device_discovery_sheet.dart';
 
 class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
+  String? _selectedId;
   bool _detailsVisible = false;
+
+  String _text(String en, String pt) => journeyText(context, en, pt);
+
+  RemoteDevice? get _selected =>
+      model.fresh.where((device) => device.id == _selectedId).firstOrNull;
   bool _offlineDismissed = false;
   late final model = DiscoveryViewModel(widget.dependencies);
   @override
@@ -41,8 +49,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
       ListenableBuilder(listenable: model, builder: _sheet);
 
   Widget _sheet(BuildContext context, Widget? child) => AppSheet(
-    title: 'Find Nearby Devices',
-    subtitle: model.searching ? 'Scanning…' : null,
+    title: _text('Find Nearby Devices', 'Encontrar dispositivos próximos'),
     child: _body(),
     footer: _footer(),
   );
@@ -51,8 +58,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     mainAxisSize: MainAxisSize.min,
     children: [
-      if (model.searching)
-        DiscoveryProgress(protocols: model.searchingProtocols),
+      if (model.searching) const DiscoveryProgress(),
       if (widget.dependencies.discovery.issue.value case final issue?)
         DiscoveryIssue(
           type: issue,
@@ -103,6 +109,11 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      if (model.fresh.isNotEmpty)
+        FilledButton(
+          onPressed: _selected == null || model.adding ? null : _connect,
+          child: Text(_text('Connect', 'Conectar')),
+        ),
       _actions(),
       if (model.statuses.isNotEmpty)
         Center(
@@ -126,7 +137,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     secondary: OutlinedButton.icon(
       onPressed: model.adding ? null : _connectByIp,
       icon: const Icon(Icons.link, size: 18),
-      label: const Text('Connect by IP'),
+      label: Text(_text('Connect by IP', 'Conectar por IP')),
     ),
     primary: FilledButton.icon(
       onPressed: model.adding
@@ -135,7 +146,11 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           ? model.cancel
           : _search,
       icon: Icon(model.searching ? Icons.close : Icons.refresh, size: 18),
-      label: Text(model.searching ? 'Cancel search' : 'Search again'),
+      label: Text(
+        model.searching
+            ? _text('Cancel search', 'Cancelar busca')
+            : _text('Search again', 'Buscar novamente'),
+      ),
     ),
   );
 
@@ -178,33 +193,51 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     ),
   );
 
+  String? _platform(RemoteDevice device) =>
+      widget.dependencies.providers.manualSetups[device.providerId]?.label ??
+      device.manufacturer;
+
   Widget _newDevice(RemoteDevice device) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Card(
-      child: ListTile(
-        leading: _displayIcon(),
-        title: Text(device.name),
-        subtitle: const Text('•  Nearby'),
-        trailing: FilledButton.tonal(
-          onPressed: model.adding ? null : () => _add(device),
-          child: const Text('Connect'),
-        ),
-      ),
+    key: ValueKey(device.id),
+    padding: const EdgeInsets.only(bottom: 6),
+    child: DiscoveredDeviceTile(
+      device: device,
+      subtitle: [
+        ?_platform(device),
+        ?device.endpoints.firstOrNull?.host,
+      ].join(' · '),
+      selected: _selectedId == device.id,
+      onSelect: model.adding
+          ? null
+          : () => setState(() => _selectedId = device.id),
+      onDetails: () => _deviceDetails(device),
     ),
   );
 
-  Widget _displayIcon() => Container(
-    width: 40,
-    height: 40,
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.primary.withValues(alpha: .10),
-      borderRadius: BorderRadius.circular(11),
-    ),
-    child: Icon(
-      Icons.tv_outlined,
-      color: Theme.of(context).colorScheme.primary,
+  Future<void> _deviceDetails(RemoteDevice device) => showAppSheet<void>(
+    context,
+    title: device.name,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 8,
+      children: [
+        if (device.manufacturer case final value?)
+          Text('${_text('Manufacturer', 'Fabricante')} · $value'),
+        if (device.model case final value?)
+          Text('${_text('Model', 'Modelo')} · $value'),
+        if (device.endpoints.firstOrNull case final endpoint?)
+          Text('IP · ${endpoint.host}'),
+      ],
     ),
   );
+
+  Future<void> _connect() async {
+    final device = _selected;
+    if (device == null) {
+      return;
+    }
+    await _add(device);
+  }
 
   Widget _registered() => ExpansionTile(
     tilePadding: EdgeInsets.zero,
