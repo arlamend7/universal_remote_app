@@ -12,6 +12,9 @@ final class IntegrationObjectStore {
 
   final Directory root;
 
+  /// Matches the catalog's package size limit.
+  static const maximumBytes = 4 * 1024 * 1024;
+
   Directory get _objects => Directory('${root.path}/objects');
 
   Future<bool> contains(String sha256) => File(_zip(sha256)).exists();
@@ -28,6 +31,9 @@ final class IntegrationObjectStore {
       return null;
     }
     final record = VerifiedObject.fromJson(json);
+    if (await zip.length() > maximumBytes) {
+      throw const FormatException('Stored integration object is too large.');
+    }
     final package = IntegrationPackage.read(await zip.readAsBytes());
     if (package.sha256 != sha256 ||
         record.sha256 != sha256 ||

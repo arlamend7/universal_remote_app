@@ -52,7 +52,7 @@ no Riverpod, global container, or service locator.
   discovery, providers, pairing and errors. Public consumers use remote_core.dart.
 - remote_network/src: transport contracts/state, WebSocket implementation, SSDP
   models/search sessions, and Wake-on-LAN functions. No manufacturer framing.
-- remote_driver_runtime/src/adapters: provider discovery, typed capability
+- remote_driver_runtime/src/engines/<engine>: one compiled protocol engine per folder (operations, decoders, procedures, session); src/integrations: JSON compilation and capability resolution; src/controller: the generic TV controller; src/devices: declarative discovery, manual setup, connection policy and wake.
   controllers, and connection policy. Protocol sessions live in the sibling
   SSAP, Remote v2, Samsung and ECP contexts.
 
@@ -66,13 +66,13 @@ connection, or immutable connection options.
 | Change | Owning context |
 | --- | --- |
 | Add a TV metadata field | remote_core/src/device.dart; profile mapper if persisted |
-| Change pairing authorization | remote_driver_runtime/src/adapters/lg_webos/devices/services and src/ssap/constants |
+| Change pairing authorization | remote_driver_runtime/src/engines/ssap (ssap_engine_session.dart) and src/ssap/constants |
 | Change SSAP request deadlines | remote_driver_runtime/src/ssap/requests |
 | Change subscriptions/unsubscribe | remote_driver_runtime/src/ssap/subscriptions |
-| Change LG volume serialization | remote_driver_runtime/src/adapters/lg_webos/capabilities/volume |
-| Change pointer framing/lifetime | remote_driver_runtime/src/adapters/lg_webos/pointer |
+| Change LG volume serialization | drivers/providers/lg-webos/*/mappings.json (decoder: src/engines/ssap/decoders) |
+| Change pointer framing/lifetime | remote_driver_runtime/src/engines/ssap/pointer |
 | Change a control's look or command | remote_ui/src/items (definition) and rendering/primitives |
-| Change manual form validation | remote_driver_runtime/src/adapters/lg_webos/connection/models and device_editor_viewmodel.dart |
+| Change manual form validation | drivers/providers/<provider>/<family>/device.json (src/devices/setup) and device_editor_viewmodel.dart |
 | Change form state/errors | presentation/views/devices/viewmodels/device_editor_viewmodel.dart |
 | Change navigation | routes/app_routes.dart |
 | Change dependency wiring | app/app_bootstrap.dart |

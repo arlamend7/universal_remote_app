@@ -1,87 +1,72 @@
-# Driver validation and release gates
+# Validation record — dynamic integration migration
 
-## Dependency boundaries
+Branch `feature/dynamic-driver-runtime`, Flutter 3.47.5 / Dart 3.13.4, macOS
+host, 2026-11-11. All results below are automated (fixtures, loopback servers,
+recorded goldens). **No physical TV was available**; see
+`docs/hardware-checklist.md`.
 
-The app assembles the existing provider registry and supplies platform signature verification, storage, and protected credentials. The manager owns version selection, distribution and activation. The runtime validates bounded workflows and uses the same network transports as the compiled engines.
+## Commands and results (final, after Phase 13)
 
-```mermaid
-flowchart TD
-  App[universal_remote_app] --> Manager[remote_driver_manager]
-  App --> UI[remote_ui]
-  App --> Runtime[remote_driver_runtime with compiled adapters]
-  Manager --> Runtime
-  Manager --> Core[remote_core]
-  Manager --> Network[remote_network]
-  Runtime --> Core
-  Runtime --> Network
-  Network --> Core
-  UI --> Core
-  Authoring[Driver authoring tools] --> Runtime
-  Authoring --> Pages[Signed GitHub Pages artifacts]
-  Manager --> Pages
-```
+| Check | Result |
+|---|---|
+| `flutter pub get --enforce-lockfile` | pass |
+| `dart format --set-exit-if-changed packages apps/universal_remote_app/{lib,test} test tool` | pass (0 changed) |
+| `dart run tool/check_structure.dart` (incl. provider-ID rule) | pass |
+| `dart analyze --fatal-infos` | no issues |
+| `dart run tool/audit_dependencies.dart` | pass, no new dependencies |
+| `dart test test packages/{remote_core,remote_network,remote_driver_runtime,remote_driver_manager}/test` | 140 passed |
+| `python3 -m unittest discover -s drivers/tests` | 16 passed (runtime validation of every integration, schemas, publisher, seed) |
+| `flutter test` (app) | 132 passed |
+| `flutter clean` then `flutter build apk --debug` | built |
+| `flutter build apk --release` | built (57.6 MB) |
+| `flutter build ios --simulator --debug` | built |
+| `flutter build macos --debug` | built |
 
-## Connection flow
+Baseline before the migration: 132 Dart, 5 Python, 133 Flutter tests.
 
-```mermaid
-flowchart LR
-  Device[Nearby or manual IP] --> Evidence[Provider and device evidence]
-  Evidence --> Prepare[Resolve and prepare local release]
-  Catalog[Verified catalog and immutable packages] --> Prepare
-  Prepare --> Connect[Authenticate with the selected protocol]
-  Connect --> Identify[Read fresh TV software evidence]
-  Identify --> Profile[Resolve the compatibility profile]
-  Profile --> Verify[Apply restrictions and check capabilities]
-  Verify --> Remote[Show supported controls]
-  Profile -. Incompatible declarative release .-> Replace[Authenticate one same-family replacement]
-  Replace --> Verify
-```
+## Parity evidence
 
-## Automated checks
+| Provider | Generic transcript vs legacy golden | Declared differences |
+|---|---|---|
+| LG webOS (standard, `lg.webos.legacy`) | identical frames, results, errors, evidence | session `operatingSystemVersion` now parsed (`5.0`) |
+| LG webOS (conditional, `lg.webos.22-plus`) | identical | session `operatingSystemVersion` `7.0` |
+| Android TV | identical | none |
+| Samsung Tizen | identical | none |
+| Roku ECP | identical (incl. device category) | none |
+| Discovery and manual setup (all four) | identical to recorded legacy outputs | none |
 
-Run these commands from the repository root with the pinned Flutter SDK.
+A mutation check (changing one Samsung key in JSON) makes the parity test fail,
+so the comparison is not vacuous.
 
-```sh
-flutter pub get --enforce-lockfile
-dart format --output=none --set-exit-if-changed packages apps/universal_remote_app/lib apps/universal_remote_app/test test tool
-dart analyze --fatal-infos
-dart run tool/check_structure.dart
-dart run tool/audit_dependencies.dart
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s drivers/tests
-dart test test packages/remote_core/test packages/remote_network/test packages/remote_driver_runtime/test packages/remote_driver_manager/test
-cd apps/universal_remote_app
-flutter test --no-pub
-flutter build apk --release --no-pub
-flutter build ios --simulator --debug --no-pub
-flutter build macos --debug --no-pub
-```
+## Migration, offline, update and rollback
 
-The signed distribution fixture covers catalog and package verification, revision rollback, transfer deduplication, Nearby discovery, choosing a compatible driver, first installation and offline manual reconnect. Existing provider fixtures cover preserved transport behavior. Publication tests build the full release index with an ephemeral key and check that each artifact is available at the path signed in the catalog.
+- Version-based storage migration: removes v1 files, keeps family enabled
+  state and schedule; saved-device `managedDriver*` keys rewritten without
+  touching IDs, credentials, pins or dashboards (`content_addressed_installation_test.dart`).
+- Python → Dart round trip (`publication_roundtrip_test.dart`): publish →
+  signed seed → offline install (no network requests) → provider registered →
+  JSON edit republished as a new generation → hash update → planner uses the
+  new mapping → rollback restores the seeded generation.
+- Equal hashes never download; 24-hour schedule; staged updates while a
+  session is active; corrupt objects fall back to the previous generation;
+  catalog rollback and foreign signing keys are refused.
 
-### Follow-up results
+## Security review (diff-focused)
 
-At implementation commit `b19de6d`, all 131 Dart tests, 133 Flutter tests and five publication tests passed. Formatting, static analysis, project structure, dependency audit and validation of the four 1.1.0 source bundles passed. The Android release APK, iOS simulator debug and macOS debug builds succeeded. These are build and fixture results.
+- JSON never executes code: mappings compile into closed engine vocabularies
+  (allow-listed SSAP URIs, KeyEvent 0–319, `KEY_*`, documented ECP keys,
+  bounded templates with named arguments, reserved envelope fields).
+- Packages: size, SHA-256 and P-256 signature are checked before parsing; the
+  manifest must match the signed entry; stored objects are re-hashed and size
+  bounded on load; the ZIP reader accepts only listed file names.
+- Unencrypted SSAP requires both the integration's `allowLegacyTransport` and
+  the user's per-device opt-in; certificate pins and Remote v2 fingerprints are
+  unchanged; no global TLS bypass was added.
+- Development integrations and local folder installs are disabled in release
+  builds. No credentials are logged.
 
-The handoff fixture covers an accepted replacement, a rejected authorization, and a replacement that offers no authentication. The original socket stays open during replacement authorization. A failed handoff preserves the stored credential.
+## Not done / remaining
 
-## Platform and compatibility limits
-
-- The generic controller supports typed command arguments, catalog and status results, authenticated sessions and subscriptions where a bundle declares usable operations. It can make one authenticated same-family handoff when fresh software evidence invalidates the initial release.
-- The runtime owns the compiled SSAP, Remote v2, Samsung channel and ECP protocol primitives. Provider adapters still supply discovery identity, typed controllers, protocol policy and capability checks. The candidate 1.1.0 bundles remain outside the publication index. The [provider inventory](current-provider-inventory.md) and [TV API matrix](parity/tv-api.md) identify remaining provider-specific behavior.
-- Device OS, model and firmware constraints require matching evidence. Unknown evidence can match a generic profile. Firmware range comparison requires a strategy for the particular platform.
-- Native signature verification is configured on Android, iOS and macOS. Apple Bonjour services must also be declared in the app bundle. A newly introduced Bonjour service type can require an app release on Apple platforms. [Apple local network privacy](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy)
-- Driver releases contain declarative data. A native operation or executable protocol engine ships through the app release process. App Store review and Google Play policy remain separate release gates. [Apple App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) · [Google Play Device and Network Abuse policy](https://support.google.com/googleplay/android-developer/answer/16559646)
-
-## Release and hardware verification
-
-Production deployment requires a configured Pages source, protected environment, production signing key, and a release build with the corresponding trusted public key. Follow [publishing](publishing.md) and confirm that the deployment URL serves the exact catalog and package paths. The feature branch validates signing with ephemeral keys.
-
-Physical-device verification remains pending. Exercise at least one physical TV per enabled provider before claiming hardware compatibility. Roku testing uses an opt-in development build. The provider adapters now live inside the shared runtime.
-
-| Target | Verify on hardware |
-| --- | --- |
-| LG webOS | Existing saved profile, registration and TLS, navigation and pointer, volume and mute, apps, inputs, wake. |
-| Android TV | Pairing code, TLS pin and reconnect, navigation, media, volume and wake on a supported device. |
-| Samsung Tizen | Certificate and token persistence, navigation, channels, volume, app launch and wake. |
-| Roku development build | Local ECP discovery and serial match, permission and capability gates, volume and power on supported hardware. |
-| Cross-provider | First install, disconnected catalog, reconnect without Internet, persisted dashboards and credentials, update during an active session, and rollback. |
+- Physical-TV verification for every provider and for the LG family split.
+- The app seed is empty until the first real publication is refreshed into
+  `apps/universal_remote_app/assets/driver-seed` with the production public key.

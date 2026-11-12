@@ -38,3 +38,18 @@ All physical-TV and physical-mobile-device items remain unverified.
 ## Provider audit follow-up
 
 Repeat the [provider audit](provider-capability-audit.md) on a real TCL Google TV, Samsung Tizen TV, LG webOS TV, and an authorized Roku development setup. Record the model, firmware, feature result, and whether reconnect refreshed capabilities. Check Android volume feedback and TCL pairing separately from automated TLS fixtures.
+
+## Dynamic integration migration — required on real TVs
+
+None of the following has been exercised on physical hardware; every result so
+far comes from fixtures and recorded wire-level parity goldens.
+
+| Area | Check |
+|---|---|
+| LG webOS families | `getCurrentSWInformation.product_name` on webOS 22+ TVs really reports `webOSTV 7.x`+ and older TVs report < 7; the first connection of a legacy TV hands off once to `lg.webos.legacy` without re-pairing; later connections start on the assigned family |
+| LG controls | Volume, absolute volume, mute, feedback, navigation and pointer socket, keys, apps/launch/web open, inputs, channels and selection, media, text, current content and live-TV channel, screen off/on, Bluetooth accessories and accessory settings, Wake-on-LAN, wake-address learning |
+| Android TV | Pairing code entry (code card appears only while the TV shows a code), pinned reconnect, every KeyEvent mapping, IME text/submit, app links, absolute volume/mute on supported outputs, Wake-on-LAN |
+| Samsung Tizen | Certificate review, on-screen authorization and token reuse, every KEY_* mapping, app list and launch, Wake-on-LAN |
+| Roku ECP (development builds) | device-info facts, keys and text, deep-link launch, inputs, tuner channels, live content, PowerOn wake |
+| Distribution | First run installs from the seed offline; catalog refresh; JSON edit → publication → hash update while a session is open stays staged until the session ends; rollback; GitHub Pages caching never serves mismatched objects |
+| Migration | Existing saved devices keep IDs, dashboards, credentials and certificate pins after upgrading from the version-based driver manager |

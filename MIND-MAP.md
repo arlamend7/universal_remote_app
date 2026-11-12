@@ -17,3 +17,7 @@
 - [Hardware checklist](docs/hardware-checklist.md)
 - [Adding a provider](docs/adding-a-provider.md)
 - [Roadmap](docs/roadmap.md)
+
+- [Driver architecture](docs/drivers/architecture.md)
+- [Integration model](docs/drivers/integration-model.md) · [Installation](docs/drivers/installation.md) · [Protocol engines](docs/drivers/protocol-engines.md) · [Capabilities](docs/drivers/capability-resolution.md) · [Session lifecycle](docs/drivers/session-lifecycle.md) · [Publishing](docs/drivers/publishing.md) · [Parity](docs/drivers/parity/README.md)
+- [Driver authoring](drivers/README.md)

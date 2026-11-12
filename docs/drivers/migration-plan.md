@@ -45,3 +45,19 @@ The follow-up migration starts from `f259d52`. Use the [TV API parity matrix](pa
 | 17 | Automated results and physical-TV checks are tracked separately in [validation](validation.md). |
 
 No physical hardware results are recorded for this follow-up. The candidate source bundles are available for development. Production distribution continues to use the checked-in publishing index.
+
+## Dynamic integration migration (feature/dynamic-driver-runtime)
+
+| Phase | Result | Commit |
+|---|---|---|
+| 0 | Per-operation parity matrices and wire-level goldens from the legacy controllers | `e2b6bbe`, `fdd0d2f` |
+| 1 | Stable integration identity, manifest/catalog schema 2, executed JSON Schemas | `70fcacc` |
+| 2 | Content-addressed installation, inventory v2, hash updates, rollback, migration | `2f3c6ac` |
+| 3 | Protocol engines (SSAP, Remote v2, Samsung channel, ECP, JSON WebSocket) | `354cb4f` |
+| 4 | Declarative mappings and capabilities; fallback bindings and capability table removed | `6ac4369` |
+| 5 | Declarative discovery/setup/policy/wake, two-stage resolution, provider source | `ccb6a62` |
+| 6 | Generic controller and session lifecycle, managed planner | `dc29d06` |
+| 7–10 | LG (two families), Android TV, Samsung, Roku integrations matching goldens | `12091dd`, `98e8ae6`, `f679bd8`, `fcc4376` |
+| 11 | App switched; legacy controllers, providers, v1 manager/runtime/core removed | `e2565ca` |
+| 12 | Content-addressed publisher, signed seed, Pages workflow | `30ccd71` |
+| 13 | Regression validation and documentation | this phase |

@@ -224,7 +224,7 @@ new platform channel or entitlements.
 | --- | --- |
 | `remote_core` | Device identity/metadata, categories, typed capability contracts, provider registry and safe errors |
 | `remote_network` | SDK WebSocket/TLS transport, SSDP parsing/discovery and WOL |
-| `remote_driver_runtime` | Declarative workflows and the LG webOS, Android TV, Samsung Tizen and Roku adapters |
+| `remote_driver_runtime` | Protocol engines, integration compilation, the generic TV controller and declarative device rules |
 | `remote_driver_manager` | Compatibility, signed catalogs, driver installation, updates and rollback |
 | `remote_ui` | Typed item definitions, catalog, grid geometry, styling and the shared editing shell |
 | `universal_remote_app` | Flutter UI, injected controllers, protected storage, platform permissions and multicast integration |
