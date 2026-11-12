@@ -13,6 +13,7 @@ import '../data/drivers/asset_driver_seed.dart';
 import '../data/drivers/platform_driver_configuration.dart';
 import '../domains/diagnostics/models/enums/app_log_level.dart';
 import '../data/settings/screen_awake.dart';
+import '../data/session/admob_rewarded_advertising.dart';
 import '../data/storage/adapters/native_preferences_storage.dart';
 import '../data/pairing/repositories/secure_credential_store.dart';
 import '../data/pairing/repositories/session_credential_store.dart';
@@ -27,6 +28,8 @@ import '../domains/diagnostics/services/diagnostic_logger.dart';
 import '../domains/devices/services/saved_devices_controller.dart';
 import '../domains/discovery/services/discovery_controller.dart';
 import '../domains/settings/services/settings_controller.dart';
+import '../domains/session/contracts/rewarded_advertising.dart';
+import '../domains/session/services/active_session.dart';
 import '../domains/connection/services/connection_controller.dart';
 import 'app_dependencies.dart';
 
@@ -42,6 +45,8 @@ abstract final class AppBootstrap {
     HardwareAddressResolver? hardwareAddressResolver,
     Future<void> Function()? acquireNetwork,
     Future<void> Function()? releaseNetwork,
+    RewardedAdvertising? rewardedAdvertising,
+    Duration Function()? sessionClock,
   }) async {
     WidgetsFlutterBinding.ensureInitialized();
     final preferences = storage ?? NativePreferencesStorage();
@@ -56,6 +61,11 @@ abstract final class AppBootstrap {
     final providers = registry ?? ProviderRegistry();
     final protocols = discoveryProtocols ?? _protocols();
     final logger = DiagnosticLogger();
+    final ads = rewardedAdvertising ?? AdMobRewardedAdvertising.configured();
+    final session = ads == null
+        ? null
+        : ActiveSession(preferences, ads, now: sessionClock);
+    await session?.restore();
     final drivers = await _initializeDrivers(
       driverService,
       providers,
@@ -141,6 +151,7 @@ abstract final class AppBootstrap {
       ),
       savedDevices: saved,
       settings: settings,
+      session: session,
       grids: grids,
       connection: connection,
       disposeCredentials: sessionCredentials?.dispose,

@@ -8,6 +8,8 @@ import 'package:universal_remote_app/domains/devices/services/saved_devices_cont
 import 'package:universal_remote_app/domains/discovery/services/discovery_controller.dart';
 import 'package:universal_remote_app/domains/settings/services/settings_controller.dart';
 
+import '../domains/session/services/active_session.dart';
+
 /// Application-owned instances, assembled once and injected through constructors.
 final class AppDependencies {
   AppDependencies({
@@ -19,6 +21,7 @@ final class AppDependencies {
     required this.sleep,
     required this.providers,
     required this.inspectCertificate,
+    this.session,
     this.disposeCredentials,
     this.drivers,
     this.checkDriverUpdates,
@@ -27,6 +30,7 @@ final class AppDependencies {
   final SavedDevicesController savedDevices;
   final ConnectionController connection;
   final SettingsController settings;
+  final ActiveSession? session;
   final DeviceGridsController grids;
   final DeviceSleepController sleep;
   final ProviderRegistry providers;
@@ -59,10 +63,12 @@ final class AppDependencies {
   Future<void> _dispose() async {
     sleep.dispose();
     discovery.dispose();
+    final sessionClosed = session?.close();
     await connection.dispose();
     await grids.dispose();
     await savedDevices.dispose();
     disposeCredentials?.call();
     settings.dispose();
+    await sessionClosed;
   }
 }

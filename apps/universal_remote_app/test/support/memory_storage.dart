@@ -6,6 +6,7 @@ import 'package:universal_remote_app/domains/storage/contracts/application_stora
 class MemoryStorage implements ApplicationStorage {
   final values = <String, String>{};
   final reads = <String>[];
+  final writes = <String>[];
   @override
   Future<String?> read(String key) async {
     reads.add(key);
@@ -14,6 +15,7 @@ class MemoryStorage implements ApplicationStorage {
 
   @override
   Future<void> write(String key, String value) async {
+    writes.add(key);
     values[key] = value;
   }
 

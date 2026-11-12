@@ -52,6 +52,46 @@ This is a Pub workspace: commit the root pubspec.lock; do not resolve packages
 as unrelated projects. No cloud backend, database, user accounts, analytics,
 release publication, or internet-facing control server is required.
 
+## Test rewarded sessions
+
+The session feature is available on Android and iOS when that platform's
+rewarded ad unit ID is set. Use the Google demo IDs in
+`apps/universal_remote_app/.env.example` for branch testing. Copy the four
+`ADMOB_` entries into the app's ignored `.env` and keep any existing settings.
+
+```sh
+cd apps/universal_remote_app
+sh tool/configure_admob_ios.sh # Required when changing the iOS App ID
+flutter run --dart-define-from-file=.env
+```
+
+The Android build reads its App ID from Flutter's build defines. The iOS script
+writes an ignored Xcode configuration. Use the same Flutter build defines when
+producing a test archive with `flutter build ipa`. Keep demo IDs for TestFlight.
+For production, register the two platform apps separately in
+[AdMob](https://admob.google.com/) and create a
+[rewarded ad unit](https://support.google.com/admob/answer/7311747) for each.
+Use reward amount `30` and item `session minutes`. Replace both App IDs and both
+rewarded ad unit IDs, rerun the iOS configuration script, and set up the
+applicable [privacy messages](https://developers.google.com/admob/flutter/privacy)
+in AdMob before enabling live ads.
+
+The timer starts with 30 minutes, counts foreground use, and pauses during
+full-screen ads. Watching a rewarded ad can add 30 minutes, up to 60 minutes
+of balance and with one minute of active use between rewards. Essential
+remote controls and device setup are available after the session ends.
+
+### Physical-device validation
+
+Use a demo build on an Android phone and an iPhone. Check that the footer
+updates every ten seconds, backgrounding freezes the clock, dismissing an ad
+early grants nothing, and completing one adds exactly 30 minutes. Confirm the
+last-minute warning and verify that the remote and setup still work at zero.
+Use Flutter DevTools in profile mode to compare idle foreground CPU activity,
+memory, timer callbacks and widget rebuilds with the rewarded unit configured
+and with it blank. Record physical-device and profiling results separately
+from the automated tests.
+
 ## Connect a TCL Google TV
 
 Turn on the TV and keep it on the same network as the app. Choose it under

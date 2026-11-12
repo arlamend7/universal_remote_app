@@ -1,8 +1,19 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val admobAppId = providers.gradleProperty("dart-defines").orNull.orEmpty()
+    .split(',')
+    .filter(String::isNotEmpty)
+    .map { String(Base64.getDecoder().decode(it), Charsets.UTF_8) }
+    .firstOrNull { it.startsWith("ADMOB_ANDROID_APP_ID=") }
+    ?.substringAfter('=')
+    ?.takeIf { it.isNotBlank() }
+    ?: "ca-app-pub-3940256099942544~3347511713"
 
 android {
     namespace = "br.net.devcom.universal_remote_app"
@@ -20,6 +31,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
+        manifestPlaceholders["admobAppId"] = admobAppId
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)

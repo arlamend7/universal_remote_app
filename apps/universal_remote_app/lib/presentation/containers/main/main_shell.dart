@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../views/session/session_countdown.dart';
+import '../../views/session/session_prompt_coordinator.dart';
+
 class MainShell extends StatelessWidget {
   const MainShell({
     super.key,
     required this.index,
     required this.onSelect,
     required this.pages,
+    this.session,
   });
   final int index;
   final ValueChanged<int> onSelect;
   final List<Widget> pages;
+  final SessionPromptCoordinator? session;
   @override
   Widget build(BuildContext context) => Scaffold(
     body: SafeArea(
@@ -24,25 +29,47 @@ class MainShell extends StatelessWidget {
       child: _destinations(),
     ),
   );
-  Widget _destinations() => NavigationBar(
-    selectedIndex: index,
-    onDestinationSelected: onSelect,
-    destinations: const [
+  Widget _destinations() {
+    final prompts = session;
+    return NavigationBar(
+      selectedIndex: index,
+      onDestinationSelected: (destination) {
+        if (destination == pages.length) {
+          prompts?.open();
+          return;
+        }
+        onSelect(destination);
+      },
+      destinations: [
+        const NavigationDestination(
+          label: 'Remote',
+          icon: Icon(Icons.settings_remote_outlined),
+          selectedIcon: Icon(Icons.settings_remote),
+        ),
+        const NavigationDestination(
+          label: 'Devices',
+          icon: Icon(Icons.tv_outlined),
+          selectedIcon: Icon(Icons.tv),
+        ),
+        const NavigationDestination(
+          label: 'Settings',
+          icon: Icon(Icons.tune_outlined),
+          selectedIcon: Icon(Icons.tune),
+        ),
+        if (prompts != null)
+          SessionCountdown(
+            session: prompts.session,
+            visible: prompts.shellVisible,
+            builder: _sessionDestination,
+          ),
+      ],
+    );
+  }
+
+  Widget _sessionDestination(BuildContext context, String time) =>
       NavigationDestination(
-        label: 'Remote',
-        icon: Icon(Icons.settings_remote_outlined),
-        selectedIcon: Icon(Icons.settings_remote),
-      ),
-      NavigationDestination(
-        label: 'Devices',
-        icon: Icon(Icons.tv_outlined),
-        selectedIcon: Icon(Icons.tv),
-      ),
-      NavigationDestination(
-        label: 'Settings',
-        icon: Icon(Icons.tune_outlined),
-        selectedIcon: Icon(Icons.tune),
-      ),
-    ],
-  );
+        tooltip: 'Session time',
+        label: time,
+        icon: const Icon(Icons.ondemand_video_outlined),
+      );
 }

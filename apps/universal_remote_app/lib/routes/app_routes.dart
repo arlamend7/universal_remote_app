@@ -12,6 +12,7 @@ import '../presentation/views/remote/remote_page.dart';
 import '../presentation/views/discovery/pages/device_preparation_page.dart';
 import '../presentation/views/welcome/welcome_page.dart';
 import '../presentation/views/network/startup_network_prompt.dart';
+import '../presentation/views/session/session_prompt_coordinator.dart';
 
 /// Route definitions and navigation decisions live outside presentation widgets.
 final class AppRoutes {
@@ -39,13 +40,23 @@ final class AppRoutes {
     _startedWithoutDevices = saved.value.isEmpty;
     _settingUp = ValueNotifier(saved.value.isEmpty);
     saved.addListener(_redirectIfEmpty);
+    final session = dependencies.session;
+    _sessionPrompts = session == null
+        ? null
+        : SessionPromptCoordinator(
+            session,
+            dependencies.connection.state,
+            dependencies.discovery.busy,
+          );
     router = createMaterialRouter(
       appTitle: 'Universal Remote',
+      observers: [if (_sessionPrompts case final prompts?) prompts],
       routes: [RouteDefiner<void>.simple(path: '/', builder: _home)],
     );
   }
   final AppDependencies dependencies;
   late final RouteDefinerRouter router;
+  late final SessionPromptCoordinator? _sessionPrompts;
   static const _remoteIndex = 0;
   static const _devicesIndex = 1;
   late final ValueNotifier<int> _selectedPage;
@@ -148,6 +159,7 @@ final class AppRoutes {
   Widget _shell(BuildContext context, int index, Widget? child) => MainShell(
     index: index,
     onSelect: select,
+    session: _sessionPrompts,
     pages: [
       RemotePage(
         dependencies: dependencies,
@@ -161,6 +173,7 @@ final class AppRoutes {
 
   void dispose() {
     dependencies.savedDevices.devices.removeListener(_redirectIfEmpty);
+    _sessionPrompts?.dispose();
     router.dispose();
     _settingUp.dispose();
     _selectedPage.dispose();

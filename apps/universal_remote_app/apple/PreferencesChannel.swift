@@ -8,7 +8,7 @@ import Flutter
 /// Native preferences are restricted to non-secret application records.
 final class PreferencesChannel: NSObject, FlutterPlugin {
   private static let allowedKeys: Set<String> = [
-    "saved-devices.v2", "dashboards.v2", "settings.theme", "settings.diagnostics", "settings.accent", "settings.feedback", "settings.autoReconnect", "settings.screenAwake", "settings.welcomeCompleted"
+    "saved-devices.v2", "dashboards.v2", "settings.theme", "settings.diagnostics", "settings.accent", "settings.feedback", "settings.autoReconnect", "settings.screenAwake", "settings.welcomeCompleted", "active-session.v1"
   ]
   private let defaults = UserDefaults.standard
 

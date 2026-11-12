@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/data/storage/adapters/native_preferences_storage.dart';
 import 'package:universal_remote_app/domains/diagnostics/services/diagnostic_logger.dart';
+import 'package:universal_remote_app/domains/session/services/active_session.dart';
 import 'package:universal_remote_app/domains/settings/services/settings_controller.dart';
 
+import '../support/fake_rewarded_advertising.dart';
 import '../support/memory_storage.dart';
 import '../support/test_device.dart';
 
@@ -31,7 +33,11 @@ void main() {
 
     final awake = <bool>[];
     final storage = NativePreferencesStorage(channel: channel);
-    final app = await AppBootstrap.initialize(storage: storage);
+    final app = await AppBootstrap.initialize(
+      storage: storage,
+      rewardedAdvertising: FakeRewardedAdvertising(),
+    );
+    expect(values[ActiveSession.storageKey], contains('"remainingMs":1800000'));
     expect(app.settings.autoReconnect.value, isFalse);
     expect(app.settings.welcomeCompleted.value, isFalse);
     await app.settings.completeWelcome();
