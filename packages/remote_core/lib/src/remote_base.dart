@@ -1,12 +1,19 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:remote_core/src/device.dart';
 
 import 'devices/models/device_software_information.dart';
 
+export 'devices/services/device_session.dart';
+
 /// Common lifecycle and optional capabilities exposed by a provider remote.
-abstract class RemoteBase implements RemoteDriver {
+abstract class RemoteBase {
+  RemoteDevice get device;
+  Stream<DeviceConnectionState> get connectionStates;
+  Future<void> connect();
+  Future<void> disconnect();
+  Future<void> dispose();
+
   DeviceConnectionState get state;
   List<CapabilityEvidence> get evidence;
   Stream<void> get capabilityChanges => const Stream.empty();
@@ -28,14 +35,6 @@ abstract class RemoteBase implements RemoteDriver {
   Future<void> wake();
 }
 
-abstract interface class RemoteDriver {
-  RemoteDevice get device;
-  Stream<DeviceConnectionState> get connectionStates;
-  Future<void> connect();
-  Future<void> disconnect();
-  Future<void> dispose();
-}
-
 /// Optional, read-only lookup from a successfully connected device session.
 abstract interface class DeviceWakeAddressSource {
   Future<DeviceWakeAddress?> readWakeAddress();
@@ -43,34 +42,6 @@ abstract interface class DeviceWakeAddressSource {
 
 abstract interface class HardwareAddressResolver {
   Future<String?> resolve(InternetAddress address);
-}
-
-/// Owns one driver and its state subscription; disposal can be awaited repeatedly.
-final class DeviceSession {
-  DeviceSession(this.controller);
-  final RemoteBase controller;
-  StreamSubscription<DeviceConnectionState>? _states;
-  StreamSubscription<void>? _capabilities;
-  Future<void>? _disposeFuture;
-  void observe(
-    void Function(DeviceConnectionState) onState, {
-    void Function()? onCapabilities,
-  }) {
-    _states = controller.connectionStates.listen(onState);
-    if (onCapabilities != null) {
-      _capabilities = controller.capabilityChanges.listen(
-        (_) => onCapabilities(),
-      );
-    }
-  }
-
-  Future<void> dispose() => _disposeFuture ??= _dispose();
-  Future<void> _dispose() async {
-    await _capabilities?.cancel();
-    await _states?.cancel();
-    _states = null;
-    await controller.dispose();
-  }
 }
 
 enum DisconnectReason { user, poweredOff, connectionLost, suspended }
