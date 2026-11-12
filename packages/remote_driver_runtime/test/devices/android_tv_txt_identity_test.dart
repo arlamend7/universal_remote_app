@@ -112,4 +112,38 @@ void main() {
       expect(device, isNull, reason: service);
     }
   });
+
+  test('two Android TVs on one network stay separate', () async {
+    const resolver = DeviceIdentifierResolver();
+    final first = (await _identify(
+      _identifier('android.tv', 'android-tv/remote-v2', peer: 'peer-a'),
+      _androidTv(txt: {'txt.bt': 'aa'}),
+    ))!;
+    final second = (await _identify(
+      _identifier('android.tv', 'android-tv/remote-v2', peer: 'peer-b'),
+      DiscoveryObservation(
+        protocolId: DiscoveryProtocol.bonjour,
+        serviceType: '_androidtvremote2._tcp',
+        endpoint: Uri(scheme: 'tcp', host: '192.168.1.63', port: 6466),
+        metadata: const {'name': 'Bedroom', 'txt.bt': 'bb'},
+      ),
+    ))!;
+    expect(first.id, isNot(second.id));
+    expect(resolver.same(first, second), isFalse);
+  });
+
+  test('a manually added TV is recognized when discovered later', () async {
+    final manual = RemoteDevice(
+      id: newProfileId(),
+      name: 'Living room',
+      providerId: 'android.tv',
+      endpoints: [Uri.parse('tls://192.168.1.60:6466')],
+      metadata: const {DeviceMetadataKeys.verifiedPeerIdentity: 'peer-a'},
+    );
+    final discovered = (await _identify(
+      _identifier('android.tv', 'android-tv/remote-v2', peer: 'peer-a'),
+      _androidTv(),
+    ))!;
+    expect(const DeviceIdentifierResolver().same(manual, discovered), isTrue);
+  });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:remote_core/remote_core.dart';
 
@@ -8,6 +9,7 @@ import '../../remote_v2/protocol/android_pairing.dart';
 import '../../remote_v2/protocol/android_remote_session.dart';
 import '../../remote_v2/security/client_identity.dart';
 import '../../remote_v2/security/paired_identity.dart';
+import '../common/transport_connection_error.dart';
 import '../contracts/content_reading.dart';
 import '../contracts/engine_operation.dart';
 import '../contracts/engine_session.dart';
@@ -23,11 +25,28 @@ final class RemoteV2EngineSession implements EngineSession {
     _volumes = _session.volumes.listen(_volumeChanged);
   }
 
+  /// Socket and timeout failures become typed connection errors (for example
+  /// `connectionRefused`), so wake-and-retry and fallback policies can act on
+  /// them. Protocol, pairing and certificate errors pass through unchanged.
   static Future<RemoteV2EngineSession> open(
     EngineSessionContext context, {
     int? portOverride,
     int? pairingPortOverride,
   }) async {
+    try {
+      return await _open(context, portOverride, pairingPortOverride);
+    } on SocketException catch (error, stack) {
+      Error.throwWithStackTrace(transportConnectionError(error), stack);
+    } on TimeoutException catch (error, stack) {
+      Error.throwWithStackTrace(transportConnectionError(error), stack);
+    }
+  }
+
+  static Future<RemoteV2EngineSession> _open(
+    EngineSessionContext context,
+    int? portOverride,
+    int? pairingPortOverride,
+  ) async {
     final endpoint = context.device.endpoints.single;
     final stored = await context.credentials.read(context.credentialKey);
     final identity = stored == null

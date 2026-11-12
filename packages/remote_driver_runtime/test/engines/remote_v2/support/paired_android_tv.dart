@@ -11,7 +11,13 @@ import '../../../support/memory_credentials.dart';
 
 /// A generic controller for `android-tv/remote-v2`, already paired with a
 /// loopback TV that reports the given features, device info and audio mode.
-Future<({GenericTvController remote, ParityRecorder recorder})>
+Future<
+  ({
+    GenericTvController remote,
+    ParityRecorder recorder,
+    AndroidTvParityServer server,
+  })
+>
 pairedAndroidTv({
   int features = AndroidTvParityServer.defaultFeatures,
   Map<int, Object>? deviceInfo,
@@ -54,5 +60,5 @@ pairedAndroidTv({
     recorder,
   );
   addTearDown(remote.dispose);
-  return (remote: remote, recorder: recorder);
+  return (remote: remote, recorder: recorder, server: server);
 }

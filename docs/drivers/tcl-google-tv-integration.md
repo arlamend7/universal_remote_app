@@ -224,6 +224,44 @@ until hardware evidence exists:
 - a `WAKEUP` (224) power-on alternative
 - any TCL-specific key restriction
 
+### Discovery and reconnection
+
+These changes apply to every Remote v2 TV. They are needed most on TCL sets,
+which tend to drop off the network in standby.
+
+- **`connection.json#session.reconnectAttempts: 3`.** An unexpected session loss
+  reconnects after 1 s, 2 s and 4 s with the stored pairing. A user disconnect
+  never reconnects.
+- **`device.json#policy`.**
+  - `retryAfterWake` covers `network`, `networkAccess`, `connectionRefused`
+    and `timeout`. Pairing and certificate errors never trigger a
+    wake-and-retry.
+  - `mergeDiscovered: replace-host` means a TV found at a new IP keeps its
+    saved ID, name, metadata, credential and dashboard; only the host
+    changes.
+  - `sameConnection` adds `macAddress`, `broadcastAddress` and
+    `verifiedPeerIdentity`, so a different pinned TV is never treated as
+    the active connection.
+- **Typed connection errors.** The Remote v2 engine maps socket and timeout
+  failures through the shared `transportConnectionError` (as SSAP does), so
+  a refused or unreachable TV reports `connectionRefused`, `networkAccess`,
+  `network` or `timeout` instead of a raw `SocketException`. Protocol,
+  pairing and certificate errors pass through unchanged. One app-level
+  side effect: OS error 65 (`EHOSTUNREACH`) now reports `networkAccess`, which
+  matches LG and is not a profile-fallback code.
+- **Identity.** Stable IDs remain the certificate fingerprint and never the IP
+  address. Duplicate advertisements and fingerprint-less sightings merge as
+  described above; two TVs with different certificates stay separate; a
+  manually added TV is recognized when discovered later through its pinned
+  fingerprint.
+
+Tests:
+- `test/engines/remote_v2/remote_v2_reconnection_test.dart`: drop and
+  reconnect without re-pairing; no reconnect after a user disconnect; refused
+  remote and pairing ports are typed.
+- `test/devices/android_tv_connection_policy_test.dart`
+- `test/devices/android_tv_txt_identity_test.dart`
+
 ## 5. Verification status
 
 Result values: **Automated test passed**, **Hardware verified**,

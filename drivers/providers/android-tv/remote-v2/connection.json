@@ -1,4 +1,5 @@
 {
   "port": 6466,
-  "operatingSystem": "Android TV"
+  "operatingSystem": "Android TV",
+  "session": {"reconnectAttempts": 3}
 }

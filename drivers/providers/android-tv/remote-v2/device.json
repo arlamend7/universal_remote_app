@@ -10,5 +10,10 @@
       "address": "Enter the TV’s local IP address."
     }
   },
+  "policy": {
+    "sameConnection": ["macAddress", "broadcastAddress", "verifiedPeerIdentity"],
+    "retryAfterWake": ["network", "networkAccess", "connectionRefused", "timeout"],
+    "mergeDiscovered": "replace-host"
+  },
   "wake": {"kind": "wake-on-lan", "message": "The TV’s MAC address is not known yet. Connect once so it can be learned."}
 }

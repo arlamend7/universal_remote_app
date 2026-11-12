@@ -47,6 +47,15 @@ final class AndroidTvParityServer {
     server.listen((socket) => unawaited(_serve(FramedSocket(socket))));
   }
 
+  /// Drops the open remote sessions but keeps accepting new connections, as
+  /// a TV does after a Wi-Fi interruption.
+  void dropConnections() {
+    for (final channel in _channels) {
+      channel.close();
+    }
+    _channels.clear();
+  }
+
   Future<void> close() async {
     for (final channel in _channels) {
       channel.close();
