@@ -34,3 +34,12 @@ Baseline `168882c`. The workspace has six packages. Core has no production depen
 ## Baseline validation
 
 Locked dependencies, static analysis, project structure and the dependency audit passed. The complete Dart baseline passed 140 tests, including all four integration parity fixtures. All 133 Flutter tests passed.
+
+## Public API and persisted data
+
+- Dashboard extensions that previously used `TvRemoteDevice` use `GridRemoteViewModel` for dashboard interaction or `TVRemoteBase` for device commands. `RemoteBase` owns its lifecycle methods directly. The Flutter host remains the boundary for widget listeners and command presentation.
+- Compatibility selection consumes `DeviceSoftwareInformation` directly. The retired `DriverDeviceEvidence` and `DeviceSoftwareEvidence` projections have no replacement object. `ProfileStage` is the shared bootstrap and identified vocabulary.
+- Shared device metadata field names are exported as `DeviceMetadataKeys` from core. Their serialized spellings are unchanged. Legacy cleanup remains in the manager.
+- Current device categories and pairing states keep their existing IDs. Saved devices with unfamiliar IDs load as unknown. Integration definitions reject an unfamiliar category.
+- A fixture loads the existing `saved-devices.v2`, `dashboards.v2` and `client-key.v2` formats. It verifies the original device/provider/integration IDs, the certificate pin, a dashboard element ID, an unknown dashboard control ID and the original credential key. Existing storage needs no rewrite for this refactor.
+- The LG source loader expands both integrations to the six byte-identical inputs from the baseline. Existing signed packages, hashes and bundled seed bytes can be reused.
