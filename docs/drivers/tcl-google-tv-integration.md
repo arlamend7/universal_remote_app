@@ -262,6 +262,18 @@ Tests:
 - `test/devices/android_tv_connection_policy_test.dart`
 - `test/devices/android_tv_txt_identity_test.dart`
 
+### Publication
+
+TCL support ships as an update of the existing `android.tv.remote-v2` package:
+no new integration, folder or numbered release. The only package change is in
+`discovery.json` (TXT correlation), `connection.json` (reconnection) and
+`device.json` (policy). The publisher stamps `lastUpdatedAt`, produces a new
+SHA-256 object and signs the package and catalog. Installed apps pick it up
+through the normal hash-based update, and the bundled seed is refreshed from
+the verified live catalog. The engine changes (device info, typed errors,
+pairing) ship with the app build, so older app builds keep working with the
+new package.
+
 ## 5. Verification status
 
 Result values: **Automated test passed**, **Hardware verified**,

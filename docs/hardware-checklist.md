@@ -53,3 +53,23 @@ far comes from fixtures and recorded wire-level parity goldens.
 | Roku ECP (development builds) | device-info facts, keys and text, deep-link launch, inputs, tuner channels, live content, PowerOn wake |
 | Distribution | First run installs from the seed offline; catalog refresh; JSON edit → publication → hash update while a session is open stays staged until the session ends; rollback; GitHub Pages caching never serves mismatched objects |
 | Migration | Existing saved devices keep IDs, dashboards, credentials and certificate pins after upgrading from the version-based driver manager |
+
+## TCL Google TV / Android TV (Remote v2)
+
+Record the model, Google TV / Android TV version, firmware/build, Remote
+Service version, network type (Wi-Fi/Ethernet) and app build in
+[tcl-google-tv-integration.md](drivers/tcl-google-tv-integration.md). Mark a
+row *Hardware verified* only after it has been exercised on the TV.
+
+| Area | Check |
+|---|---|
+| Discovery | `_androidtvremote2._tcp` instance name and full TXT record; whether `bt` is the Bluetooth or the network MAC; repeated scans give one tile |
+| Identity | 6466 and 6467 present the same certificate; the 6467 probe answers within 900 ms; manual IP is recognized |
+| Device info | Exact `RemoteDeviceInfo` vendor/model strings and the offered feature bits |
+| Pairing | Code appears on the TV; a wrong code reports *pairingCode*; an expired code reports *pairingTimeout*; reconnect without re-pairing after an app restart; behaviour after the TV forgets the phone |
+| Keys | Every KeyEvent mapping, especially TV (170), MENU (82), INFO (165), GUIDE (172), CHANNEL± (166/167), input (178), captions (175), settings (176) |
+| Volume | Up/down/mute on TV speakers and on HDMI-ARC/CEC; whether an absolute (mode 2) output is ever reported |
+| Text and apps | IME text and submit in several apps; app links (`market://launch?id=`, `vnd.youtube://`, https) |
+| Power and wake | Power off (223); reachability in standby with and without *Network Standby* and the *Screenless service*; Wake-on-LAN over Ethernet and Wi-Fi with the learned MAC; whether WAKEUP (224) wakes from standby |
+| Reconnection | Wi-Fi drop and recovery; IP change via DHCP; TV off then on; app background/foreground and restart; two Android TVs on one network |
+| Basic TV mode | Whether the Remote Service runs at all in *Basic TV* mode |
