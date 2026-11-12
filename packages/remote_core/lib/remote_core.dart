@@ -18,6 +18,7 @@ export 'src/bluetooth_accessory.dart';
 export 'src/discovery/discovery_status.dart';
 export 'src/discovery/protocol_discovery_status.dart';
 export 'src/errors/discovery_operation_failure.dart';
+export 'src/discovery/bonjour_text_record.dart';
 export 'src/discovery/discovery_observation.dart';
 export 'src/discovery/discovery_requirements.dart';
 export 'src/discovery/provider_identifier.dart';

@@ -102,7 +102,19 @@ final class BonjourSearch: NSObject, NetServiceDelegate {
       lastResolutionError = 0
       return
     }
-    rows.append(["name": sender.name, "address": address, "port": sender.port])
+    rows.append([
+      "name": sender.name, "address": address, "port": sender.port,
+      "txt": textEntries(sender.txtRecordData()),
+    ])
+  }
+
+  /// TXT entries as `key=value` strings; Dart validates and bounds them.
+  private func textEntries(_ data: Data?) -> [String] {
+    guard let data = data else { return [] }
+    return NetService.dictionary(fromTXTRecord: data).prefix(16).compactMap { entry in
+      guard let value = String(data: entry.value, encoding: .utf8) else { return nil }
+      return "\(entry.key)=\(value)"
+    }
   }
 
   func netService(_ sender: NetService, didNotResolve errorDict: [String: NSNumber]) {

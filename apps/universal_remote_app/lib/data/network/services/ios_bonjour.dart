@@ -4,6 +4,14 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:remote_core/remote_core.dart';
 
+/// One resolved native Bonjour advertisement.
+typedef BonjourRow = ({
+  String name,
+  String address,
+  int port,
+  Map<String, String> text,
+});
+
 final class IosBonjour {
   IosBonjour({
     this.channel = const MethodChannel(
@@ -14,7 +22,7 @@ final class IosBonjour {
   final MethodChannel channel;
   int _nextRequest = 0;
 
-  Future<List<({String name, String address, int port})>> browse(
+  Future<List<BonjourRow>> browse(
     DiscoveryCancellation cancellation, {
     required String service,
   }) async {
@@ -77,13 +85,13 @@ final class IosBonjour {
           protocolId: DiscoveryProtocol.bonjour,
           serviceType: service,
           endpoint: Uri(scheme: 'tcp', host: row.address, port: row.port),
-          metadata: {'name': row.name},
+          metadata: {...row.text, 'name': row.name},
         ),
       );
     }
   }
 
-  ({String name, String address, int port}) _parse(Object? row) {
+  BonjourRow _parse(Object? row) {
     if (row case {
       'name': String name,
       'address': String address,
@@ -95,7 +103,12 @@ final class IosBonjour {
           !ip.isMulticast &&
           port > 0 &&
           port <= 65535) {
-        return (name: name, address: ip.address, port: port);
+        return (
+          name: name,
+          address: ip.address,
+          port: port,
+          text: _text(row['txt']),
+        );
       }
     }
     throw const DiscoveryOperationFailure(
@@ -104,6 +117,10 @@ final class IosBonjour {
       code: 'invalidAdvertisement',
     );
   }
+
+  static Map<String, String> _text(Object? entries) => entries is List
+      ? BonjourTextRecord.metadata(entries.whereType<String>())
+      : const {};
 
   Future<void> _cancel(int id) async {
     try {

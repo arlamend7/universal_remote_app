@@ -99,7 +99,35 @@ Documented TCL observations (not verified here):
 
 ## 4. Changes
 
-See the sections below as each phase lands.
+### Identification (generic; no TCL string in code)
+
+- **Device-reported identity.** The Remote v2 session decodes the TV's
+  `RemoteDeviceInfo` (`AndroidDeviceInfo`: model, vendor, Remote Service package
+  and version; untrusted text is stripped of control characters and bounded to
+  100 characters). The engine reports `manufacturer` = vendor and `model` =
+  model as authenticated-session evidence. The Remote Service package and
+  version are kept in `raw` (`remoteServicePackage`, `remoteServiceVersion`)
+  because they describe the service, not the TV software.
+  `operatingSystemVersion`, `firmwareVersion`, `softwareVersion` and
+  `buildNumber` stay unknown — Remote v2 does not report them, and nothing is
+  inferred from the model name.
+- **Manufacturer on the device.** `GenericTvController` fills a *missing*
+  `RemoteDevice.manufacturer` from the session; a manufacturer already known
+  (discovery rules, saved profile) is preserved. So a TCL Google TV shows the
+  vendor it reports, and every Android TV keeps `providerId: android.tv`.
+- **TXT records.** Dart mDNS (Android, macOS) and the iOS Bonjour bridge now pass
+  DNS-SD TXT entries as observation metadata `txt.<key>` (`BonjourTextRecord`:
+  at most 16 entries, keys `[a-z0-9_.-]{1,32}`, values ≤ 128 characters, control
+  characters removed, never shadowing `name`).
+- **Correlation, not identity.** Discovery rules can copy one observed value into
+  metadata with `{observed:<key>}`. `android-tv/remote-v2/discovery.json` maps
+  `txt.bt` to `correlationIdentity`. `DeviceIdentifierResolver` treats two
+  sightings as the same TV only when they share that value **and** an endpoint,
+  and never when their peer identities differ; a provisional (random-ID)
+  sighting never replaces a stable one. `bt` is documented as a Bluetooth MAC,
+  so it is never used as a Wake-on-LAN address. Device IDs keep the
+  `android-tv-<fingerprint>` format, so saved devices, credentials and
+  dashboards are unchanged.
 
 ## 5. Verification status
 

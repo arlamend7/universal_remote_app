@@ -150,6 +150,7 @@ final class MdnsDiscovery {
     if (cancellation.isCancelled || server == null || server.port <= 0) {
       return null;
     }
+    final text = _text(client, instance);
     final addresses = await _operation(
       'mdns.address',
       () => client
@@ -173,8 +174,31 @@ final class MdnsDiscovery {
         host: address.address.address,
         port: server.port,
       ),
-      metadata: {'name': instance.split('.$service.').first.trim()},
+      metadata: {
+        ...await text,
+        'name': instance.split('.$service.').first.trim(),
+      },
     );
+  }
+
+  /// TXT data is optional evidence: a missing or failing record never hides
+  /// the advertisement.
+  Future<Map<String, String>> _text(MDnsClient client, String instance) async {
+    try {
+      final records = await client
+          .lookup<TxtResourceRecord>(
+            ResourceRecordQuery.text(instance),
+            timeout: const Duration(seconds: 1),
+          )
+          .take(1)
+          .toList();
+      final record = records.firstOrNull;
+      return record == null
+          ? const {}
+          : BonjourTextRecord.fromLines(record.text);
+    } catch (_) {
+      return const {};
+    }
   }
 
   Future<T> _operation<T>(String stage, Future<T> Function() action) async {

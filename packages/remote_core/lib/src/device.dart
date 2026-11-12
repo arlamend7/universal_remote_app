@@ -57,6 +57,7 @@ final class RemoteDevice {
 RemoteDevice copyDevice(
   RemoteDevice device, {
   String? name,
+  String? manufacturer,
   String? model,
   DeviceSoftwareInformation? softwareInformation,
   DeviceCategory? category,
@@ -67,7 +68,7 @@ RemoteDevice copyDevice(
   id: device.id,
   name: name ?? device.name,
   providerId: device.providerId,
-  manufacturer: device.manufacturer,
+  manufacturer: manufacturer ?? device.manufacturer,
   model: model ?? device.model,
   softwareInformation: softwareInformation ?? device.softwareInformation,
   category: category ?? device.category,

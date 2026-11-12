@@ -6,6 +6,7 @@ import 'package:remote_core/remote_core.dart';
 import '../security/paired_identity.dart';
 import '../security/pairing_proof.dart';
 import 'android_audio_output.dart';
+import 'android_device_info.dart';
 import 'android_editor.dart';
 import 'framed_socket.dart';
 import 'wire_message.dart';
@@ -46,6 +47,9 @@ final class AndroidRemoteSession {
   bool _closed = false;
   bool _configured = false;
   int features = 0;
+
+  /// What the TV reported about itself, when it did.
+  AndroidDeviceInfo? deviceInfo;
 
   Future<void> connect(void Function() onClosed) async {
     final socket = await _openSocket();
@@ -140,7 +144,9 @@ final class AndroidRemoteSession {
   }
 
   void _configure(List<int> payload) {
-    final offered = WireMessage.decode(payload)[1] as int? ?? 0;
+    final configure = WireMessage.decode(payload);
+    final offered = configure[1] as int? ?? 0;
+    deviceInfo = AndroidDeviceInfo.parse(configure[2]) ?? deviceInfo;
     features =
         offered &
         (1 |

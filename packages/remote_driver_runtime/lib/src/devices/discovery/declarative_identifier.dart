@@ -153,7 +153,7 @@ final class DeclarativeIdentifier
       metadata: {
         if (rules.copyMetadata) ...observation.metadata,
         for (final entry in rules.metadata.entries)
-          if (_optional(entry.value, identity) case final value?)
+          if (_optional(entry.value, identity, observation) case final value?)
             entry.key: value,
       },
     );
@@ -172,12 +172,28 @@ final class DeclarativeIdentifier
     return (rules.name['fallback'] as String?) ?? rules.label;
   }
 
-  String? _optional(String template, _Identity identity) {
+  /// Metadata templates may also copy one observed value (`{observed:key}`);
+  /// the entry is omitted when the observation did not carry it.
+  String? _optional(
+    String template,
+    _Identity identity,
+    DiscoveryObservation observation,
+  ) {
     if (template.contains('{peer}') && identity.peer == null) {
       return null;
     }
-    return _render(template, identity);
+    final observed = _observedToken.firstMatch(template);
+    if (observed == null) {
+      return _render(template, identity);
+    }
+    final value = observation.metadata[observed.group(1)!];
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+    return _render(template.replaceAll(observed.group(0)!, value), identity);
   }
+
+  static final _observedToken = RegExp(r'\{observed:([a-z0-9_.-]{1,40})\}');
 
   String _render(String template, _Identity identity) => template
       .replaceAll('{providerId}', providerId)

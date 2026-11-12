@@ -141,6 +141,7 @@ final class GenericTvController extends TVRemoteBase
     );
     return copyDevice(
       _device,
+      manufacturer: _device.manufacturer ?? software?.manufacturer,
       model: software?.model ?? _device.model,
       category: category ?? _device.category,
       softwareInformation: software ?? _device.softwareInformation,

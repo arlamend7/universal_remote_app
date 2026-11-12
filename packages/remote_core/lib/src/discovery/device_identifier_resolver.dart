@@ -18,6 +18,9 @@ final class DeviceIdentifierResolver {
     if (firstPeer != null && secondPeer != null) {
       return firstPeer == secondPeer;
     }
+    if (_sameAdvertisedHardware(first, second)) {
+      return true;
+    }
     if (first.id == second.id &&
         first.endpoints.any(second.endpoints.contains) &&
         _hasSavedIdentity(first, second)) {
@@ -40,6 +43,19 @@ final class DeviceIdentifierResolver {
       }
     }
     return false;
+  }
+
+  /// A sighting whose peer identity could not be read is the same device as
+  /// another one only when both advertise the same hardware identifier from
+  /// the same endpoint. Neither the address nor the identifier is enough alone.
+  bool _sameAdvertisedHardware(RemoteDevice first, RemoteDevice second) {
+    final value = first.metadata[DeviceMetadataKeys.correlationIdentity];
+    if (value == null || value.isEmpty) {
+      return false;
+    }
+    final other = second.metadata[DeviceMetadataKeys.correlationIdentity];
+    return other?.toLowerCase() == value.toLowerCase() &&
+        first.endpoints.any(second.endpoints.contains);
   }
 
   String? _peer(RemoteDevice device) =>
@@ -65,8 +81,15 @@ final class DeviceIdentifierResolver {
       matches.add(candidate);
       return;
     }
-    if (candidate.evidence.protocolId != DiscoveryProtocol.unicast) {
+    if (_replaces(matches[index], candidate)) {
       matches[index] = candidate;
     }
   }
+
+  /// A fresh broadcast sighting refreshes a match, but a provisional identity
+  /// never replaces a stable one.
+  static bool _replaces(ProviderMatch existing, ProviderMatch candidate) =>
+      candidate.evidence.protocolId != DiscoveryProtocol.unicast &&
+      (candidate.profile.device.stableIdentity ||
+          !existing.profile.device.stableIdentity);
 }

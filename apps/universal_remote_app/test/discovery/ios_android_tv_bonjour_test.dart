@@ -97,4 +97,34 @@ void main() {
     });
     expect(calls.last.arguments, 1);
   });
+
+  test(
+    'native TXT entries reach the observation as bounded metadata',
+    () async {
+      messenger.setMockMethodCallHandler(
+        channel,
+        (_) async => [
+          {
+            'name': 'Living Room',
+            'address': '192.168.1.12',
+            'port': 6466,
+            'txt': ['bt=AA:BB:CC:DD:EE:FF', 'name=spoofed', 7, 'bad key=1'],
+          },
+          {'name': 'Bedroom', 'address': '192.168.1.13', 'port': 6466},
+        ],
+      );
+      final observations = <DiscoveryObservation>[];
+      await IosBonjour(channel: channel).search(
+        '_androidtvremote2._tcp',
+        DiscoveryCancellation(),
+        (observation) async => observations.add(observation),
+      );
+      expect(observations.first.metadata, {
+        'txt.bt': 'AA:BB:CC:DD:EE:FF',
+        'txt.name': 'spoofed',
+        'name': 'Living Room',
+      });
+      expect(observations.last.metadata, {'name': 'Bedroom'});
+    },
+  );
 }

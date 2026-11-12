@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:remote_core/remote_core.dart';
 
 import '../../remote_v2/protocol/android_app_links.dart';
+import '../../remote_v2/protocol/android_device_info.dart';
 import '../../remote_v2/protocol/android_pairing.dart';
 import '../../remote_v2/protocol/android_remote_session.dart';
 import '../../remote_v2/security/client_identity.dart';
@@ -50,16 +51,32 @@ final class RemoteV2EngineSession implements EngineSession {
     final result = RemoteV2EngineSession._(
       session,
       identity,
-      DeviceSoftwareInformation(
-        source: DeviceInformationSource.authenticatedSession,
-        operatingSystem: context.connection['operatingSystem'] as String?,
-        protocolVersion: 'Remote v2',
-        identifiedAt: DateTime.now(),
-      ),
+      _describe(session.deviceInfo, context.connection),
     );
     unawaited(closed.future.then((_) => result._finish()));
     return result;
   }
+
+  /// Remote v2 reports vendor and model but never the Android OS version,
+  /// firmware or build, so those stay unknown. The Remote Service's own
+  /// package and version are kept as raw evidence only: they describe the
+  /// service, not the TV software.
+  static DeviceSoftwareInformation _describe(
+    AndroidDeviceInfo? info,
+    Map<String, Object?> connection,
+  ) => DeviceSoftwareInformation(
+    source: DeviceInformationSource.authenticatedSession,
+    manufacturer: info?.vendor,
+    model: info?.model,
+    operatingSystem: connection['operatingSystem'] as String?,
+    protocolVersion: 'Remote v2',
+    identifiedAt: DateTime.now(),
+    raw: {
+      if (info?.packageName case final package?)
+        'remoteServicePackage': package,
+      if (info?.appVersion case final version?) 'remoteServiceVersion': version,
+    },
+  );
 
   static Future<PairedIdentity> _pair(
     EngineSessionContext context,
