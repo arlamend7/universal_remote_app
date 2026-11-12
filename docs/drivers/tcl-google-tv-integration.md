@@ -192,6 +192,38 @@ Tests:
 - `android_remote_protocol_test.dart` covers the pinned reconnect and a
   mismatched pin.
 
+### Capabilities
+
+Capabilities come only from the Remote v2 features the TV negotiates and the
+audio reports it sends; the vendor plays no part.
+`test/engines/remote_v2/remote_v2_capability_evidence_test.dart` drives the
+real `android-tv/remote-v2` integration through `GenericTvController` and
+checks the following.
+
+| Negotiated / reported | Exposed | Not exposed |
+|---|---|---|
+| KEY (2) | navigation, media, digits, settings, menu/info/guide, track, Live TV, captions, input picker, channels, volume keys | — |
+| no KEY | — | every key-driven control and power |
+| IME (4) | text input, current content | — |
+| APP_LINK (512) | applications (safe app links only; no app list exists in Remote v2) | — |
+| POWER (32) + KEY | power off | — |
+| VOLUME (64) + audio mode 2 | volume feedback, exact volume, mute | — |
+| VOLUME + audio mode 1 | volume feedback, mute | exact volume |
+| no VOLUME | volume keys | feedback, exact volume (reports ignored) |
+
+The same feature set gives the same controls and the same KeyEvent codes for
+TCL, Google and Sony vendor strings. `feature.volume-keys` intentionally
+equals KEY rather than VOLUME, because volume key injection does not depend on
+bit 64. Gating it on bit 64 would remove volume keys from existing TVs.
+
+Exact volume is still exposed only when the TV itself reports an absolute
+audio output (mode 2). Upstream reports that the Remote Service does not
+support setting an absolute level, and that TCL sets only honour up, down and
+mute, so exact volume on TCL is **unverified**. Two further items are deferred
+until hardware evidence exists:
+- a `WAKEUP` (224) power-on alternative
+- any TCL-specific key restriction
+
 ## 5. Verification status
 
 Result values: **Automated test passed**, **Hardware verified**,
