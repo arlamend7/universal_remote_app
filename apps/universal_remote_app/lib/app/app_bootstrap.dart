@@ -2,12 +2,14 @@ import 'package:remote_ui/remote_ui.dart';
 
 import 'dart:io';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
 import 'package:remote_network/remote_network.dart';
 
 import '../data/storage/adapters/native_secure_storage.dart';
+import '../data/drivers/asset_driver_seed.dart';
 import '../data/drivers/platform_driver_configuration.dart';
 import '../domains/diagnostics/models/enums/app_log_level.dart';
 import '../data/settings/screen_awake.dart';
@@ -190,13 +192,21 @@ abstract final class AppBootstrap {
     try {
       final drivers =
           service ?? await PlatformDriverConfiguration.load(credentials);
-      await drivers?.initialize(registry);
+      await drivers?.initialize(registry, seed: await _seed());
       return drivers;
     } on Exception {
       logger.record(AppLogLevel.warning, 'drivers.localInitializationFailed');
       return null;
     } on StateError {
       logger.record(AppLogLevel.warning, 'drivers.localInitializationFailed');
+      return null;
+    }
+  }
+
+  static Future<SeedBundle?> _seed() async {
+    try {
+      return await AssetDriverSeed.load(rootBundle);
+    } on Exception {
       return null;
     }
   }

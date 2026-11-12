@@ -19,6 +19,7 @@ import '../installation/integration_update_service.dart';
 import '../installation/legacy_driver_storage_migration.dart';
 import '../installation/migrate_legacy_device_metadata.dart';
 import '../installation/package_verifier.dart';
+import '../installation/seed_bundle.dart';
 import '../installation/stored_zip_writer.dart';
 import '../installation/unavailable_package_source.dart';
 import '../installation/update_schedule.dart';
@@ -39,7 +40,8 @@ final class IntegrationService {
     this.legacyRoot,
     DiscoveryNetwork network = const IoDiscoveryNetwork(),
     this.allowDevelopment = false,
-  }) : catalogs = IntegrationCatalogRepository(source, root, verify) {
+  }) : _verify = verify,
+       catalogs = IntegrationCatalogRepository(source, root, verify) {
     installer = IntegrationInstaller(root, inUse: (id) => planner.inUse(id));
     updates = IntegrationUpdateService(
       catalogs: catalogs,
@@ -77,14 +79,16 @@ final class IntegrationService {
   final CredentialStore credentials;
   final bool allowDevelopment;
   final IntegrationCatalogRepository catalogs;
+  final DriverSignatureVerifier _verify;
   late final IntegrationInstaller installer;
   late final IntegrationUpdateService updates;
   late final ManagedIntegrationPlanner planner;
   late final IntegrationProviderSource _providers;
 
-  /// Migrates retired storage and registers providers from installed
-  /// packages and the cached catalog. Never touches the network.
-  Future<void> initialize(ProviderRegistry registry) async {
+  /// Migrates retired storage, installs missing integrations from the
+  /// signed [seed], and registers providers from installed packages and the
+  /// cached catalog. Never touches the network.
+  Future<void> initialize(ProviderRegistry registry, {SeedBundle? seed}) async {
     final legacy = legacyRoot;
     if (legacy != null) {
       await LegacyDriverStorageMigration(
@@ -92,7 +96,39 @@ final class IntegrationService {
         root: root,
       ).migrate();
     }
+    if (seed != null) {
+      await installSeed(seed);
+    }
     await register(registry);
+  }
+
+  /// Installs seeded integrations that are not installed yet, through the
+  /// same verification as downloads. Installed generations and newer cached
+  /// catalogs always win over the seed.
+  Future<List<String>> installSeed(SeedBundle seed) async {
+    final catalog = await IntegrationCatalog.verify(seed.envelope, _verify);
+    await catalogs.adopt(seed.envelope);
+    final installed = await installer.inventory();
+    final result = <String>[];
+    for (final entry in catalog.integrations) {
+      final bytes = seed.objects[entry.sha256];
+      if (installed[entry.id]?.current != null ||
+          bytes == null ||
+          (entry.development && !allowDevelopment)) {
+        continue;
+      }
+      final (package, record) = await updates.verifier.verify(
+        entry,
+        bytes,
+        keyId: catalog.keyId,
+        catalogRevision: catalog.revision,
+        source: 'seed',
+        now: DateTime.now().toUtc(),
+      );
+      await installer.install(package, record);
+      result.add(entry.id);
+    }
+    return result;
   }
 
   /// Fetches the signed catalog and re-registers providers.

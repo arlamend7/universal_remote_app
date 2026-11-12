@@ -7,7 +7,7 @@ on:
       - 'packages/remote_driver_*/**'
       - '.github/workflows/publish-drivers.yml'
   push:
-    branches: ['feature/dynamic-driver-runtime']
+    branches: ['main', 'feature/dynamic-driver-runtime']
     paths:
       - 'drivers/**'
       - 'packages/remote_driver_*/**'
@@ -20,7 +20,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,5 +30,103 @@ jobs:
           git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
-      - name: Validate every integration against the runtime and schemas
+      - name: Validate integrations, schemas and the publisher
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s drivers/tests
+      - name: Build and verify the site with an ephemeral key
+        run: |
+          set -eu
+          openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$RUNNER_TEMP/test.pem"
+          openssl pkey -in "$RUNNER_TEMP/test.pem" -pubout -out "$RUNNER_TEMP/test-public.pem"
+          PYTHONDONTWRITEBYTECODE=1 python3 drivers/tools/publish/build_site.py \
+            --output "$RUNNER_TEMP/driver-site" --key "$RUNNER_TEMP/test.pem" \
+            --key-id ci-fixture --report "$RUNNER_TEMP/report.json"
+          PYTHONDONTWRITEBYTECODE=1 python3 drivers/tools/publish/refresh_seed.py \
+            --site "$RUNNER_TEMP/driver-site" --public-key "$RUNNER_TEMP/test-public.pem" \
+            --output "$RUNNER_TEMP/seed-check"
+          cat "$RUNNER_TEMP/report.json"
+
+  publish:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: production-driver-catalog
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install verified Flutter SDK
+        run: |
+          git clone --depth 1 --branch 3.47.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter pub get --enforce-lockfile
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Build the signed, content-addressed site
+        id: build
+        env:
+          DRIVER_SIGNING_KEY: ${{ secrets.DRIVER_SIGNING_KEY_PEM }}
+          DRIVER_SIGNING_KEY_ID: ${{ vars.DRIVER_SIGNING_KEY_ID }}
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          set -eu
+          if [ -z "$DRIVER_SIGNING_KEY" ] || [ -z "$DRIVER_SIGNING_KEY_ID" ]; then
+            echo "::error::DRIVER_SIGNING_KEY_PEM secret and DRIVER_SIGNING_KEY_ID variable are required"
+            exit 1
+          fi
+          umask 077
+          key=$(mktemp "$RUNNER_TEMP/driver-signing.XXXXXX")
+          trap 'rm -f "$key"' EXIT
+          printf '%s\n' "$DRIVER_SIGNING_KEY" > "$key"
+          unset DRIVER_SIGNING_KEY
+          openssl pkey -in "$key" -pubout -out "$RUNNER_TEMP/driver-public.pem"
+          PYTHONDONTWRITEBYTECODE=1 python3 drivers/tools/publish/build_site.py \
+            --output "$RUNNER_TEMP/driver-site" --key "$key" \
+            --key-id "$DRIVER_SIGNING_KEY_ID" --previous "$PAGES_URL" \
+            --report "$RUNNER_TEMP/report.json"
+          changed=$(python3 -c "import json,sys; print(str(json.load(open(sys.argv[1]))['changed']).lower())" "$RUNNER_TEMP/report.json")
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          {
+            echo '### Driver publication'
+            echo '```json'
+            cat "$RUNNER_TEMP/report.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.build.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/driver-site
+      - if: steps.build.outputs.changed == 'true'
+        name: Deploy signed driver catalog
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - if: steps.build.outputs.changed == 'true'
+        name: Verify the live catalog, objects and signatures
+        env:
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          set -eu
+          for attempt in 1 2 3 4 5 6; do
+            if PYTHONDONTWRITEBYTECODE=1 python3 drivers/tools/publish/refresh_seed.py \
+              --site "$PAGES_URL" --public-key "$RUNNER_TEMP/driver-public.pem" \
+              --output "$RUNNER_TEMP/live-check" > "$RUNNER_TEMP/live.json"; then
+              live=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['revision'])" "$RUNNER_TEMP/live.json")
+              built=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['revision'])" "$RUNNER_TEMP/report.json")
+              if [ "$live" = "$built" ]; then
+                echo "Live catalog revision $live verified."
+                exit 0
+              fi
+            fi
+            sleep 20
+          done
+          echo "::error::The live catalog did not match the published revision"
+          exit 1

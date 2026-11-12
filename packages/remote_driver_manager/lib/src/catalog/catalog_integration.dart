@@ -128,6 +128,7 @@ final class CatalogIntegration {
     'device',
     'replaces',
     'priority',
+    'sourceDigest',
   };
 
   /// Immutable delivery path: a new content hash is always a new object.

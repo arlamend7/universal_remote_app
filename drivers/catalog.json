@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 2,
+  "integrations": [
+    {"source": "providers/lg-webos/webos-22-plus", "channel": "stable"},
+    {"source": "providers/lg-webos/webos-legacy", "channel": "stable"},
+    {"source": "providers/android-tv/remote-v2", "channel": "stable"},
+    {"source": "providers/samsung-tizen/tizen-supported", "channel": "stable"},
+    {"source": "providers/roku-ecp/roku-supported", "channel": "development"},
+    {"source": "providers/example-tv/json-websocket", "channel": "development"}
+  ]
+}

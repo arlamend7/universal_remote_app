@@ -7,7 +7,7 @@ final class StoredDriverZip {
 
   /// Entry names permitted in a schema-2 integration package.
   static final _paths = RegExp(
-    r'^(?:manifest|discovery|connection|identification|capabilities|mappings|workflows/[a-z][a-z0-9_-]{0,63})\.json$',
+    r'^(?:manifest|discovery|device|connection|identification|capabilities|mappings|workflows/[a-z][a-z0-9_-]{0,63})\.json$',
   );
 
   final Uint8List _bytes;

@@ -38,3 +38,4 @@ export 'src/selection/managed_integration_planner.dart';
 export 'src/installation/stored_zip_writer.dart';
 export 'src/installation/unavailable_package_source.dart';
 export 'src/service/integration_service.dart';
+export 'src/installation/seed_bundle.dart';

@@ -1,24 +1,67 @@
-# Driver authoring
+# Driver integrations
 
-Driver source directories are inputs to the authoring tools. Flutter does not bundle them as assets. The checked-in example targets a fictional TV and is suitable for local tests.
+This folder is an independent project of declarative integration
+definitions. Flutter never bundles these source files; the app only ships a
+**signed seed** generated from a verified publication.
 
-1. Create a provider directory with `manifest.json`, `discovery.json`, and `capabilities.json`.
-2. Put each referenced command in `commands/<id>.json`. Persistent exchange definitions can live in `workflows/<id>.json`.
-3. Declare compatibility profiles in the manifest, using exact known models and firmware evidence. Keep platform firmware versions separate from the driver release version.
-4. Validate using the workspace Dart SDK. The validator runs the same typed decoders used by the runtime. The JSON schemas describe the file formats. The catalog schema describes the decoded signed distribution index.
+```text
+drivers/
+├── catalog.json                         # source index: integration folders + channel
+├── providers/<provider>/<family>/        # one folder per compatibility family
+│   ├── manifest.json                     # identity, engine, runtime, compatibility, profiles
+│   ├── mappings.json                     # runtime operation → validated engine call
+│   ├── capabilities.json                 # alternatives, conditions, probes, restrictions
+│   ├── connection.json                   # engine connection data + runtime session policy
+│   ├── discovery.json                    # how network evidence identifies the device
+│   └── device.json                       # manual setup, connection policy, wake
+├── schema/v2/                            # JSON Schemas (executed by the tools)
+├── tools/{validate,package,sign,publish}/
+└── tests/
+```
+
+| Integration | Folder | Channel |
+|---|---|---|
+| `lg.webos.22-plus` (webOS ≥ 7) | `providers/lg-webos/webos-22-plus` | stable |
+| `lg.webos.legacy` (webOS < 7) | `providers/lg-webos/webos-legacy` | stable |
+| `android.tv.remote-v2` | `providers/android-tv/remote-v2` | stable |
+| `samsung.tizen.supported` | `providers/samsung-tizen/tizen-supported` | stable |
+| `roku.ecp.supported` | `providers/roku-ecp/roku-supported` | development |
+| `example.json-websocket` | `providers/example-tv/json-websocket` | development |
+
+## Updating an integration
+
+Edit the JSON in its folder. There is no version number to bump and no new
+folder to create. `lastUpdatedAt` must **not** be written by hand: the
+publisher stamps it whenever the folder's content changes, and reuses the
+previous value (and the byte-identical package) when it does not.
 
 ```sh
-sh drivers/tools/validate/validate.sh drivers/providers/example-tv
-python3 drivers/tools/package/build.py drivers/providers/example-tv /tmp/example-tv.zip
+sh drivers/tools/validate/validate.sh drivers/providers/lg-webos/webos-22-plus
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s drivers/tests
 ```
 
-The tool enables filesystem loading explicitly. The packaged ZIP is unsigned and intended for development. Use the publishing workflow for signed distribution. The production app has no filesystem driver-source configuration.
+The validator compiles the folder with the same engines the app uses, so an
+unknown operation, an unsafe URI or key, an unexecutable capability or a
+manifest/capability mismatch is rejected before publication.
 
-To load a source directory directly in a development app, run Flutter with
-`--dart-define=DRIVER_LOCAL_PATH=/absolute/path/to/driver`. Use a new driver
-version for changed files. Development installs use separate local storage.
-Roku also requires `--dart-define=ENABLE_ROKU_ECP=true`. Release builds ignore
-both development flags. The compiled bindings format uses `bindings.json`
-and the `compiled.bindings` operation. Each compiled adapter validates its
-permitted wire values.
+Create a new integration folder only for a genuinely different compatibility
+family (different protocol behaviour or requirements), and add it to
+`catalog.json`. Integration and provider IDs are permanent.
+
+## Publishing
+
+Merging to `main` publishes changed integrations through
+`.github/workflows/publish-drivers.yml` (see `docs/drivers/publishing.md`).
+Local dry run with a throwaway key:
+
+```sh
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out /tmp/test.pem
+python3 drivers/tools/publish/build_site.py --output /tmp/site --key /tmp/test.pem --key-id local
+```
+
+## Development builds
+
+- `--dart-define=DRIVER_LOCAL_PATH=/absolute/path/to/drivers/providers` installs
+  every integration folder below that path into separate development storage.
+- `--dart-define=ALLOW_DEVELOPMENT_INTEGRATIONS=true` offers development-channel
+  integrations (such as Roku ECP). Release builds ignore both flags.
