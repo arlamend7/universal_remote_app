@@ -5,7 +5,12 @@ import 'dart:typed_data';
 import 'wire_message.dart';
 
 final class FramedSocket {
-  FramedSocket(this.socket);
+  /// A peer reset also completes [SecureSocket.done] with an error. Reads
+  /// report it through [next] and writes through `flush`, so `done` itself is
+  /// observed here instead of escaping as an unhandled error.
+  FramedSocket(this.socket) {
+    unawaited(socket.done.then<void>((_) {}, onError: (Object _) {}));
+  }
 
   final SecureSocket socket;
   late final _messages = StreamIterator(_frames());

@@ -156,6 +156,42 @@ model name. Do not disable the TV, MENU, INFO, GUIDE or CHANNEL± keys for TCL
 from the single 65C805 report: a key the TV ignores cannot be detected, and
 other TCL models may support them.
 
+### Pairing
+
+TCL uses the same Remote v2 pairing flow and the same generic pairing UI.
+Generic hardening:
+
+| Situation | Before | Now |
+|---|---|---|
+| Code not entered within 2 minutes | raw `TimeoutException` | `RemoteException('pairingTimeout')` |
+| TV rejects the secret (status 402 BAD_SECRET) | `pairing` | `RemoteException('pairingCode')`, "enter the code shown on the TV" |
+| TV refuses a step (400/401) or closes the socket | `pairing` | `pairing` (unchanged) |
+| TV stops answering a step (10 s) | raw `TimeoutException` | `RemoteException('timeout')` |
+| TLS to 6466 fails (TV reset or forgot the client) | `certificate` | `certificate`, with a re-pair hint |
+
+The new codes are deliberately not `network` or `timeout`, so a pairing
+failure never triggers a profile fallback or a Wake-on-LAN retry.
+
+These behaviours are unchanged:
+- Trust on 6467 still comes from the on-screen code.
+- The 6466 certificate must still match the pinned fingerprint.
+- No TLS verification was relaxed.
+- The credential is stored only after a successful exchange and is never
+  deleted automatically.
+
+`FramedSocket` now observes `SecureSocket.done`. A peer reset still surfaces
+through reads and `flush`, but no longer escapes as an unhandled asynchronous
+error.
+
+Tests:
+- `test/engines/remote_v2/android_pairing_lifecycle_test.dart` drives a
+  scripted pairing TV through: success, local checksum, 402, 400/401,
+  silent TV, code timeout, socket close, cancel and unreachable port.
+- `remote_v2_engine_pairing_test.dart` checks the prompt and the credential at
+  engine level.
+- `android_remote_protocol_test.dart` covers the pinned reconnect and a
+  mismatched pin.
+
 ## 5. Verification status
 
 Result values: **Automated test passed**, **Hardware verified**,

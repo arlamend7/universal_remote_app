@@ -12,10 +12,13 @@ import 'remote_v2_operation.dart';
 /// Android TV Remote v2: certificate pairing, pinned TLS and binary framing.
 /// Integrations only choose validated Android `KeyEvent` codes.
 final class RemoteV2Engine implements ProtocolEngine {
-  RemoteV2Engine({this.portOverride});
+  RemoteV2Engine({this.portOverride, this.pairingPortOverride});
 
   /// Test seam for a loopback TLS endpoint; null uses the declared port.
   final int? portOverride;
+
+  /// Test seam for a loopback pairing endpoint; null uses port 6467.
+  final int? pairingPortOverride;
 
   /// Android `KeyEvent` codes are non-negative and below this bound.
   static const maximumKeyCode = 319;
@@ -55,5 +58,9 @@ final class RemoteV2Engine implements ProtocolEngine {
 
   @override
   Future<EngineSession> open(EngineSessionContext context) =>
-      RemoteV2EngineSession.open(context, portOverride: portOverride);
+      RemoteV2EngineSession.open(
+        context,
+        portOverride: portOverride,
+        pairingPortOverride: pairingPortOverride,
+      );
 }

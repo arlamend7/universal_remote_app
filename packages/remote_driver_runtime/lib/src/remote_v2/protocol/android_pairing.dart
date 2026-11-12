@@ -11,10 +11,22 @@ import 'framed_socket.dart';
 import 'wire_message.dart';
 
 final class AndroidPairing {
-  AndroidPairing(this.host, this.client, {this.port = 6467});
+  AndroidPairing(
+    this.host,
+    this.client, {
+    this.port = 6467,
+    this.codeTimeout = const Duration(minutes: 2),
+    this.stepTimeout = const Duration(seconds: 10),
+  });
 
   final String host;
   final int port;
+
+  /// How long the TV's on-screen code waits for entry.
+  final Duration codeTimeout;
+
+  /// How long each pairing message waits for the TV's reply.
+  final Duration stepTimeout;
   final ClientIdentity client;
   final _proof = Completer<Uint8List?>();
   FramedSocket? _channel;
@@ -49,7 +61,7 @@ final class AndroidPairing {
       await _exchange(channel, 30, {1: encoding, 2: 1}, 31);
       _peer = peer;
       onCodeRequested();
-      final secret = await _proof.future.timeout(const Duration(minutes: 2));
+      final secret = await _awaitCode();
       if (secret == null) {
         throw const RemoteException('cancelled', 'Pairing was canceled.');
       }
@@ -73,18 +85,52 @@ final class AndroidPairing {
     return true;
   }
 
+  /// Pairing status codes from the Remote v2 pairing protocol.
+  static const _ok = 200;
+  static const _badSecret = 402;
+
+  Future<Uint8List?> _awaitCode() async {
+    try {
+      return await _proof.future.timeout(codeTimeout);
+    } on TimeoutException {
+      throw const RemoteException(
+        'pairingTimeout',
+        'The pairing code was not entered in time. Start pairing again.',
+      );
+    }
+  }
+
   Future<void> _exchange(
     FramedSocket channel,
     int field,
     Map<int, Object> payload,
     int expected,
   ) async {
-    channel.send({1: 2, 2: 200, field: WireMessage.encode(payload)});
-    final response = await channel.next().timeout(const Duration(seconds: 10));
-    if (response?[2] != 200 || !response!.containsKey(expected)) {
+    channel.send({1: 2, 2: _ok, field: WireMessage.encode(payload)});
+    final response = await _response(channel);
+    if (response?[2] == _ok && response!.containsKey(expected)) {
+      return;
+    }
+    if (response?[2] == _badSecret) {
       throw const RemoteException(
-        'pairing',
-        'The TV rejected the pairing exchange.',
+        'pairingCode',
+        'The TV rejected the pairing code. Start pairing again and enter '
+            'the code shown on the TV.',
+      );
+    }
+    throw const RemoteException(
+      'pairing',
+      'The TV rejected the pairing exchange.',
+    );
+  }
+
+  Future<Map<int, Object>?> _response(FramedSocket channel) async {
+    try {
+      return await channel.next().timeout(stepTimeout);
+    } on TimeoutException {
+      throw const RemoteException(
+        'timeout',
+        'The TV did not answer the pairing request.',
       );
     }
   }

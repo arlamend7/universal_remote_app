@@ -84,7 +84,8 @@ final class AndroidRemoteSession {
     } on HandshakeException {
       throw const RemoteException(
         'certificate',
-        'The paired TV TLS connection could not be verified.',
+        'The paired TV TLS connection could not be verified. If the TV '
+            'was reset or no longer lists this device, re-pair it.',
       );
     }
   }

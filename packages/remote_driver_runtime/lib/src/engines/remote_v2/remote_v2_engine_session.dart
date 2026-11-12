@@ -26,11 +26,12 @@ final class RemoteV2EngineSession implements EngineSession {
   static Future<RemoteV2EngineSession> open(
     EngineSessionContext context, {
     int? portOverride,
+    int? pairingPortOverride,
   }) async {
     final endpoint = context.device.endpoints.single;
     final stored = await context.credentials.read(context.credentialKey);
     final identity = stored == null
-        ? await _pair(context, endpoint.host)
+        ? await _pair(context, endpoint.host, pairingPortOverride)
         : PairedIdentity.decode(stored);
     final session = AndroidRemoteSession(
       endpoint.host,
@@ -81,9 +82,12 @@ final class RemoteV2EngineSession implements EngineSession {
   static Future<PairedIdentity> _pair(
     EngineSessionContext context,
     String host,
+    int? port,
   ) async {
     final client = await ClientIdentity.generate();
-    final pairing = AndroidPairing(host, client);
+    final pairing = port == null
+        ? AndroidPairing(host, client)
+        : AndroidPairing(host, client, port: port);
     try {
       final identity = await pairing.run(() {
         context.onState(DeviceConnectionState.pairing);
