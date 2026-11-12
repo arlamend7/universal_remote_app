@@ -4,6 +4,8 @@ import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 
+import '../support/start_nearby_search.dart';
+
 import 'package:universal_remote_app/data/pairing/repositories/secure_credential_store.dart';
 
 import '../support/fake_controller.dart';
@@ -56,7 +58,7 @@ void main() {
         releaseNetwork: () async {},
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-      await tester.tap(find.byTooltip('Find Nearby Devices'));
+      await startNearbySearch(tester);
       await tester.pumpAndSettle();
       expect(find.text('Test OLED'), findsOneWidget);
       expect(find.text('1 unrecognized discovery responses'), findsOneWidget);

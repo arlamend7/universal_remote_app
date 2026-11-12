@@ -5,6 +5,8 @@ import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 import 'package:universal_remote_app/presentation/views/discovery/modals/device_discovery_sheet.dart';
 
+import '../support/start_nearby_search.dart';
+
 import '../support/memory_storage.dart';
 import '../support/fixture_protocols.dart';
 import '../support/fake_provider.dart';
@@ -40,7 +42,7 @@ void main() {
         ),
       );
       final rowPosition = tester.getTopLeft(find.text('Living room'));
-      await tester.tap(find.byTooltip('Find Nearby Devices'));
+      await startNearbySearch(tester);
       await tester.pump();
       await tester.pump();
       provider.response.complete([tv, tv]);
@@ -70,7 +72,7 @@ void main() {
       releaseNetwork: () async {},
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.byTooltip('Find Nearby Devices'));
+    await startNearbySearch(tester);
     await tester.pump();
     provider.response.completeError(StateError('private TV data'));
     await tester.pumpAndSettle();
@@ -105,7 +107,7 @@ void main() {
       releaseNetwork: () async {},
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.byTooltip('Find Nearby Devices'));
+    await startNearbySearch(tester);
     await tester.pump();
     failing.response.completeError(StateError('Unavailable'));
     await tester.pumpAndSettle();
@@ -133,7 +135,7 @@ void main() {
       },
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.byTooltip('Find Nearby Devices'));
+    await startNearbySearch(tester);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 350));
     expect(app.discovery.busy.value, isTrue);

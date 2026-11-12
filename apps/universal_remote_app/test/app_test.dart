@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'support/start_nearby_search.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
@@ -128,7 +130,7 @@ void main() {
         releaseNetwork: () async {},
       );
       await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
-      await tester.tap(find.byTooltip('Find Nearby Devices'));
+      await startNearbySearch(tester);
       await tester.pumpAndSettle();
       expect(find.text('Living room'), findsOneWidget);
       await tester.tap(find.text('Connect'));
