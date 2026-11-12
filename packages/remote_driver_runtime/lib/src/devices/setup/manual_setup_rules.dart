@@ -35,19 +35,13 @@ final class ManualSetupRules {
     )) {
       throw const FormatException('Invalid manual setup message.');
     }
-    final category = DeviceCategory.values.where(
-      (candidate) => candidate.name == (json['category'] ?? 'television'),
-    );
-    if (category.isEmpty) {
-      throw const FormatException('Unknown device category.');
-    }
     return ManualSetupRules._(
       Map.unmodifiable(json),
       label: IntegrationJson.label(json, 'label'),
       address: AddressPolicy.parse(json['address']),
       endpoint: EndpointTemplate.fromJson(json['endpoint']),
       legacyEndpoint: legacy == null ? null : EndpointTemplate.fromJson(legacy),
-      category: category.single,
+      category: DeviceCategory.parse(json['category'] ?? 'television'),
     );
   }
 

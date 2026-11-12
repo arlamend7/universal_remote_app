@@ -19,6 +19,18 @@ void main() {
     expect(restored.endpoints, isEmpty);
   });
 
+  test('future category and pairing IDs keep the saved device readable', () {
+    const mapper = SavedDeviceMapper();
+    final encoded = mapper.toJson(RemoteDevice(id: 'stable', name: 'Device'));
+    encoded['category'] = 'futureCategory';
+    encoded['pairingState'] = 'futurePairingState';
+
+    final restored = mapper.fromJson(encoded);
+    expect(restored.id, 'stable');
+    expect(restored.category, DeviceCategory.unknown);
+    expect(restored.pairingState, PairingState.unknown);
+  });
+
   test(
     'software provenance persists independently of the device and driver IDs',
     () {

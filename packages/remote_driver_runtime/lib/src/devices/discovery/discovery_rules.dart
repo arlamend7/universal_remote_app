@@ -133,13 +133,6 @@ final class DiscoveryRules {
     }
   }
 
-  static DeviceCategory _category(Object? value) {
-    final category = DeviceCategory.values.where(
-      (candidate) => candidate.name == (value ?? 'television'),
-    );
-    if (category.isEmpty) {
-      throw const FormatException('Unknown device category.');
-    }
-    return category.single;
-  }
+  static DeviceCategory _category(Object? value) =>
+      DeviceCategory.parse(value ?? 'television');
 }

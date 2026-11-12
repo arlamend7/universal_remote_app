@@ -1,3 +1,6 @@
+import 'capabilities/enums/remote_key.dart';
+import 'capabilities/enums/navigation_key.dart';
+import 'capabilities/enums/media_action.dart';
 import 'devices/models/volume_state.dart';
 import 'devices/models/device_input.dart';
 import 'devices/models/current_content.dart';
@@ -8,6 +11,9 @@ import 'package:remote_core/src/bluetooth_accessory.dart';
 import 'package:remote_core/src/errors/remote_exception.dart';
 import 'package:remote_core/src/remote_base.dart';
 
+export 'capabilities/enums/remote_key.dart';
+export 'capabilities/enums/navigation_key.dart';
+export 'capabilities/enums/media_action.dart';
 export 'devices/models/device_application.dart';
 export 'devices/models/device_channel.dart';
 export 'devices/models/current_content.dart';
@@ -92,39 +98,3 @@ abstract class TVRemoteBase extends RemoteBase {
 Future<Never> _unsupported(String feature) => Future.error(
   RemoteException('unsupported', '$feature is not supported by this device.'),
 );
-
-enum MediaAction { play, pause, stop, rewind, fastForward, previous, next }
-
-enum NavigationKey { up, down, left, right, enter, back, home }
-
-enum RemoteKey {
-  digit0('0'),
-  digit1('1'),
-  digit2('2'),
-  digit3('3'),
-  digit4('4'),
-  digit5('5'),
-  digit6('6'),
-  digit7('7'),
-  digit8('8'),
-  digit9('9'),
-  dash('DASH'),
-  enter('ENTER'),
-  menu('MENU'),
-  info('INFO'),
-  guide('GUIDE'),
-  exit('EXIT'),
-  red('RED'),
-  green('GREEN'),
-  yellow('YELLOW'),
-  blue('BLUE'),
-  source('SOURCE'),
-  settings('MENU'),
-  mute('MUTE'),
-  replay('REPLAY'),
-  liveTv('LIVE_TV'),
-  captions('CAPTIONS');
-
-  const RemoteKey(this.wireName);
-  final String wireName;
-}

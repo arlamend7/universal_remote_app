@@ -2,7 +2,6 @@ import 'package:remote_core/remote_core.dart';
 
 import 'integration_candidate.dart';
 import 'integration_selection.dart';
-import 'selection_stage.dart';
 
 /// Two-stage compatibility resolution.
 ///
@@ -31,7 +30,7 @@ abstract final class IntegrationResolver {
     return IntegrationSelection(
       chosen,
       chosen.bootstrapProfile,
-      SelectionStage.bootstrap,
+      ProfileStage.bootstrap,
       reason: previous.isNotEmpty
           ? 'Previously assigned integration.'
           : 'Highest-priority integration for this provider.',
@@ -65,7 +64,7 @@ abstract final class IntegrationResolver {
       return IntegrationSelection(
         current.candidate,
         profile(current.candidate, software, model: model),
-        SelectionStage.identified,
+        ProfileStage.identified,
         reason: stays ? 'The TV software matches this integration.' : 'No integration declares this TV software; keeping the bootstrap choice.',
       );
     }
@@ -73,7 +72,7 @@ abstract final class IntegrationResolver {
     return IntegrationSelection(
       replacement,
       profile(replacement, software, model: model),
-      SelectionStage.identified,
+      ProfileStage.identified,
       reason: 'The TV software matches ${replacement.id}.',
     );
   }

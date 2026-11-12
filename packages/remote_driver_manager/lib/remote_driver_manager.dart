@@ -32,7 +32,6 @@ export 'src/providers/provider_rule_source.dart';
 export 'src/selection/integration_candidate.dart';
 export 'src/selection/integration_resolver.dart';
 export 'src/selection/integration_selection.dart';
-export 'src/selection/selection_stage.dart';
 export 'src/selection/managed_integration_planner.dart';
 export 'src/installation/stored_zip_writer.dart';
 export 'src/installation/unavailable_package_source.dart';

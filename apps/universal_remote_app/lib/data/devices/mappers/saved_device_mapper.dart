@@ -12,10 +12,12 @@ final class SavedDeviceMapper {
       providerId: map['providerId'] as String,
       manufacturer: map['manufacturer'] as String?,
       model: map['model'] as String?,
-      category: DeviceCategory.values.byName(map['category'] as String),
+      category:
+          DeviceCategory.tryParse(map['category']) ?? DeviceCategory.unknown,
       capabilities: _capabilities(map['capabilities']),
       stableIdentity: map['stableIdentity'] as bool,
-      pairingState: PairingState.values.byName(map['pairingState'] as String),
+      pairingState:
+          PairingState.tryParse(map['pairingState']) ?? PairingState.unknown,
       endpoints: (map['endpoints'] as List<dynamic>)
           .cast<String>()
           .map(Uri.parse)
@@ -42,10 +44,10 @@ final class SavedDeviceMapper {
     'providerId': device.providerId,
     'manufacturer': device.manufacturer,
     'model': device.model,
-    'category': device.category.name,
+    'category': device.category.id,
     'capabilities': device.capabilities.map((item) => item.name).toList(),
     'stableIdentity': device.stableIdentity,
-    'pairingState': device.pairingState.name,
+    'pairingState': device.pairingState.id,
     'endpoints': device.endpoints
         .map((endpoint) => endpoint.toString())
         .toList(),

@@ -1,8 +1,20 @@
+import 'capabilities/enums/remote_capability.dart';
+import 'capabilities/enums/capability_source.dart';
+import 'capabilities/enums/capability_availability.dart';
+import 'devices/enums/pairing_state.dart';
+import 'devices/enums/device_category.dart';
+
 import 'dart:convert';
 import 'dart:math';
 
 import 'devices/models/device_software_information.dart';
 
+export 'capabilities/enums/remote_capability.dart';
+export 'capabilities/enums/capability_source.dart';
+export 'capabilities/enums/capability_availability.dart';
+export 'devices/enums/pairing_state.dart';
+export 'devices/enums/device_connection_state.dart';
+export 'devices/enums/device_category.dart';
 export 'devices/models/device_network_configuration.dart';
 
 export 'devices/models/device_wake_address.dart';
@@ -41,27 +53,6 @@ final class RemoteDevice {
   final Set<RemoteCapability> capabilities;
   final PairingState pairingState;
 }
-
-enum DeviceCategory {
-  television,
-  airConditioner,
-  mediaPlayer,
-  speaker,
-  light,
-  fan,
-  projector,
-  unknown,
-}
-
-enum DeviceConnectionState {
-  disconnected,
-  connecting,
-  pairing,
-  connected,
-  reconnecting,
-}
-
-enum PairingState { unknown, unpaired, paired }
 
 RemoteDevice copyDevice(
   RemoteDevice device, {
@@ -104,62 +95,4 @@ final class CapabilityEvidence {
   final CapabilitySource source;
   final CapabilityAvailability availability;
   final String? reason;
-}
-
-enum CapabilityAvailability {
-  advertised,
-  known,
-  verified,
-  unavailable,
-  unsupported,
-  conditional,
-  unknown,
-}
-
-enum CapabilitySource {
-  advertisement,
-  standardDiscovery,
-  driver,
-  profile,
-  learned,
-  user,
-}
-
-enum RemoteCapability {
-  volume,
-  volumeFeedback,
-  mute,
-  navigation,
-  power,
-  applications,
-  inputs,
-  media,
-  channels,
-  currentContent,
-  pointer,
-  textInput,
-  channelSelection,
-  climate,
-  lighting,
-  wake,
-  voice,
-  gameMode,
-  watch,
-  currentInput,
-  trackNavigation,
-  seek,
-  playbackMetadata,
-  absoluteVolume,
-  accessorySettings,
-  bluetoothAccessories,
-  playbackToggle,
-  numericKeys,
-  specialKeys,
-  tvSettings,
-  playbackScan,
-  liveTvKey,
-  screenPower,
-  captionsKey,
-  instantReplay,
-  channelCatalog,
 }

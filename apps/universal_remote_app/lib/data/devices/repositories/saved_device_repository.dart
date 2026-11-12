@@ -46,7 +46,8 @@ final class SavedDeviceRepository implements DeviceProfileRepository {
   RegisteredDevice _readDevice(Map<String, dynamic> json) => RegisteredDevice(
     id: json['id'] as String,
     name: json['name'] as String,
-    category: DeviceCategory.values.byName(json['category'] as String),
+    category:
+        DeviceCategory.tryParse(json['category']) ?? DeviceCategory.unknown,
     preferredProviderId: json['preferredProviderId'] as String?,
     profiles: (json['profiles'] as List).cast<Map<String, dynamic>>().map(
       (profile) => ConnectionProfile(
@@ -69,7 +70,7 @@ final class SavedDeviceRepository implements DeviceProfileRepository {
   Map<String, Object?> _writeDevice(RegisteredDevice device) => {
     'id': device.id,
     'name': device.name,
-    'category': device.category.name,
+    'category': device.category.id,
     'preferredProviderId': device.preferredProviderId,
     'profiles': [
       for (final profile in device.profiles)

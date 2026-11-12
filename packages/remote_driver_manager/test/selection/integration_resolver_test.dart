@@ -44,7 +44,7 @@ void main() {
     final first = IntegrationResolver.bootstrap('lg.webos', candidates)!;
     expect(first.identity.integrationId, 'lg.webos.22-plus');
     expect(first.profile.id, 'bootstrap');
-    expect(first.stage, SelectionStage.bootstrap);
+    expect(first.stage, ProfileStage.bootstrap);
     final saved = IntegrationResolver.bootstrap(
       'lg.webos',
       candidates,

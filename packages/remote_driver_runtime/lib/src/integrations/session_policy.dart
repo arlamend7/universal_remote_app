@@ -54,13 +54,5 @@ final class SessionPolicy {
     );
   }
 
-  static DeviceCategory _named(Object? value) {
-    final category = DeviceCategory.values.where(
-      (candidate) => candidate.name == value,
-    );
-    if (category.isEmpty) {
-      throw const FormatException('Unknown device category.');
-    }
-    return category.single;
-  }
+  static DeviceCategory _named(Object? value) => DeviceCategory.parse(value);
 }

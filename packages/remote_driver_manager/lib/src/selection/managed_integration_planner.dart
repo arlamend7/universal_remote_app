@@ -12,7 +12,6 @@ import '../installation/integration_update_service.dart';
 import 'integration_candidate.dart';
 import 'integration_resolver.dart';
 import 'integration_selection.dart';
-import 'selection_stage.dart';
 
 /// Resolves a device's integration before its session starts: chooses a
 /// compatible integration, installs it when missing, loads the verified
@@ -85,7 +84,7 @@ final class ManagedIntegrationPlanner implements IntegrationPlanner {
       IntegrationSelection(
         selected,
         current.profile,
-        SelectionStage.bootstrap,
+        ProfileStage.bootstrap,
         reason: 'current',
       ),
       candidates,
@@ -134,7 +133,7 @@ final class ManagedIntegrationPlanner implements IntegrationPlanner {
       definition,
       profile,
       sha256: generation.sha256,
-      identified: selection.stage == SelectionStage.identified,
+      identified: selection.stage == ProfileStage.identified,
       metadata: {
         IntegrationMetadataKeys.integrationId:
             definition.identity.integrationId,
