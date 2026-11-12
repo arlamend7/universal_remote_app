@@ -1,0 +1,237 @@
+{
+  "navigation": {
+    "alternatives": [
+      [
+        "navigation-up",
+        "navigation-down",
+        "navigation-left",
+        "navigation-right",
+        "navigation-enter",
+        "navigation-back",
+        "navigation-home"
+      ]
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "textInput": {
+    "alternatives": [
+      [
+        "send-text",
+        "send-enter"
+      ]
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "playbackToggle": {
+    "alternatives": [
+      [
+        "toggle-playback"
+      ]
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "playbackScan": {
+    "alternatives": [
+      [
+        "media-rewind",
+        "media-fast-forward"
+      ]
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "instantReplay": {
+    "alternatives": [
+      [
+        "key-replay"
+      ]
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "channels": {
+    "alternatives": [
+      [
+        "channel-up",
+        "channel-down"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "device.is-tv",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "channelCatalog": {
+    "alternatives": [
+      [
+        "list-channels"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "tuner.channels",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "mute": {
+    "alternatives": [
+      [
+        "toggle-mute",
+        "key-mute"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "device.supports-audio-volume-control",
+        "equals": "true",
+        "otherwise": {
+          "fact": "device.is-tv",
+          "equals": "true",
+          "missing": false
+        }
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "volume": {
+    "alternatives": [
+      [
+        "volume-up",
+        "volume-down"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "device.supports-audio-volume-control",
+        "equals": "true",
+        "otherwise": {
+          "fact": "device.is-tv",
+          "equals": "true",
+          "missing": false
+        }
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "power": {
+    "alternatives": [
+      [
+        "power-off"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "device.supports-tv-power-control",
+        "equals": "true",
+        "otherwise": {
+          "fact": "device.is-tv",
+          "equals": "true",
+          "missing": false
+        }
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "applications": {
+    "alternatives": [
+      [
+        "list-applications",
+        "launch-application"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "catalog.applications",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "currentContent": {
+    "alternatives": [
+      [
+        "read-content"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "content.reported",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "availability": "verified"
+  },
+  "inputs": {
+    "alternatives": [
+      [
+        "list-inputs",
+        "select-input"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "catalog.inputs",
+        "equals": "true",
+        "missing": false
+      }
+    ],
+    "disableOn": [
+      "unsupported",
+      "permission"
+    ]
+  },
+  "currentInput": {
+    "alternatives": [
+      [
+        "read-content"
+      ]
+    ],
+    "when": [
+      {
+        "fact": "catalog.inputs",
+        "equals": "true",
+        "missing": false
+      }
+    ]
+  }
+}

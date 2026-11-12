@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "integrationId": "roku.ecp.supported",
+  "providerId": "roku.ecp",
+  "name": "Roku (ECP)",
+  "manufacturer": "Roku",
+  "platform": "Roku OS",
+  "engine": "roku-ecp",
+  "priority": 0,
+  "requiredRuntime": {
+    "api": 2,
+    "operations": [
+      "roku-ecp.applications",
+      "roku-ecp.channels",
+      "roku-ecp.inputs",
+      "roku-ecp.key",
+      "roku-ecp.launch",
+      "roku-ecp.playback",
+      "roku-ecp.read-content",
+      "roku-ecp.select-input",
+      "roku-ecp.text"
+    ]
+  },
+  "credentialScope": "device",
+  "compatibility": {
+    "versionScheme": "dotted-numeric"
+  },
+  "profiles": [
+    {
+      "id": "bootstrap",
+      "stage": "bootstrap"
+    }
+  ],
+  "capabilities": [
+    "navigation",
+    "textInput",
+    "playbackToggle",
+    "playbackScan",
+    "instantReplay",
+    "channels",
+    "channelCatalog",
+    "mute",
+    "volume",
+    "power",
+    "applications",
+    "currentContent",
+    "inputs",
+    "currentInput"
+  ],
+  "replaces": [
+    "roku-ecp"
+  ]
+}

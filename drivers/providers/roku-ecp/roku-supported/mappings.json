@@ -1,0 +1,110 @@
+{
+  "navigation-up": {
+    "kind": "roku-ecp.key",
+    "key": "Up"
+  },
+  "navigation-down": {
+    "kind": "roku-ecp.key",
+    "key": "Down"
+  },
+  "navigation-left": {
+    "kind": "roku-ecp.key",
+    "key": "Left"
+  },
+  "navigation-right": {
+    "kind": "roku-ecp.key",
+    "key": "Right"
+  },
+  "navigation-enter": {
+    "kind": "roku-ecp.key",
+    "key": "Select"
+  },
+  "navigation-back": {
+    "kind": "roku-ecp.key",
+    "key": "Back"
+  },
+  "navigation-home": {
+    "kind": "roku-ecp.key",
+    "key": "Home"
+  },
+  "toggle-playback": {
+    "kind": "roku-ecp.key",
+    "key": "Play"
+  },
+  "volume-up": {
+    "kind": "roku-ecp.key",
+    "key": "VolumeUp"
+  },
+  "volume-down": {
+    "kind": "roku-ecp.key",
+    "key": "VolumeDown"
+  },
+  "power-off": {
+    "kind": "roku-ecp.key",
+    "key": "PowerOff"
+  },
+  "wake": {
+    "kind": "roku-ecp.key",
+    "key": "PowerOn",
+    "gate": "power"
+  },
+  "send-enter": {
+    "kind": "roku-ecp.key",
+    "key": "Enter"
+  },
+  "send-text": {
+    "kind": "roku-ecp.text"
+  },
+  "list-applications": {
+    "kind": "roku-ecp.applications"
+  },
+  "launch-application": {
+    "kind": "roku-ecp.launch"
+  },
+  "list-inputs": {
+    "kind": "roku-ecp.inputs"
+  },
+  "select-input": {
+    "kind": "roku-ecp.select-input"
+  },
+  "channel-up": {
+    "kind": "roku-ecp.key",
+    "key": "ChannelUp"
+  },
+  "channel-down": {
+    "kind": "roku-ecp.key",
+    "key": "ChannelDown"
+  },
+  "list-channels": {
+    "kind": "roku-ecp.channels",
+    "readOnly": true
+  },
+  "media-rewind": {
+    "kind": "roku-ecp.key",
+    "key": "Rev"
+  },
+  "media-fast-forward": {
+    "kind": "roku-ecp.key",
+    "key": "Fwd"
+  },
+  "key-mute": {
+    "kind": "roku-ecp.key",
+    "key": "VolumeMute"
+  },
+  "toggle-mute": {
+    "kind": "roku-ecp.key",
+    "key": "VolumeMute"
+  },
+  "key-replay": {
+    "kind": "roku-ecp.key",
+    "key": "InstantReplay"
+  },
+  "read-content": {
+    "kind": "roku-ecp.read-content",
+    "readOnly": true
+  },
+  "read-playback": {
+    "kind": "roku-ecp.playback",
+    "readOnly": true
+  }
+}

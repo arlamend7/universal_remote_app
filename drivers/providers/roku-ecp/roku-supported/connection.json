@@ -1,0 +1,22 @@
+{
+  "operatingSystem": "Roku OS",
+  "inputKeys": {
+    "tvinput.dtv": "InputTuner",
+    "tvinput.hdmi1": "InputHDMI1",
+    "tvinput.hdmi2": "InputHDMI2",
+    "tvinput.hdmi3": "InputHDMI3",
+    "tvinput.hdmi4": "InputHDMI4",
+    "tvinput.cvbs": "InputAV1"
+  },
+  "session": {
+    "category": {
+      "when": {
+        "fact": "device.is-tv",
+        "equals": "true",
+        "missing": false
+      },
+      "then": "television",
+      "otherwise": "mediaPlayer"
+    }
+  }
+}
