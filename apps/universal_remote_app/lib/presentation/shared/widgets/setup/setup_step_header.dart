@@ -7,12 +7,16 @@ class SetupStepHeader extends StatelessWidget {
     required this.title,
     required this.onBack,
     this.subtitle,
+    this.action,
   });
 
   final int step;
   final String title;
   final VoidCallback? onBack;
   final String? subtitle;
+
+  /// Optional 44 px trailing button, balanced by the Back button.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,7 @@ class SetupStepHeader extends StatelessWidget {
             children: [
               _backButton(),
               Expanded(child: _title(theme)),
-              const SizedBox(width: 44),
+              action ?? const SizedBox(width: 44),
             ],
           ),
           if (subtitle case final text?)

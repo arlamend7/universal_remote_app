@@ -41,7 +41,7 @@ void main() {
       await tester.pump();
       expect(tester.widget<FilledButton>(search).onPressed, isNotNull);
       expect(search.hitTestable(), findsOneWidget);
-      expect(find.text('Connect by IP').hitTestable(), findsOneWidget);
+      expect(find.text('Connection details').hitTestable(), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
       unawaited(app.dispose());

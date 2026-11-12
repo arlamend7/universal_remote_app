@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/app_dependencies.dart';
-import '../discovery/pages/discovery_entry.dart';
 import '../settings/viewmodels/settings_viewmodel.dart';
 import '../settings/widgets/appearance_settings.dart';
 import 'widgets/welcome_intro.dart';
@@ -14,7 +13,7 @@ class WelcomePage extends StatelessWidget {
   });
 
   final AppDependencies dependencies;
-  final void Function(BuildContext, DiscoveryEntry) onContinue;
+  final ValueChanged<BuildContext> onContinue;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -122,24 +121,15 @@ class WelcomePage extends StatelessWidget {
       spacing: 4,
       children: [
         FilledButton.icon(
-          onPressed: () => onContinue(context, DiscoveryEntry.preparation),
+          onPressed: () => onContinue(context),
           icon: const Icon(Icons.search),
           label: const Text('Find Nearby TVs'),
         ),
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          children: [
-            TextButton.icon(
-              onPressed: () =>
-                  onContinue(context, DiscoveryEntry.manualAddress),
-              icon: const Icon(Icons.lan_outlined, size: 18),
-              label: const Text('Connect by IP address'),
-            ),
-            TextButton(
-              onPressed: () => onContinue(context, DiscoveryEntry.preparation),
-              child: const Text('Configure later'),
-            ),
-          ],
+        Center(
+          child: TextButton(
+            onPressed: () => onContinue(context),
+            child: const Text('Configure later'),
+          ),
         ),
       ],
     ),

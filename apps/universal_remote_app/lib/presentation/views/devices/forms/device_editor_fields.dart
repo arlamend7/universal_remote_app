@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../viewmodels/device_editor_viewmodel.dart';
 import 'advanced_connection_fields.dart';
+import 'legacy_connection_fields.dart';
+import 'platform_field.dart';
 
 class DeviceEditorFields extends StatelessWidget {
   const DeviceEditorFields({super.key, required this.model});
@@ -12,7 +14,7 @@ class DeviceEditorFields extends StatelessWidget {
     children: [
       if (!model.editing &&
           (model.setups.length > 1 || model.identifyAddress != null)) ...[
-        _platform(),
+        PlatformField(model: model),
         const SizedBox(height: 16),
       ],
       _name(),
@@ -24,36 +26,13 @@ class DeviceEditorFields extends StatelessWidget {
           tilePadding: EdgeInsets.zero,
           title: const Text('Advanced settings'),
           children: [
-            _legacy(),
-            if (!model.legacy.value) _legacyPointer(),
+            LegacyConnectionFields(model: model),
             AdvancedConnectionFields(model: model),
           ],
         ),
       if (model.error.value != null) _error(context),
     ],
   );
-  Widget _platform() => DropdownButtonFormField<String>(
-    initialValue: model.provider.value ?? _automatic,
-
-    isExpanded: true,
-    decoration: const InputDecoration(labelText: 'TV platform'),
-    items: [
-      if (model.identifyAddress != null)
-        const DropdownMenuItem(
-          value: _automatic,
-          child: Text('Detect automatically'),
-        ),
-      for (final entry in model.setups.entries)
-        DropdownMenuItem(value: entry.key, child: Text(entry.value.label)),
-    ],
-    onChanged: model.checking.value ? null : _selectPlatform,
-  );
-
-  static const _automatic = '';
-
-  void _selectPlatform(String? value) {
-    model.provider.value = value == _automatic ? null : value;
-  }
 
   Widget _name() => TextField(
     controller: model.name,
@@ -67,24 +46,6 @@ class DeviceEditorFields extends StatelessWidget {
       labelText: 'TV IP address',
       hintText: '192.168.1.100',
     ),
-  );
-  Widget _legacy() => SwitchListTile(
-    contentPadding: EdgeInsets.zero,
-    title: const Text('Legacy connection'),
-    subtitle: const Text(
-      'Unencrypted transport. Use only on a trusted network.',
-    ),
-    value: model.legacy.value,
-    onChanged: model.setLegacy,
-  );
-  Widget _legacyPointer() => SwitchListTile(
-    contentPadding: EdgeInsets.zero,
-    title: const Text('Allow legacy navigation socket'),
-    subtitle: const Text(
-      'Some TVs require unencrypted navigation even when pairing uses TLS.',
-    ),
-    value: model.legacyPointer.value,
-    onChanged: model.setLegacyPointer,
   );
   Widget _error(BuildContext context) => Padding(
     padding: const EdgeInsets.only(top: 12),

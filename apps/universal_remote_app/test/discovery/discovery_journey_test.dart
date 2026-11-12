@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
-import 'package:universal_remote_app/presentation/views/devices/modals/device_editor.dart';
+import 'package:universal_remote_app/presentation/views/discovery/pages/manual_address_page.dart';
 
 import '../support/fake_provider.dart';
 import '../support/fixture_protocols.dart';
@@ -12,16 +12,50 @@ import '../support/start_nearby_search.dart';
 import '../support/test_device.dart';
 
 void main() {
-  testWidgets('welcome offers manual IP before scanning', (tester) async {
+  testWidgets('Connect by IP is offered only on the discovery step', (
+    tester,
+  ) async {
+    final provider = FakeProvider();
     final app = await AppBootstrap.initialize(
       storage: MemoryStorage(),
-      registry: ProviderRegistry(),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
+      discoveryProtocols: fixtureProtocols([provider]),
+      acquireNetwork: () async {},
+      releaseNetwork: () async {},
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
-    await tester.tap(find.text('Connect by IP address'));
+    expect(find.text('Connect by IP address'), findsNothing);
+    expect(find.textContaining('Connect by IP'), findsNothing);
+    await startNearbySearch(tester);
     await tester.pumpAndSettle();
-    expect(find.byType(DeviceEditor), findsOneWidget);
-    expect(app.discovery.searchId, 0);
+    await tester.tap(find.text('Connect by IP'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ManualAddressPage), findsOneWidget);
+    expect(find.text('STEP 2 OF 4'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('first-time discovery returns to preparation without Back', (
+    tester,
+  ) async {
+    final provider = FakeProvider();
+    final app = await AppBootstrap.initialize(
+      storage: MemoryStorage(),
+      registry: ProviderRegistry()..registerDefinition(provider.definition),
+      discoveryProtocols: fixtureProtocols([provider]),
+      acquireNetwork: () async {},
+      releaseNetwork: () async {},
+    );
+    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+    await startNearbySearch(tester);
+    await tester.pumpAndSettle();
+    expect(find.text('Find Devices'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Preparation'), findsOneWidget);
+    expect(find.byTooltip('Back'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });

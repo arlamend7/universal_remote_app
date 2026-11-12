@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
+
+import '../../../../app/app_dependencies.dart';
 
 final class DeviceEditorViewModel {
   DeviceEditorViewModel({
@@ -22,6 +26,27 @@ final class DeviceEditorViewModel {
     legacy.value = configuration.legacy;
     legacyPointer.value = configuration.allowInsecurePointer;
   }
+
+  /// Builds the editor from the app's provider registry.
+  factory DeviceEditorViewModel.forApp(
+    AppDependencies dependencies, {
+    RemoteDevice? device,
+  }) {
+    final registry = dependencies.providers;
+    return DeviceEditorViewModel(
+      configuration: device == null
+          ? const DeviceNetworkConfiguration()
+          : registry.networkConfiguration(device),
+      factory: registry.createManualDevice,
+      currentSetups: () => registry.manualSetups,
+      identifyAddress:
+          registry.canIdentifyAddresses || dependencies.drivers != null
+          ? dependencies.identifyAddress
+          : null,
+      device: device,
+    );
+  }
+
   final ManualDeviceFactory factory;
   final Future<List<String>> Function(String, DiscoveryCancellation)?
   identifyAddress;
@@ -47,6 +72,12 @@ final class DeviceEditorViewModel {
       setups[provider.value]?.showsAdvancedSetup ??
       (editing || identifyAddress == null);
   bool get editing => device != null;
+
+  /// Whether the typed address is a literal IPv4 or IPv6 address.
+  bool get addressIsValid =>
+      InternetAddress.tryParse(address.text.trim()) != null;
+
+  bool get showsPlatformChoice => setups.isNotEmpty || identifyAddress != null;
   void setLegacy(bool enabled) {
     legacy.value = enabled;
   }

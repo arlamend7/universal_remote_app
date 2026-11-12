@@ -7,6 +7,7 @@ import 'package:universal_remote_app/presentation/views/devices/widgets/device_c
 import 'package:universal_remote_app/app/app_bootstrap.dart';
 import 'package:universal_remote_app/app/universal_remote_app.dart';
 import 'package:universal_remote_app/presentation/widgets/layout/page_title.dart';
+import 'package:universal_remote_app/presentation/views/discovery/pages/manual_address_page.dart';
 
 import '../support/fake_wake_provider.dart';
 
@@ -18,7 +19,7 @@ import '../support/test_device.dart';
 
 void main() {
   testWidgets(
-    'floating Connect opens preparation and keeps IP setup available',
+    'floating Connect opens preparation and discovery offers the IP page',
     (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 844));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -44,33 +45,50 @@ void main() {
       await tester.tap(addDevice);
       await tester.pumpAndSettle();
       expect(find.text('STEP 1 OF 4'), findsOneWidget);
+      await tester.tap(find.text('My TV is on'));
+      await tester.pump();
+      await tester.tap(find.text('Search for devices'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Connect by IP'));
       await tester.pumpAndSettle();
 
-      final title = tester.getRect(
-        find.descendant(
-          of: find.byType(AppSheet),
-          matching: find.text('Connect by IP'),
-        ),
-      );
+      expect(find.byType(ManualAddressPage), findsOneWidget);
+      expect(find.byType(AppSheet), findsNothing);
+      expect(find.text('STEP 2 OF 4'), findsOneWidget);
+      expect(find.byTooltip('Connection settings'), findsOneWidget);
       final platform = tester.getRect(
         find.byType(DropdownButtonFormField<String>),
       );
-      final name = tester.getRect(find.byType(TextField).first);
-      final cancel = tester.getRect(
-        find.widgetWithText(OutlinedButton, 'Cancel'),
+      final address = tester.getRect(
+        find.widgetWithText(TextField, 'TV IP address'),
+      );
+      final search = tester.getRect(
+        find.widgetWithText(OutlinedButton, 'Search'),
       );
       final connect = tester.getRect(
         find.widgetWithText(FilledButton, 'Connect'),
       );
-      expect(title.left, platform.left);
-      expect(platform.left, cancel.left);
+      expect(address.top, greaterThan(platform.bottom));
+      expect(platform.left, search.left);
       expect(connect.right, platform.right);
-      expect(cancel.width, closeTo(connect.width, .01));
-      expect(cancel.height, connect.height);
-      expect(name.top - platform.bottom, 16);
-      await tester.tap(find.text('Cancel'));
+      expect(search.width, closeTo(connect.width, .01));
+      expect(search.height, connect.height);
+      expect(find.text('OK'), findsNothing);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'TV IP address'),
+        '192.168.0.104',
+      );
+      await tester.pump();
+      expect(find.text('OK'), findsOneWidget);
+
+      await tester.tap(find.text('Search'));
       await tester.pumpAndSettle();
+      expect(find.byType(ManualAddressPage), findsNothing);
+      expect(find.text('Find Devices'), findsOneWidget);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(find.text('Preparation'), findsNothing);
+      expect(heading, findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
     },

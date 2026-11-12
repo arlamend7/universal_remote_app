@@ -29,8 +29,12 @@ void main() {
       await startNearbySearch(tester);
       await tester.pump();
       await tester.pump();
-      expect(find.text('Searching for nearby devices…'), findsOneWidget);
+      expect(find.text(DiscoveryProgress.label), findsOneWidget);
       expect(find.byType(DiscoveryProgress), findsOneWidget);
+      expect(
+        tester.getRect(find.byType(DiscoveryProgress)).bottom,
+        lessThan(tester.getRect(find.text('Cancel search')).top),
+      );
       expect(find.text('Cancel search'), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));
       expect(provider.calls, 1);
@@ -39,7 +43,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(DiscoveryProgress), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Searching for nearby devices…'), findsNothing);
+      expect(find.text(DiscoveryProgress.label), findsNothing);
       expect(find.text('Living room'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();

@@ -6,10 +6,9 @@ import 'package:remote_ui/remote_ui.dart';
 
 import '../../../../data/network/services/preparation_network.dart';
 import '../../../shared/widgets/setup/push_setup_page.dart';
+import '../../../shared/widgets/setup/replace_setup_page.dart';
 import '../../../shared/widgets/setup/setup_display.dart';
 import '../../../shared/widgets/setup/setup_step_page.dart';
-import '../../devices/modals/edit_device.dart';
-import '../../pairing/pages/show_device_pairing.dart';
 import '../widgets/tv_preparation_card.dart';
 import 'device_discovery_page.dart';
 import 'device_preparation_page.dart';
@@ -26,13 +25,6 @@ class DevicePreparationState extends State<DevicePreparationPage> {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _refreshNetwork);
     unawaited(_refreshNetwork());
-    if (widget.openManualAddress) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          unawaited(_connectByIp());
-        }
-      });
-    }
   }
 
   @override
@@ -61,6 +53,8 @@ class DevicePreparationState extends State<DevicePreparationPage> {
       setState(() => _requestingName = false);
     }
   }
+
+  bool get _firstConnection => widget.onSetupFinished != null;
 
   bool get _networkConnected =>
       _network?.transport == 'wifi' || _network?.transport == 'ethernet';
@@ -108,7 +102,7 @@ class DevicePreparationState extends State<DevicePreparationPage> {
   Widget build(BuildContext context) => SetupStepPage(
     step: 1,
     title: 'Preparation',
-    showBack: widget.onSetupFinished == null,
+    showBack: !_firstConnection,
     body: _requirements(context),
     primary: FilledButton.icon(
       onPressed: _confirmed ? _search : null,
@@ -166,37 +160,28 @@ class DevicePreparationState extends State<DevicePreparationPage> {
     context,
     title: 'Connection details',
     child: const Text(
-      'This check shows your device’s connection. Searching checks whether your TV is reachable. You can also connect by IP.',
+      'This check shows your device’s connection. Searching checks whether your TV is reachable. If it is not found, use Connect by IP on the next step.',
     ),
   );
 
   Future<void> _search() async {
-    final device = await pushSetupPage<RemoteDevice>(
-      context,
-      DeviceDiscoveryPage(dependencies: widget.dependencies),
-    );
-    _finish(device);
-  }
-
-  Future<void> _connectByIp() async {
-    final device = await editDevice(context, widget.dependencies);
-    if (device == null || !mounted) {
+    final discovery = DeviceDiscoveryPage(dependencies: widget.dependencies);
+    if (!_firstConnection) {
+      _replaceWithDiscovery(discovery);
       return;
     }
-    _finish(await showDevicePairing(context, widget.dependencies, device));
+    _finish(await pushSetupPage<RemoteDevice>(context, discovery));
+  }
+
+  void _replaceWithDiscovery(Widget discovery) {
+    final selection = replaceSetupPage<RemoteDevice>(context, discovery);
+    widget.onReplacedByDiscovery?.call(selection);
   }
 
   void _finish(RemoteDevice? device) {
     if (!mounted) {
       return;
     }
-    final finish = widget.onSetupFinished;
-    if (finish != null) {
-      finish(device);
-      return;
-    }
-    if (device != null) {
-      Navigator.pop(context, device);
-    }
+    widget.onSetupFinished?.call(device);
   }
 }

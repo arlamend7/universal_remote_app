@@ -17,6 +17,8 @@ class SetupStepPage extends StatelessWidget {
     this.secondary,
     this.footerLink,
     this.banner,
+    this.headerAction,
+    this.floating,
   });
 
   final int step;
@@ -30,6 +32,12 @@ class SetupStepPage extends StatelessWidget {
   final Widget? secondary;
   final Widget? footerLink;
   final Widget? banner;
+  final Widget? headerAction;
+
+  /// Status shown above the footer, over the bottom of the scrolling body.
+  final Widget? floating;
+
+  static const _floatingClearance = 88.0;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -51,18 +59,57 @@ class SetupStepPage extends StatelessWidget {
       return SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [content, if (footer != null) footer],
+          children: [
+            content,
+            if (floating != null) _floatingStatus(),
+            if (footer != null) footer,
+          ],
         ),
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(child: SingleChildScrollView(child: content)),
+        Expanded(child: _scrollingBody(content)),
         if (footer != null) footer,
       ],
     );
   }
+
+  Widget _scrollingBody(Widget content) => Stack(
+    children: [
+      Positioned.fill(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            bottom: floating == null ? 0 : _floatingClearance,
+          ),
+          child: content,
+        ),
+      ),
+      Positioned(left: 0, right: 0, bottom: 0, child: _floatingStatus()),
+    ],
+  );
+
+  Widget _floatingStatus() => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+    child: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      transitionBuilder: _slideIn,
+      child: floating ?? const SizedBox.shrink(),
+    ),
+  );
+
+  static Widget _slideIn(Widget child, Animation<double> animation) =>
+      FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween(
+            begin: const Offset(0, .25),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      );
 
   Widget _content(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -71,6 +118,7 @@ class SetupStepPage extends StatelessWidget {
         step: step,
         title: title,
         subtitle: subtitle,
+        action: headerAction,
         onBack: showBack ? onBack ?? () => Navigator.maybePop(context) : null,
       ),
       if (banner != null) banner!,

@@ -54,9 +54,7 @@ void main() {
       expect(find.text('Living room'), findsNothing);
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
-      expect(find.text('Preparation'), findsOneWidget);
-      await tester.tap(find.byTooltip('Back'));
-      await tester.pumpAndSettle();
+      expect(find.text('Preparation'), findsNothing);
       expect(tester.getTopLeft(find.text('Living room')), rowPosition);
       expect(find.byType(DeviceDiscoveryPage), findsNothing);
       expect(app.savedDevices.devices.value, hasLength(1));

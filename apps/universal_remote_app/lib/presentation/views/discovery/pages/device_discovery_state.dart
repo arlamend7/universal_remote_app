@@ -5,9 +5,9 @@ import 'package:remote_core/remote_core.dart';
 
 import 'package:remote_ui/remote_ui.dart';
 
+import '../../../shared/widgets/setup/push_setup_page.dart';
 import '../../../shared/widgets/setup/setup_step_page.dart';
 import '../../devices/widgets/discovery_progress.dart';
-import '../../devices/modals/edit_device.dart';
 import '../../pairing/pages/show_device_pairing.dart';
 import '../../../../domains/discovery/models/connection_issue_type.dart';
 import '../widgets/discovery_details.dart';
@@ -15,6 +15,7 @@ import '../widgets/discovery_issue.dart';
 import '../widgets/discovered_device_tile.dart';
 import '../viewmodels/discovery_viewmodel.dart';
 import 'device_discovery_page.dart';
+import 'manual_address_page.dart';
 
 class DeviceDiscoveryState extends State<DeviceDiscoveryPage> {
   String? _lastConnectionId;
@@ -57,6 +58,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoveryPage> {
     title: 'Find Devices',
     bodyPadding: const EdgeInsets.symmetric(vertical: 16),
     body: _body(),
+    floating: model.searching ? const DiscoveryProgress() : null,
     primary: _searchAction(),
     secondary: OutlinedButton.icon(
       onPressed: model.adding ? null : _connectByIp,
@@ -84,7 +86,6 @@ class DeviceDiscoveryState extends State<DeviceDiscoveryPage> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     spacing: 12,
     children: [
-      if (model.searching) _inset(const DiscoveryProgress()),
       if (_connectionIssue() case final issue?) _inset(issue),
       if (widget.dependencies.discovery.catalogOffline.value &&
           !_offlineDismissed)
@@ -269,10 +270,23 @@ class DeviceDiscoveryState extends State<DeviceDiscoveryPage> {
     if (ModalRoute.of(context)?.isCurrent != true) {
       return;
     }
-    final device = await editDevice(context, widget.dependencies);
-    if (device != null && mounted) {
-      await _pair(device);
+    final connected = await pushSetupPage<RemoteDevice>(
+      context,
+      ManualAddressPage(
+        dependencies: widget.dependencies,
+        onSearch: _searchWhenIdle,
+      ),
+    );
+    if (connected != null && mounted) {
+      Navigator.pop(context, connected);
     }
+  }
+
+  void _searchWhenIdle() {
+    if (!mounted || model.searching || model.adding) {
+      return;
+    }
+    unawaited(_search());
   }
 
   Future<void> _add(RemoteDevice device) async {

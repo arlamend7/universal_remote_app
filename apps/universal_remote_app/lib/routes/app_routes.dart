@@ -10,7 +10,6 @@ import '../presentation/views/settings/settings_page.dart';
 import '../presentation/views/devices/devices_page.dart';
 import '../presentation/views/remote/remote_page.dart';
 import '../presentation/views/discovery/pages/device_preparation_page.dart';
-import '../presentation/views/discovery/pages/discovery_entry.dart';
 import '../presentation/views/welcome/welcome_page.dart';
 import '../presentation/views/network/startup_network_prompt.dart';
 
@@ -38,9 +37,7 @@ final class AppRoutes {
     }
     final saved = dependencies.savedDevices.devices;
     _startedWithoutDevices = saved.value.isEmpty;
-    _discoveryEntry = ValueNotifier(
-      saved.value.isEmpty ? DiscoveryEntry.preparation : null,
-    );
+    _settingUp = ValueNotifier(saved.value.isEmpty);
     saved.addListener(_redirectIfEmpty);
     router = createMaterialRouter(
       appTitle: 'Universal Remote',
@@ -52,7 +49,7 @@ final class AppRoutes {
   static const _remoteIndex = 0;
   static const _devicesIndex = 1;
   late final ValueNotifier<int> _selectedPage;
-  late final ValueNotifier<DiscoveryEntry?> _discoveryEntry;
+  late final ValueNotifier<bool> _settingUp;
   late final bool _startedWithoutDevices;
   bool _savingWelcome = false;
   late final _settings = SettingsPage(dependencies: dependencies);
@@ -83,25 +80,19 @@ final class AppRoutes {
   }
 
   void _redirectIfEmpty() {
-    if (dependencies.savedDevices.devices.value.isEmpty &&
-        _discoveryEntry.value == null) {
-      _discoveryEntry.value = DiscoveryEntry.preparation;
+    if (dependencies.savedDevices.devices.value.isEmpty && !_settingUp.value) {
+      _settingUp.value = true;
       select(_devicesIndex);
     }
   }
 
-  Future<void> _finishWelcome(
-    BuildContext context,
-    DiscoveryEntry entry,
-  ) async {
+  Future<void> _finishWelcome(BuildContext context) async {
     if (_savingWelcome) {
       return;
     }
     _savingWelcome = true;
     try {
-      _discoveryEntry.value = dependencies.savedDevices.devices.value.isEmpty
-          ? entry
-          : null;
+      _settingUp.value = dependencies.savedDevices.devices.value.isEmpty;
       await dependencies.settings.completeWelcome();
     } catch (_) {
       if (context.mounted) {
@@ -123,14 +114,14 @@ final class AppRoutes {
     if (device != null) {
       connect(device);
     }
-    _discoveryEntry.value = null;
+    _settingUp.value = false;
   }
 
   Widget _home(BuildContext context) => StartupNetworkPrompt(
     child: ListenableBuilder(
       listenable: Listenable.merge([
         _selectedPage,
-        _discoveryEntry,
+        _settingUp,
         dependencies.settings.welcomeCompleted,
       ]),
       builder: _entry,
@@ -145,11 +136,9 @@ final class AppRoutes {
         onContinue: _finishWelcome,
       );
     }
-    final discovery = _discoveryEntry.value;
-    if (discovery != null) {
+    if (_settingUp.value) {
       return DevicePreparationPage(
         dependencies: dependencies,
-        openManualAddress: discovery == DiscoveryEntry.manualAddress,
         onSetupFinished: _finishDiscovery,
       );
     }
@@ -173,7 +162,7 @@ final class AppRoutes {
   void dispose() {
     dependencies.savedDevices.devices.removeListener(_redirectIfEmpty);
     router.dispose();
-    _discoveryEntry.dispose();
+    _settingUp.dispose();
     _selectedPage.dispose();
   }
 }

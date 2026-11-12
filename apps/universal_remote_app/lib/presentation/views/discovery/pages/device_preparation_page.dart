@@ -9,12 +9,17 @@ class DevicePreparationPage extends StatefulWidget {
     super.key,
     required this.dependencies,
     this.onSetupFinished,
-    this.openManualAddress = false,
+    this.onReplacedByDiscovery,
   });
 
   final AppDependencies dependencies;
-  final bool openManualAddress;
+
+  /// Set for the first connection. The preparation step stays below
+  /// discovery and has no Back button.
   final ValueChanged<RemoteDevice?>? onSetupFinished;
+
+  /// Receives the discovery result when searching replaces this step.
+  final ValueChanged<Future<RemoteDevice?>>? onReplacedByDiscovery;
 
   @override
   State<DevicePreparationPage> createState() => DevicePreparationState();

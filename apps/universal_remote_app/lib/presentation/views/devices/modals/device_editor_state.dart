@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:remote_core/remote_core.dart';
 
 import '../viewmodels/device_editor_viewmodel.dart';
 import 'device_editor.dart';
@@ -10,18 +9,8 @@ class DeviceEditorState extends State<DeviceEditor> {
   @override
   void initState() {
     super.initState();
-    final device = widget.device;
-    final registry = widget.dependencies.providers;
-    model = DeviceEditorViewModel(
-      configuration: device == null
-          ? const DeviceNetworkConfiguration()
-          : registry.networkConfiguration(device),
-      factory: registry.createManualDevice,
-      currentSetups: () => registry.manualSetups,
-      identifyAddress:
-          registry.canIdentifyAddresses || widget.dependencies.drivers != null
-          ? widget.dependencies.identifyAddress
-          : null,
+    model = DeviceEditorViewModel.forApp(
+      widget.dependencies,
       device: widget.device,
     );
   }

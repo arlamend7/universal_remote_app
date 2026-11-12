@@ -261,14 +261,16 @@ void main() {
       registry: integrationProviders(SecureCredentialStore(MemoryStorage())),
     );
     await tester.pumpWidget(UniversalRemoteApp(dependencies: dependencies));
-    await tester.tap(find.text('Connect by IP address'));
+    await startNearbySearch(tester);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Connect by IP'));
     await tester.pumpAndSettle();
     expect(find.text('Detect automatically'), findsOneWidget);
     await tester.tap(find.text('Detect automatically'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('LG webOS').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Advanced settings'));
+    await tester.tap(find.byTooltip('Connection settings'));
     await tester.pumpAndSettle();
     expect(
       tester
@@ -278,20 +280,20 @@ void main() {
           .value,
       isFalse,
     );
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Encrypted connection'), findsOneWidget);
     await tester.enterText(
       find.widgetWithText(TextField, 'TV IP address'),
       'invalid',
     );
-    await tester.ensureVisible(find.text('Connect'));
-    await tester.tap(find.text('Connect'));
+    expect(find.text('OK'), findsNothing);
+    await tester.tap(find.widgetWithText(FilledButton, 'Connect'));
     await tester.pumpAndSettle();
     expect(
       find.text('Enter the TV’s numeric local IP address.'),
       findsOneWidget,
     );
-    await tester.ensureVisible(find.text('Cancel'));
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });
