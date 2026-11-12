@@ -39,10 +39,6 @@ final class DiscoveryViewModel extends ChangeNotifier {
         };
   }
 
-  List<String> get searchingProtocols => statuses
-      .where((status) => status.status == DiscoveryStatus.searching)
-      .map(searchLabel)
-      .toList();
   String get diagnosticReport => const JsonEncoder.withIndent('  ').convert({
     'searchId': dependencies.discovery.searchId,
     'protocols': [

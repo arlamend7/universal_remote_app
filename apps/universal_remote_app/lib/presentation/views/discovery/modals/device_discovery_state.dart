@@ -17,7 +17,6 @@ import 'device_discovery_sheet.dart';
 
 class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
   String? _selectedId;
-  bool _detailsVisible = false;
 
   String _text(String en, String pt) => journeyText(context, en, pt);
 
@@ -75,26 +74,40 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           dismiss: () => setState(() => _offlineDismissed = true),
         ),
       if (!model.searching && model.cancelled)
-        _message(Icons.pause_circle_outline, 'Search cancelled.'),
+        _message(
+          Icons.pause_circle_outline,
+          _text('Search cancelled.', 'Busca cancelada.'),
+        ),
       if (_showEmpty) _empty(),
       if (model.unresolvedCount > 0)
         _message(
           Icons.help_outline,
-          '${model.unresolvedCount} unrecognized discovery responses',
+          _text(
+            '${model.unresolvedCount} unrecognized discovery responses',
+            '${model.unresolvedCount} respostas de descoberta não reconhecidas',
+          ),
         ),
       if (model.fresh.isNotEmpty) _resultsHeading(),
       ...model.fresh.map(_newDevice),
       if (model.known.isNotEmpty) _registered(),
       if (model.fresh.isNotEmpty)
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
           child: Text(
-            'Make sure your TV is on and on the same Wi-Fi.',
+            _text(
+              'Keep your TV on and on the same local network.',
+              'Mantenha a TV ligada e na mesma rede local.',
+            ),
             textAlign: TextAlign.center,
           ),
         ),
-      if (_detailsVisible && model.statuses.isNotEmpty)
-        DiscoveryDetails(model: model),
+      if (model.statuses.isNotEmpty)
+        ExpansionTile(
+          key: ValueKey(widget.dependencies.discovery.searchId),
+          tilePadding: EdgeInsets.zero,
+          title: Text(_text('Search details', 'Detalhes da busca')),
+          children: [DiscoveryDetails(model: model)],
+        ),
     ],
   );
 
@@ -115,16 +128,6 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           child: Text(_text('Connect', 'Conectar')),
         ),
       _actions(),
-      if (model.statuses.isNotEmpty)
-        Center(
-          child: TextButton(
-            onPressed: () => setState(() => _detailsVisible = !_detailsVisible),
-            child: Text(
-              _detailsVisible ? 'Hide search details' : 'Search details',
-              style: const TextStyle(decoration: TextDecoration.underline),
-            ),
-          ),
-        ),
     ],
   );
 
@@ -155,25 +158,41 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
   );
 
   Widget _empty() => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 26),
+    padding: const EdgeInsets.symmetric(vertical: 12),
     child: Column(
+      spacing: 8,
       children: [
-        CircleAvatar(
-          radius: 38,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          child: const Icon(Icons.tv_off_outlined, size: 30),
+        Icon(
+          Icons.tv_off_outlined,
+          color: Theme.of(context).colorScheme.primary,
         ),
-        const SizedBox(height: 16),
         Text(
-          'No Displays Found',
+          _text('No Displays Found', 'Nenhum dispositivo encontrado'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Keep your TV on and connected to the same Wi-Fi network.',
+        Text(
+          _text(
+            'Check that your TV is on and reachable on the local network.',
+            'Confira se a TV está ligada e acessível na rede local.',
+          ),
           textAlign: TextAlign.center,
         ),
+        TextButton(
+          onPressed: _showTips,
+          child: Text(_text('Connection tips', 'Ver dicas de conexão')),
+        ),
       ],
+    ),
+  );
+
+  Future<void> _showTips() => showAppSheet<void>(
+    context,
+    title: _text('Connection tips', 'Dicas de conexão'),
+    child: Text(
+      _text(
+        'Keep the TV on. Use the same local network on both devices. A wired TV works too. If you know the TV’s address, use Connect by IP.',
+        'Mantenha a TV ligada. Use a mesma rede local nos dois dispositivos. Uma TV conectada por cabo também funciona. Se souber o endereço da TV, use Conectar por IP.',
+      ),
     ),
   );
 
@@ -187,8 +206,13 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
       alignment: WrapAlignment.spaceBetween,
       spacing: 8,
       children: [
-        const Text('Discovered Displays'),
-        Text('${model.fresh.length} found'),
+        Text(_text('Discovered Displays', 'Dispositivos encontrados')),
+        Text(
+          _text(
+            '${model.fresh.length} found',
+            '${model.fresh.length} encontrados',
+          ),
+        ),
       ],
     ),
   );
@@ -225,8 +249,16 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
           Text('${_text('Manufacturer', 'Fabricante')} · $value'),
         if (device.model case final value?)
           Text('${_text('Model', 'Modelo')} · $value'),
-        if (device.endpoints.firstOrNull case final endpoint?)
+        if (device.endpoints.firstOrNull case final endpoint?) ...[
           Text('IP · ${endpoint.host}'),
+          Text(
+            '${_text('Connection protocol', 'Protocolo de conexão')} · ${endpoint.scheme}',
+          ),
+        ],
+        if (device.metadata['osversion'] case final value?)
+          Text('${_text('OS version', 'Versão do sistema')} · $value'),
+        if (device.metadata['firmwareversion'] case final value?)
+          Text('${_text('Firmware', 'Firmware')} · $value'),
       ],
     ),
   );
@@ -241,7 +273,12 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
 
   Widget _registered() => ExpansionTile(
     tilePadding: EdgeInsets.zero,
-    title: Text('Already added (${model.known.length})'),
+    title: Text(
+      _text(
+        'Already added (${model.known.length})',
+        'Já adicionados (${model.known.length})',
+      ),
+    ),
     children: model.known.map(_knownDevice).toList(),
   );
   Widget _knownDevice(RemoteDevice device) => ListTile(
@@ -251,7 +288,7 @@ class DeviceDiscoveryState extends State<DeviceDiscoverySheet> {
     subtitle: Text('Registered · ${device.endpoints.firstOrNull?.host ?? ''}'),
     trailing: TextButton(
       onPressed: model.adding ? null : () => model.updateAddress(device),
-      child: const Text('Update address'),
+      child: Text(_text('Update address', 'Atualizar endereço')),
     ),
   );
   Future<void> _connectByIp() async {
