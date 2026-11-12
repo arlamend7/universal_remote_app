@@ -1,5 +1,7 @@
 # Android TV / Google TV parity matrix
 
+> **Historical baseline.** The `adapters/android_tv/**` sources, `ProviderIdentity`, `DriverBindings` and `workflows/*.json` referenced below were removed by the migration. The protocol now lives in `packages/remote_driver_runtime/lib/src/remote_v2/**` and `lib/src/engines/remote_v2/**`, and the integration in `drivers/providers/android-tv/remote-v2/`. Manufacturer-specific notes (TCL) are in [tcl-google-tv-integration.md](../tcl-google-tv-integration.md).
+
 Phase 0 baseline for migrating `AndroidTvController` to the generic declarative driver runtime. Every row below is the acceptance contract for the migrated driver. Source: `packages/remote_driver_runtime/lib/src/adapters/android_tv/**` and `lib/src/remote_v2/**`. Cross-provider summary: [TV API matrix](tv-api.md), [capability audit](../../provider-capability-audit.md). Wire-level goldens for these rows (`packages/remote_driver_runtime/test/parity/android_tv_parity_test.dart`) are described in the [parity README](README.md).
 
 ## Header
@@ -125,7 +127,7 @@ Features offered by the TV are masked to `1 | 2 | 4 | 32 | 64 | 512` (= 615). Ev
 | sameConnection | Registry default: same id, provider and endpoints. |
 | Retry after wake | Registry default: false. |
 | mergeDiscovered | Registry default: discovered device with saved name and metadata `{...discovered, ...saved}`. |
-| Discovery | Bonjour `_androidtvremote2._tcp` on port 6466 only (native adapter on iOS, Dart mDNS elsewhere); name from TXT/instance `name` or `Android TV`; reads the 6467 certificate fingerprint without trusting it (900 ms). Address recognition requires equal fingerprints on 6466 and 6467. Saved-device probe compares `verifiedPeerIdentity` (or `advertisedPeerIdentity`) to the 6466 fingerprint (450 ms). Tested by `android_tv_identifier_test.dart`. |
+| Discovery | Bonjour `_androidtvremote2._tcp` on port 6466 only (native adapter on iOS, Dart mDNS elsewhere); name from the Bonjour instance name or `Android TV` (TXT records were not read at baseline); reads the 6467 certificate fingerprint without trusting it (900 ms). Address recognition requires equal fingerprints on 6466 and 6467. Saved-device probe compares `verifiedPeerIdentity` (or `advertisedPeerIdentity`) to the 6466 fingerprint (450 ms). Tested by `android_tv_identifier_test.dart`. |
 | Wake provider | `canWakeDevice`: provider matches and metadata `macAddress` normalizes. `wakeDevice`: WoL; otherwise `wakeUnavailable` ("…Connect once so it can be learned."). |
 
 ## Hardware verification
