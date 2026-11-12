@@ -297,7 +297,7 @@ final class RokuController extends TVRemoteBase {
     RemoteCapability capability,
     String action,
     String fallback,
-  ) => _key(capability, bindings?.select(action, fallback) ?? fallback);
+  ) => _key(capability, fallback);
 
   @override
   Future<void> sendEnter() => _key(RemoteCapability.textInput, 'Enter');

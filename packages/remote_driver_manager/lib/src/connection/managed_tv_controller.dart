@@ -4,7 +4,6 @@ import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/remote_driver_runtime.dart';
 
 import '../resolution/driver_match.dart';
-import 'driver_tv_capabilities.dart';
 import 'driver_tv_response.dart';
 import 'managed_driver_service.dart';
 import 'managed_tv_session.dart';
@@ -95,14 +94,10 @@ final class ManagedTvController extends TVRemoteBase
   ) {
     final disabled =
         _profile?.disabledCapabilities ?? const <RemoteCapability>{};
-    if (!DriverTvCapabilities.supports(
-      bundle,
-      capability,
-      disabled: disabled,
-    )) {
+    if (!_supports(bundle, capability, disabled: disabled)) {
       return CapabilityAvailability.advertised;
     }
-    final verified = DriverTvCapabilities.supports(
+    final verified = _supports(
       bundle,
       capability,
       acknowledged: _acknowledged,
@@ -402,8 +397,7 @@ final class ManagedTvController extends TVRemoteBase
     if (bundle == null || endpoint == null || cancellation == null) {
       throw const RemoteException('disconnected', 'Connect to the TV first.');
     }
-    if (_disabled(capability) ||
-        !DriverTvCapabilities.provides(bundle, capability, id)) {
+    if (_disabled(capability) || !_provides(bundle, capability, id)) {
       throw _unavailable;
     }
     final exchange = bundle.exchanges[id];
@@ -470,8 +464,36 @@ final class ManagedTvController extends TVRemoteBase
     final bundle = _bundle;
     return bundle != null &&
         !_disabled(capability) &&
-        DriverTvCapabilities.provides(bundle, capability, id);
+        _provides(bundle, capability, id);
   }
+
+  /// The bundle's own capabilities.json lists every action a capability
+  /// needs; there is no central requirement table.
+  static bool _supports(
+    DriverBundle bundle,
+    RemoteCapability capability, {
+    Set<String>? acknowledged,
+    Set<RemoteCapability> disabled = const {},
+  }) {
+    final required = bundle.capabilities[capability] ?? const <String>[];
+    return !disabled.contains(capability) &&
+        required.isNotEmpty &&
+        required.every(
+          (action) =>
+              _provides(bundle, capability, action) &&
+              (acknowledged == null || acknowledged.contains(action)),
+        );
+  }
+
+  static bool _provides(
+    DriverBundle bundle,
+    RemoteCapability capability,
+    String action,
+  ) =>
+      bundle.capabilities[capability]?.contains(action) == true &&
+      (bundle.commands.containsKey(action) ||
+          bundle.exchanges[action]?.operation ==
+              DriverOperation.webSocketRequest);
 
   void _setInstalling(bool value) {
     if (_installing == value) {

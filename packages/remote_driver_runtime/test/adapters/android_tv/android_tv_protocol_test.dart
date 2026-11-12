@@ -74,12 +74,8 @@ void main() {
       expect(remote.supportsAbsoluteVolume, isTrue);
       expect(remote.content?.appId, 'com.example.tv');
       expect(reading.muted, isTrue);
-      final bindings = DriverBindings({
-        'navigation-enter': '23',
-        'volume-up': '99999',
-      });
-      await remote.key(androidManagedKeyCode(bindings, 'navigation-enter', 23));
-      await remote.key(androidManagedKeyCode(bindings, 'volume-up', 24));
+      await remote.key(23);
+      await remote.key(24);
       await remote.key(AndroidRemoteSession.channelUpKey);
       await remote.key(AndroidRemoteSession.channelDownKey);
       await remote.setVolume(60);

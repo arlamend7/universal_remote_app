@@ -271,8 +271,7 @@ final class AndroidTvController extends TVRemoteBase
     androidMediaCode(action),
   );
 
-  Future<void> _managedKey(String action, int fallback) =>
-      _key(androidManagedKeyCode(bindings, action, fallback));
+  Future<void> _managedKey(String _, int code) => _key(code);
 
   @override
   Future<void> setVolume(int volume) async =>

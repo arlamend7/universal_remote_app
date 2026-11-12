@@ -197,8 +197,7 @@ final class SamsungController extends TVRemoteBase {
 
   Future<void> _key(String key) async => _active.key(key);
 
-  Future<void> _managedKey(String action, String fallback) =>
-      _key(bindings?.select(action, fallback) ?? fallback);
+  Future<void> _managedKey(String _, String key) => _key(key);
 
   @override
   Future<void> wake() => _wake();

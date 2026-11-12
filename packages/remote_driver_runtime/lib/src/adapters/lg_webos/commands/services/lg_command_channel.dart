@@ -1,8 +1,6 @@
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/ssap.dart';
 
-import '../constants/lg_ssap_actions.dart';
-
 /// Capability controllers depend on a session channel, never the device owner.
 final class LgCommandChannel {
   LgCommandChannel({required this.onUnavailable, this.bindings});
@@ -68,10 +66,7 @@ final class LgCommandChannel {
     }
   }
 
-  String _boundPath(String path) {
-    final action = lgSsapActions[path];
-    return action == null ? path : bindings?.select(action, path) ?? path;
-  }
+  String _boundPath(String path) => path;
 
   void _handleFailure(RemoteCapability capability, RemoteException error) {
     if (error.code != 'unsupported' && error.code != 'permission') {
