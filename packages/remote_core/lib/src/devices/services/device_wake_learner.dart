@@ -1,3 +1,5 @@
+import '../models/device_metadata_keys.dart';
+
 import 'dart:io';
 
 import 'package:remote_core/src/remote_base.dart';
@@ -26,17 +28,17 @@ final class DeviceWakeLearner {
   static bool wasLearned(RemoteDevice device) => const {
     'localNeighbor',
     'television',
-  }.contains(device.metadata['macAddressSource']);
+  }.contains(device.metadata[DeviceMetadataKeys.macAddressSource]);
 
   bool _manual(RemoteDevice device) =>
-      (device.metadata['macAddress']?.isNotEmpty ?? false) &&
+      (device.metadata[DeviceMetadataKeys.macAddress]?.isNotEmpty ?? false) &&
       !wasLearned(device);
 
   bool _needsLookup(RemoteDevice device) {
     if (!registry.supportsWake(device)) {
       return false;
     }
-    return device.metadata['macAddressSource'] != null ||
+    return device.metadata[DeviceMetadataKeys.macAddressSource] != null ||
         !registry.canWake(device);
   }
 
@@ -96,21 +98,23 @@ final class DeviceWakeLearner {
     final broadcast = detected.broadcastAddress;
     final canSetBroadcast =
         broadcast != null &&
-        (previous['broadcastAddress'] == null ||
+        (previous[DeviceMetadataKeys.broadcastAddress] == null ||
             previous['broadcastAddressSource'] == 'televisionSubnet');
     final broadcastChanged =
-        canSetBroadcast && broadcast != previous['broadcastAddress'];
-    if (previous['macAddress'] == detected.macAddress && !broadcastChanged) {
+        canSetBroadcast &&
+        broadcast != previous[DeviceMetadataKeys.broadcastAddress];
+    if (previous[DeviceMetadataKeys.macAddress] == detected.macAddress &&
+        !broadcastChanged) {
       return null;
     }
     return copyDevice(
       latest,
       metadata: {
         ...previous,
-        'macAddress': detected.macAddress,
-        'macAddressSource': source,
+        DeviceMetadataKeys.macAddress: detected.macAddress,
+        DeviceMetadataKeys.macAddressSource: source,
         'macAddressLearnedAt': DateTime.now().toUtc().toIso8601String(),
-        if (canSetBroadcast) 'broadcastAddress': broadcast,
+        if (canSetBroadcast) DeviceMetadataKeys.broadcastAddress: broadcast,
         if (canSetBroadcast) 'broadcastAddressSource': 'televisionSubnet',
       },
     );

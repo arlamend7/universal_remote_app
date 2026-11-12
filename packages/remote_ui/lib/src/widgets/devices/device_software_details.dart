@@ -21,9 +21,9 @@ class DeviceSoftwareDetails extends StatelessWidget {
       ('Manufacturer software', information?.softwareVersion),
       ('Build number', information?.buildNumber),
       ('Protocol version', information?.protocolVersion),
-      ('Driver integration', driver['driverIntegrationId']),
-      ('Compatibility profile', driver['driverProfileId']),
-      ('Driver package', _shortHash(driver['driverPackageSha256'])),
+      ('Driver integration', driver[DeviceMetadataKeys.integrationId]),
+      ('Compatibility profile', driver[DeviceMetadataKeys.profileId]),
+      ('Driver package', _shortHash(driver[DeviceMetadataKeys.packageSha256])),
       (
         'Last identified',
         reportedAt == null

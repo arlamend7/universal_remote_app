@@ -71,7 +71,8 @@ final class SsapEngine implements ProtocolEngine {
   static TransportConnector _pinned(RemoteDevice device) =>
       (uri) => IoWebSocketTransport.connect(
         uri,
-        trustedCertificateDer: device.metadata['trustedCertificateDer'],
+        trustedCertificateDer:
+            device.metadata[DeviceMetadataKeys.trustedCertificateDer],
       );
 
   /// A prompt manifest: no signatures, vendor identities or extra keys.

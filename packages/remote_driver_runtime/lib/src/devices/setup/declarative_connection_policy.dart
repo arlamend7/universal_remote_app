@@ -44,7 +44,7 @@ final class DeclarativeConnectionPolicy implements DeviceConnectionPolicy {
       device,
       metadata: {
         ...device.metadata,
-        'trustedCertificateDer': base64Encode(bytes),
+        DeviceMetadataKeys.trustedCertificateDer: base64Encode(bytes),
       },
     );
   }

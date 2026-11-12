@@ -1,3 +1,4 @@
+import '../devices/models/device_metadata_keys.dart';
 import '../device.dart';
 import '../devices/models/registered_device.dart';
 import 'provider_match.dart';
@@ -29,7 +30,10 @@ final class DeviceIdentifierResolver {
   }
 
   bool _hasSavedIdentity(RemoteDevice first, RemoteDevice second) {
-    for (final key in ['trustedCertificateDer', 'discoveryIdentity']) {
+    for (final key in [
+      DeviceMetadataKeys.trustedCertificateDer,
+      DeviceMetadataKeys.discoveryIdentity,
+    ]) {
       final value = first.metadata[key];
       if (value != null && value.isNotEmpty && value == second.metadata[key]) {
         return true;
@@ -39,7 +43,7 @@ final class DeviceIdentifierResolver {
   }
 
   String? _peer(RemoteDevice device) =>
-      device.metadata['verifiedPeerIdentity'] ??
+      device.metadata[DeviceMetadataKeys.verifiedPeerIdentity] ??
       device.metadata['advertisedPeerIdentity'];
 
   RegisteredDevice resolve(ProviderMatch match) {

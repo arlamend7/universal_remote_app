@@ -1,5 +1,6 @@
+import 'package:remote_core/remote_core.dart';
+
 import '../catalog/integration_catalog.dart';
-import 'integration_metadata_keys.dart';
 
 /// Rewrites version-based driver metadata on a saved device.
 ///
@@ -11,12 +12,12 @@ Map<String, String> migrateLegacyDeviceMetadata(
   Map<String, String> metadata, {
   IntegrationCatalog? catalog,
 }) {
-  if (!metadata.keys.any(IntegrationMetadataKeys.legacy.contains)) {
+  if (!metadata.keys.any(_legacy.contains)) {
     return metadata;
   }
   final family = metadata['managedDriverId'];
   final migrated = {...metadata}
-    ..removeWhere((key, _) => IntegrationMetadataKeys.legacy.contains(key));
+    ..removeWhere((key, _) => _legacy.contains(key));
   final successors = family == null || catalog == null
       ? const <String>[]
       : [
@@ -24,8 +25,16 @@ Map<String, String> migrateLegacyDeviceMetadata(
             if (integration.replaces.contains(family)) integration.id,
         ];
   if (successors.length == 1 &&
-      !migrated.containsKey(IntegrationMetadataKeys.integrationId)) {
-    migrated[IntegrationMetadataKeys.integrationId] = successors.single;
+      !migrated.containsKey(DeviceMetadataKeys.integrationId)) {
+    migrated[DeviceMetadataKeys.integrationId] = successors.single;
   }
   return migrated;
 }
+
+const _legacy = {
+  'managedDriverId',
+  'managedDriverVersion',
+  'managedDriverProfile',
+  'managedDriverProfileVersion',
+  'managedDriverPinnedVersion',
+};

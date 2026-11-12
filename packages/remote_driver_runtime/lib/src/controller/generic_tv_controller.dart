@@ -316,7 +316,10 @@ final class GenericTvController extends TVRemoteBase
       return false;
     }
     if (mapping.operation is NetworkOperation) {
-      return normalizeMacAddress(_device.metadata['macAddress']) != null;
+      return normalizeMacAddress(
+            _device.metadata[DeviceMetadataKeys.macAddress],
+          ) !=
+          null;
     }
     return _connected?.gate.allows('wake') == true;
   }
@@ -328,7 +331,9 @@ final class GenericTvController extends TVRemoteBase
     if (network is! NetworkOperation) {
       return _send('wake');
     }
-    final mac = normalizeMacAddress(_device.metadata['macAddress']);
+    final mac = normalizeMacAddress(
+      _device.metadata[DeviceMetadataKeys.macAddress],
+    );
     if (mac == null) {
       throw const RemoteException(
         'wakeUnavailable',
@@ -337,7 +342,7 @@ final class GenericTvController extends TVRemoteBase
     }
     await _wake(
       mac,
-      _device.metadata['broadcastAddress'] ??
+      _device.metadata[DeviceMetadataKeys.broadcastAddress] ??
           network.broadcast ??
           '255.255.255.255',
     );

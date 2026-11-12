@@ -7,7 +7,6 @@ import '../catalog/integration_catalog.dart';
 import '../installation/installed_generation.dart';
 import '../installation/integration_catalog_repository.dart';
 import '../installation/integration_installer.dart';
-import '../installation/integration_metadata_keys.dart';
 import '../installation/integration_update_service.dart';
 import 'integration_candidate.dart';
 import 'integration_resolver.dart';
@@ -135,10 +134,9 @@ final class ManagedIntegrationPlanner implements IntegrationPlanner {
       sha256: generation.sha256,
       identified: selection.stage == ProfileStage.identified,
       metadata: {
-        IntegrationMetadataKeys.integrationId:
-            definition.identity.integrationId,
-        IntegrationMetadataKeys.profileId: profile.id,
-        IntegrationMetadataKeys.packageSha256: generation.sha256,
+        DeviceMetadataKeys.integrationId: definition.identity.integrationId,
+        DeviceMetadataKeys.profileId: profile.id,
+        DeviceMetadataKeys.packageSha256: generation.sha256,
       },
     );
   }
@@ -187,7 +185,7 @@ final class ManagedIntegrationPlanner implements IntegrationPlanner {
   }
 
   Future<String?> _assigned(RemoteDevice device) async {
-    final saved = device.metadata[IntegrationMetadataKeys.integrationId];
+    final saved = device.metadata[DeviceMetadataKeys.integrationId];
     if (saved != null) {
       return saved;
     }

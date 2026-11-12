@@ -15,11 +15,15 @@ final class AppRoutes {
   AppRoutes(this.dependencies) {
     final recent =
         dependencies.savedDevices.devices.value
-            .where((device) => device.metadata.containsKey('lastConnectedAt'))
+            .where(
+              (device) => device.metadata.containsKey(
+                DeviceMetadataKeys.lastConnectedAt,
+              ),
+            )
             .toList()
           ..sort(
-            (a, b) => a.metadata['lastConnectedAt']!.compareTo(
-              b.metadata['lastConnectedAt']!,
+            (a, b) => a.metadata[DeviceMetadataKeys.lastConnectedAt]!.compareTo(
+              b.metadata[DeviceMetadataKeys.lastConnectedAt]!,
             ),
           );
     _selectedPage = ValueNotifier(

@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:remote_core/remote_core.dart';
-import 'package:remote_driver_manager/remote_driver_manager.dart'
-    show IntegrationMetadataKeys;
 import 'package:remote_ui/remote_ui.dart';
 
 import '../../devices/services/saved_devices_controller.dart';
@@ -290,15 +288,19 @@ class ConnectionController implements RemotePanelSession {
               case final version?)
             'softwareVersion': version,
           for (final key in const [
-            IntegrationMetadataKeys.integrationId,
-            IntegrationMetadataKeys.profileId,
-            IntegrationMetadataKeys.packageSha256,
+            DeviceMetadataKeys.integrationId,
+            DeviceMetadataKeys.profileId,
+            DeviceMetadataKeys.packageSha256,
           ])
             if (session.controller.device.metadata[key] case final value?)
               key: value,
-          if (identity != null) 'verifiedPeerIdentity': identity,
-          if (discoveryIdentity != null) 'discoveryIdentity': discoveryIdentity,
-          'lastConnectedAt': DateTime.now().toUtc().toIso8601String(),
+          if (identity != null)
+            DeviceMetadataKeys.verifiedPeerIdentity: identity,
+          if (discoveryIdentity != null)
+            DeviceMetadataKeys.discoveryIdentity: discoveryIdentity,
+          DeviceMetadataKeys.lastConnectedAt: DateTime.now()
+              .toUtc()
+              .toIso8601String(),
         },
       ),
     );

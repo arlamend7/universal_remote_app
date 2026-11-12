@@ -15,7 +15,6 @@ export 'src/installation/installed_integration.dart';
 export 'src/installation/integration_catalog_repository.dart';
 export 'src/installation/integration_installer.dart';
 export 'src/installation/integration_inventory.dart';
-export 'src/installation/integration_metadata_keys.dart';
 export 'src/installation/integration_object_store.dart';
 export 'src/installation/integration_package.dart';
 export 'src/installation/integration_package_source.dart';

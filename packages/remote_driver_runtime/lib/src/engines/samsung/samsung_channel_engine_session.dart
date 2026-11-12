@@ -19,7 +19,8 @@ final class SamsungChannelEngineSession implements EngineSession {
     EngineSessionContext context,
     Future<TextTransport> Function(Uri, String) openTransport,
   ) async {
-    final pin = context.device.metadata['trustedCertificateDer'];
+    final pin =
+        context.device.metadata[DeviceMetadataKeys.trustedCertificateDer];
     if (pin == null || pin.isEmpty) {
       throw const RemoteException(
         'tls',

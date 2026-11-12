@@ -30,11 +30,13 @@ final class DeclarativeManualSetup implements ManualDeviceProvider {
     return DeviceNetworkConfiguration(
       address: endpoint?.host ?? '',
       certificate: fields.contains('certificate')
-          ? device.metadata['trustedCertificateDer'] ?? ''
+          ? device.metadata[DeviceMetadataKeys.trustedCertificateDer] ?? ''
           : '',
-      mac: fields.contains('mac') ? device.metadata['macAddress'] ?? '' : '',
+      mac: fields.contains('mac')
+          ? device.metadata[DeviceMetadataKeys.macAddress] ?? ''
+          : '',
       broadcast: fields.contains('broadcast')
-          ? device.metadata['broadcastAddress'] ?? ''
+          ? device.metadata[DeviceMetadataKeys.broadcastAddress] ?? ''
           : '',
       legacy: legacy && endpoint?.scheme == rules.legacyEndpoint!.scheme,
       allowInsecurePointer:
@@ -133,17 +135,27 @@ final class DeclarativeManualSetup implements ManualDeviceProvider {
   }) {
     final previous = existing?.metadata ?? rules.metadata;
     final result = {...previous};
-    _replace(result, 'certificate', 'trustedCertificateDer', certificate);
-    _replace(result, 'mac', 'macAddress', mac);
-    _replace(result, 'broadcast', 'broadcastAddress', broadcast);
+    _replace(
+      result,
+      'certificate',
+      DeviceMetadataKeys.trustedCertificateDer,
+      certificate,
+    );
+    _replace(result, 'mac', DeviceMetadataKeys.macAddress, mac);
+    _replace(
+      result,
+      'broadcast',
+      DeviceMetadataKeys.broadcastAddress,
+      broadcast,
+    );
     if (rules.fields.contains('mac') &&
-        mac != normalizeMacAddress(previous['macAddress'])) {
+        mac != normalizeMacAddress(previous[DeviceMetadataKeys.macAddress])) {
       result
-        ..remove('macAddressSource')
+        ..remove(DeviceMetadataKeys.macAddressSource)
         ..remove('macAddressLearnedAt');
     }
     if (rules.fields.contains('broadcast') &&
-        broadcast != previous['broadcastAddress']) {
+        broadcast != previous[DeviceMetadataKeys.broadcastAddress]) {
       result.remove('broadcastAddressSource');
     }
     final insecureKey = rules.insecureMetadata;

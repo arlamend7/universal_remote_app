@@ -372,7 +372,7 @@ void main() {
     expect(migrateLegacyDeviceMetadata(metadata, catalog: catalog), {
       'trustedCertificateDer': 'AQID',
       'macAddress': 'AA:BB:CC:DD:EE:FF',
-      IntegrationMetadataKeys.integrationId: 'example.json-websocket',
+      DeviceMetadataKeys.integrationId: 'example.json-websocket',
     });
     expect(migrateLegacyDeviceMetadata(metadata), {
       'trustedCertificateDer': 'AQID',

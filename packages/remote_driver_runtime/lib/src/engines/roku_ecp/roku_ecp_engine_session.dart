@@ -197,7 +197,7 @@ final class RokuEcpEngineSession implements EngineSession {
   static void _requireExpected(RemoteDevice device, String serial) {
     final expected =
         device.metadata['rokuSerial'] ??
-        device.metadata['discoveryIdentity']?.split(':').last;
+        device.metadata[DeviceMetadataKeys.discoveryIdentity]?.split(':').last;
     if (expected != null && expected.toLowerCase() != serial.toLowerCase()) {
       throw const RemoteException(
         'identity',

@@ -35,7 +35,7 @@ final class RemoteEditorHost {
         connection.state.value == DeviceConnectionState.connected) {
       return resolvedCapabilities(controller);
     }
-    return device.metadata.containsKey('lastConnectedAt')
+    return device.metadata.containsKey(DeviceMetadataKeys.lastConnectedAt)
         ? device.capabilities
         : {};
   }

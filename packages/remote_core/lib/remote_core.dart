@@ -56,3 +56,5 @@ export 'src/integrations/models/integration_manifest.dart';
 export 'src/integrations/models/operation_mapping.dart';
 export 'src/integrations/models/runtime_requirement.dart';
 export 'src/integrations/models/version_range.dart';
+
+export 'src/devices/models/device_metadata_keys.dart';
