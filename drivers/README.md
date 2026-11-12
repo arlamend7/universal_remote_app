@@ -14,6 +14,9 @@ drivers/
 │   ├── connection.json                   # engine connection data + runtime session policy
 │   ├── discovery.json                    # how network evidence identifies the device
 │   └── device.json                       # manual setup, connection policy, wake
+├── fixtures/                             # test-only data, never published
+│   ├── v2/                               # schema-drift fixtures shared by Python and Dart
+│   └── example-json-websocket/           # sample integration for the json-websocket engine
 ├── schema/v2/                            # JSON Schemas (executed by the tools)
 ├── tools/{validate,package,sign,publish}/
 └── tests/
@@ -26,7 +29,6 @@ drivers/
 | `android.tv.remote-v2` | `providers/android-tv/remote-v2` | stable |
 | `samsung.tizen.supported` | `providers/samsung-tizen/tizen-supported` | stable |
 | `roku.ecp.supported` | `providers/roku-ecp/roku-supported` | development |
-| `example.json-websocket` | `providers/example-tv/json-websocket` | development |
 
 ## Updating an integration
 

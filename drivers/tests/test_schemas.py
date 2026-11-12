@@ -27,8 +27,9 @@ class SchemaTest(unittest.TestCase):
         self.schemas.validate("mappings.schema.json", _load("mappings.json"))
 
     def test_every_integration_folder_satisfies_the_schemas(self):
-        providers = ROOT / "providers"
-        for manifest in providers.rglob("manifest.json"):
+        folders = list((ROOT / "providers").rglob("manifest.json"))
+        folders.append(ROOT / "fixtures" / "example-json-websocket" / "manifest.json")
+        for manifest in folders:
             folder = manifest.parent
             for name, schema in [
                 ("manifest.json", "manifest.schema.json"),
@@ -36,7 +37,7 @@ class SchemaTest(unittest.TestCase):
                 ("mappings.json", "mappings.schema.json"),
             ]:
                 document = json.loads((folder / name).read_text("utf-8"))
-                with self.subTest(folder=str(folder.relative_to(providers)), file=name):
+                with self.subTest(folder=str(folder.relative_to(ROOT)), file=name):
                     self.schemas.validate(schema, document)
 
     def test_manifest_has_no_package_version(self):

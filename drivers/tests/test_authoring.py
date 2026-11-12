@@ -7,16 +7,16 @@ from pathlib import Path
 from zipfile import ZipFile
 
 DRIVERS = Path(__file__).resolve().parents[1]
-EXAMPLE = DRIVERS / "providers" / "example-tv" / "json-websocket"
+EXAMPLE = DRIVERS / "fixtures" / "example-json-websocket"
 VALIDATOR = DRIVERS / "tools" / "validate" / "validate.sh"
 BUILDER = DRIVERS / "tools" / "package" / "build.py"
 INTEGRATIONS = [
-    "lg-webos/webos-22-plus",
-    "lg-webos/webos-legacy",
-    "android-tv/remote-v2",
-    "samsung-tizen/tizen-supported",
-    "roku-ecp/roku-supported",
-    "example-tv/json-websocket",
+    DRIVERS / "providers" / "lg-webos" / "webos-22-plus",
+    DRIVERS / "providers" / "lg-webos" / "webos-legacy",
+    DRIVERS / "providers" / "android-tv" / "remote-v2",
+    DRIVERS / "providers" / "samsung-tizen" / "tizen-supported",
+    DRIVERS / "providers" / "roku-ecp" / "roku-supported",
+    EXAMPLE,
 ]
 
 
@@ -24,7 +24,7 @@ class DriverAuthoringTest(unittest.TestCase):
     def test_every_integration_compiles_against_the_runtime(self):
         for integration in INTEGRATIONS:
             result = subprocess.run(
-                ["sh", str(VALIDATOR), str(DRIVERS / "providers" / integration)],
+                ["sh", str(VALIDATOR), str(integration)],
                 capture_output=True,
                 check=False,
             )
@@ -54,6 +54,11 @@ class DriverAuthoringTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 65)
             self.assertIn(b"cannot contain links", result.stderr)
+
+    def test_published_index_lists_every_provider_folder_and_no_fixture(self):
+        index = json.loads((DRIVERS / "catalog.json").read_text("utf-8"))
+        sources = {DRIVERS / entry["source"] for entry in index["integrations"]}
+        self.assertEqual(sources, set(INTEGRATIONS) - {EXAMPLE})
 
     def test_no_numbered_release_folders_remain(self):
         for path in (DRIVERS / "providers").rglob("*"):

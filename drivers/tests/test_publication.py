@@ -16,7 +16,7 @@ sys.path.insert(0, str(DRIVERS / "tools" / "publish"))
 from build_site import PublicationError, build  # noqa: E402
 from refresh_seed import refresh  # noqa: E402
 
-EXAMPLE = DRIVERS / "providers" / "example-tv" / "json-websocket"
+EXAMPLE = DRIVERS / "fixtures" / "example-json-websocket"
 
 
 def _key(directory: Path, name: str = "key.pem") -> Path:

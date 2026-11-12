@@ -6,7 +6,10 @@
 | `android.tv` | `android.tv.remote-v2` | `android-remote-v2` | unrestricted; OS/firmware unknown | stable | generic golden |
 | `samsung.tizen` | `samsung.tizen.supported` | `samsung-channel` | unrestricted; model/firmware unknown | stable | generic golden |
 | `roku.ecp` | `roku.ecp.supported` | `roku-ecp` | unrestricted; Roku OS version reported | development | generic golden |
-| `example.smarttv` | `example.json-websocket` | `json-websocket` | fixture | development | engine tests |
+
+The `json-websocket` engine has no published integration. Its sample,
+`drivers/fixtures/example-json-websocket`, is test-only and is not listed in
+`drivers/catalog.json`.
 
 Every TV capability the legacy controllers supported is mapped and passes the
 recorded wire-level parity goldens (`docs/drivers/parity/`). All behaviour is
