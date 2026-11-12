@@ -265,17 +265,25 @@ Tests:
 ## 5. Verification status
 
 Result values: **Automated test passed**, **Hardware verified**,
-**Unsupported**, **Not tested**. No TCL hardware has been available, so every
-hardware column is *Not tested*.
+**Unsupported**, **Not tested**. Automated results come from loopback fakes
+built from documented protocol shapes, not from TCL captures. No TCL TV has
+been available, so every hardware result is *Not tested*.
 
-| Feature | Expected behaviour | Actual (automated) | Result | Notes | Device/firmware tested |
+| Feature | Expected behaviour | Automated | Hardware | Notes | Device/firmware tested |
 |---|---|---|---|---|---|
-| Discovery | `_androidtvremote2._tcp` on 6466 is identified | — | Not tested | | none |
-| Pairing | 6-hex code, pinned certificate | — | Not tested | | none |
-| Navigation | KeyEvent 19–23, 4, 3 | — | Not tested | | none |
-| Volume | 24/25/164; feedback when bit 64 reported | — | Not tested | | none |
-| Media | 126/127/86/89/90/88/87 | — | Not tested | | none |
-| Text input | IME batch edit when bit 4 negotiated | — | Not tested | | none |
-| Applications | App links when bit 512 negotiated | — | Not tested | | none |
-| Power / wake | 223 off; Wake-on-LAN with learned MAC | — | Not tested | | none |
-| Reconnection | Pinned credential reused | — | Not tested | | none |
+| Discovery | `_androidtvremote2._tcp` on 6466; ID from the 6467 certificate; TXT `bt` correlates | Automated test passed | Not tested | `android_tv_txt_identity_test`, `bonjour_text_record_test`, iOS bridge test | none |
+| Identification | Vendor/model from `RemoteDeviceInfo`; OS/firmware unknown | Automated test passed | Not tested | Exact TCL vendor/model strings unknown | none |
+| Platform separation | Roku TV → `roku.ecp`; other services never match | Automated test passed | Not tested | Roku is development-only | none |
+| Pairing | 6-hex code, pinned certificate, typed failures | Automated test passed | Not tested | `android_pairing_lifecycle_test`, `remote_v2_engine_pairing_test` | none |
+| Certificate pinning | 6466 must match the pinned 6467 certificate | Automated test passed | Not tested | Same-certificate assumption unverified on TCL | none |
+| Navigation | KeyEvent 19–23, 4, 3 | Automated test passed | Not tested | | none |
+| Volume | 24/25/164; feedback when VOLUME + report | Automated test passed | Not tested | TCL reported as up/down/mute only | none |
+| Exact volume | Only for an absolute output report | Automated test passed | Not tested | Upstream says unsupported by the service | none |
+| Media | 126/127/86/89/90/88/87 | Automated test passed | Not tested | | none |
+| Special keys | Settings 176, menu 82, info 165, guide 172, Live TV 170, captions 175, input 178, CH± 166/167, digits | Automated test passed | Not tested | One TCL model ignored TV/MENU/INFO/GUIDE/CH± | none |
+| Text input | IME batch edit when IME negotiated | Automated test passed | Not tested | | none |
+| Applications | App links when APP_LINK negotiated | Automated test passed | Not tested | No app list in Remote v2 | none |
+| Power off | KeyEvent 223 when POWER + KEY | Automated test passed | Not tested | | none |
+| Wake | Wake-on-LAN with a learned MAC; retry after wake | Automated test passed (policy) | Not tested | Needs Network Standby / Screenless service | none |
+| Reconnection | Reconnect with the stored pairing; IP change keeps identity | Automated test passed | Not tested | | none |
+| Persistence | Manufacturer, model, evidence saved; old devices load | Automated test passed | Not tested | | none |

@@ -16,7 +16,11 @@ class FakeProvider implements ProviderIdentifier {
     this.enableContentFeedback = true,
     this.enabledControls = false,
     this.wakeAddress,
+    this.reportedManufacturer,
   });
+
+  /// The manufacturer the controller learns from its session, if any.
+  final String? reportedManufacturer;
   final bool fail;
   final String providerId;
   final RemoteException? startupFailure;
@@ -99,7 +103,9 @@ class FakeProvider implements ProviderIdentifier {
   }
 
   RemoteBase createController(RemoteDevice device) => last = FakeController(
-    device,
+    device.manufacturer == null && reportedManufacturer != null
+        ? copyDevice(device, manufacturer: reportedManufacturer)
+        : device,
     failure: fail,
     startupFailure: startupFailure,
     waitPairing: pairing,

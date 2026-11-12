@@ -277,6 +277,7 @@ class ConnectionController implements RemotePanelSession {
         device,
         capabilities: resolvedCapabilities(session.controller),
         category: session.controller.device.category,
+        manufacturer: session.controller.device.manufacturer,
         model: session.controller.device.model,
         softwareInformation:
             session.controller.device.softwareInformation ??
