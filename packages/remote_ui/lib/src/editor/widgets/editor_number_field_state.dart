@@ -44,7 +44,7 @@ class EditorNumberFieldState extends State<EditorNumberField> {
   void _step(int direction) {
     _focus.unfocus();
     final next = value + direction;
-    widget.onChanged(widget.isRotation ? next % (maximum + 1) : next);
+    widget.onChanged(next);
   }
 
   @override
@@ -89,21 +89,13 @@ class EditorNumberFieldState extends State<EditorNumberField> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _stepButton(increase: false),
-        widget.isRotation ? _angle() : _input(),
+        _input(),
         _stepButton(increase: true),
       ],
     ),
   );
 
   Widget _stepButton({required bool increase}) {
-    if (widget.isRotation) {
-      return _button(
-        increase ? 1 : -1,
-        increase ? Icons.rotate_right : Icons.rotate_left,
-        increase ? 'Rotate right 90°' : 'Rotate left 90°',
-        true,
-      );
-    }
     return _button(
       increase ? 1 : -1,
       increase ? Icons.add : Icons.remove,
@@ -118,17 +110,6 @@ class EditorNumberFieldState extends State<EditorNumberField> {
         onPressed: enabled ? () => _step(direction) : null,
         icon: Icon(icon, size: 20),
       );
-
-  Widget _angle() => SizedBox(
-    width: 40,
-    child: FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(
-        '${value * 90}°',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-    ),
-  );
 
   Widget _input() => SizedBox(
     width: 40,

@@ -14,9 +14,7 @@ abstract final class GridGeometry {
         item.y < 0 ||
         item.x + item.w > columns ||
         item.y + item.h > rows ||
-        item.quarterTurns < 0 ||
-        item.quarterTurns > 3 ||
-        !item.definition.accepts(item.contentWidth, item.contentHeight)) {
+        !item.definition.accepts(item.w, item.h)) {
       return false;
     }
     return !items.any((other) => other.id != item.id && overlaps(item, other));
@@ -87,9 +85,6 @@ abstract final class GridGeometry {
     }
     if (!item.isGroup) {
       return item.children.isEmpty;
-    }
-    if (item.quarterTurns != 0) {
-      return false;
     }
     if (item.config['showTitle'] == 'true' &&
         item.children.any((child) => child.y == 0)) {

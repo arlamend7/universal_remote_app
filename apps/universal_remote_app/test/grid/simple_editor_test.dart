@@ -53,20 +53,28 @@ void main() {
       await tester.tap(tile);
       await tester.pumpAndSettle();
       final done = find.text('Done').last;
-      await tester.tap(find.byTooltip('Decrease Width'));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('does not support'), findsNothing);
-      await tester.tap(done);
-      await tester.pumpAndSettle();
-      expect(find.textContaining('does not support 1 × 1'), findsOneWidget);
-      await tester.tap(find.byTooltip('Increase Height'));
+      expect(
+        tester
+            .widget<IconButton>(
+              find.ancestor(
+                of: find.byTooltip('Decrease Width'),
+                matching: find.byType(IconButton),
+              ),
+            )
+            .onPressed,
+        isNull,
+        reason: 'Width cannot go below the 2 × 1 minimum.',
+      );
+      await tester.tap(find.text('Vertical'));
       await tester.pumpAndSettle();
       await tester.tap(done);
       await tester.pumpAndSettle();
       final model = tester
           .state<GridEditorPageState>(find.byType(GridEditorPage))
           .model;
-      expect((model.draft.items.single.w, model.draft.items.single.h), (1, 2));
+      final strip = model.draft.items.single;
+      expect((strip.w, strip.h), (2, 1));
+      expect(strip.position, ItemAxis.vertical);
       final buttons = find.descendant(
         of: tile,
         matching: find.byType(ActionButton),
@@ -76,15 +84,19 @@ void main() {
         tester.getRect(buttons.last).top - tester.getRect(buttons.first).bottom,
         8,
       );
-      await tester.tapAt(tester.getTopLeft(tile) + const Offset(30, 60));
+      expect(
+        tester.getCenter(buttons.first).dx,
+        moreOrLessEquals(tester.getCenter(tile).dx, epsilon: .5),
+      );
+      await tester.tap(tile);
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Decrease Height'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Increase Width'));
+      await tester.tap(find.byTooltip('Increase Height'));
       await tester.pumpAndSettle();
       await tester.tap(done);
       await tester.pumpAndSettle();
-      expect((model.draft.items.single.w, model.draft.items.single.h), (2, 1));
+      final grown = model.draft.items.single;
+      expect((grown.w, grown.h), (2, 2));
+      expect(grown.position, ItemAxis.vertical);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
     },
@@ -343,18 +355,19 @@ void main() {
       await tester.ensureVisible(volume);
       await tester.tap(volume);
       await tester.pumpAndSettle();
-      final rotateLeft = find.byTooltip('Rotate left 90°');
-      final rotateRight = find.byTooltip('Rotate right 90°');
-      await tester.ensureVisible(rotateLeft);
-      await tester.tap(rotateLeft);
+      expect(find.text('Rotate'), findsNothing);
+      final horizontal = find.text('Horizontal');
+      await tester.ensureVisible(horizontal);
+      await tester.tap(horizontal);
       await tester.pumpAndSettle();
-      expect(find.text('270°'), findsOneWidget);
-      await tester.tap(rotateRight);
-      await tester.pumpAndSettle();
-      expect(find.text('0°'), findsOneWidget);
-      await tester.tap(rotateRight);
-      await tester.pumpAndSettle();
-      expect(find.text('90°'), findsOneWidget);
+      expect(
+        tester
+            .widget<SegmentedButton<ItemAxis>>(
+              find.byType(SegmentedButton<ItemAxis>),
+            )
+            .selected,
+        {ItemAxis.horizontal},
+      );
       final style = find.byKey(const ValueKey('control-variants'));
       await tester.tap(style);
       await tester.pumpAndSettle();
@@ -381,17 +394,18 @@ void main() {
         findsOneWidget,
       );
       expect(model.draft.items.first.definitionId, 'volumeRocker');
+      expect(find.text('Position'), findsNothing);
 
       await tester.ensureVisible(find.text('Done').last);
       await tester.tap(find.text('Done').last);
       await tester.pumpAndSettle();
-      expect(model.draft.items.first.quarterTurns, 1);
-      expect(model.draft.items.first.w, 2);
+      expect(model.draft.items.first.position, isNull);
+      expect((model.draft.items.first.w, model.draft.items.first.h), (4, 2));
       expect(GridGeometry.valid(model.draft.items), isTrue);
       await tester.tap(find.byTooltip('Done'));
       await tester.pumpAndSettle();
       expect(find.byType(GridEditorPage), findsNothing);
-      expect(app.grids.forDevice(tv)!.items.first.quarterTurns, 1);
+      expect(app.grids.forDevice(tv)!.items.first.w, 4);
       expect(app.grids.forDevice(tv)!.items.first.definitionId, 'volumeUp');
       expect(provider.last!.volumeControl.level, 20);
       await tester.pumpWidget(const SizedBox.shrink());

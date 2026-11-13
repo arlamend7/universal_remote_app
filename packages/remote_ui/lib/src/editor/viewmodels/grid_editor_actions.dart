@@ -1,5 +1,4 @@
 import '../grid_editor_page.dart';
-import '../../layout/models/square_grid_metrics.dart';
 import '../modals/grid_settings_sheet.dart';
 
 import 'package:flutter/material.dart';
@@ -16,31 +15,41 @@ final class GridEditorActions {
   final GridEditorViewModel model;
   final GridEditorViewModel? parent;
   final GridItem? group;
+
+  /// Highlights [item] while its Edit Control sheet is open. However the
+  /// sheet closes (Done, back, a swipe or a tap outside), the highlight clears.
   Future<void> edit(BuildContext context, GridItem item) async {
     model.select(item.id);
-    await showAppModal<void>(
-      context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      builder: (_) => WidgetSettingsSheet(
-        item: item,
-        model: model,
-        dependencies: dependencies,
-        onEditGroup: () => editGroup(context, item),
+    try {
+      await showAppModal<void>(
+        context,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        builder: (_) => WidgetSettingsSheet(
+          item: item,
+          model: model,
+          dependencies: dependencies,
+          onEditGroup: () => editGroup(context, item),
+        ),
+      );
+    } finally {
+      model.select(null);
+    }
+  }
+
+  Future<void> editGroup(BuildContext context, GridItem item) {
+    final group = model.selection ?? item;
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => GridEditorPage(
+          dependencies: dependencies,
+          device: model.device,
+          parent: model,
+          group: group,
+        ),
       ),
     );
   }
 
-  Future<void> editGroup(BuildContext context, GridItem item) =>
-      Navigator.of(context).push<void>(
-        MaterialPageRoute(
-          builder: (_) => GridEditorPage(
-            dependencies: dependencies,
-            device: model.device,
-            parent: model,
-            group: model.selection ?? item,
-          ),
-        ),
-      );
   Future<void> library(BuildContext context, {({int x, int y})? at}) async {
     final definitionId = await showAppModal<String>(
       context,

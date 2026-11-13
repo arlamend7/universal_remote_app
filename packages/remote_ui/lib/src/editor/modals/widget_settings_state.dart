@@ -13,6 +13,7 @@ import '../widgets/control_draft_preview.dart';
 import '../widgets/border_shape_picker.dart';
 import '../widgets/border_size_picker.dart';
 import '../widgets/editor_number_field.dart';
+import '../widgets/position_picker.dart';
 import '../widgets/editor_tabs.dart';
 import '../viewmodels/widget_target_choices.dart';
 import 'widget_settings_sheet.dart';
@@ -23,7 +24,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   late String definitionId = widget.item.definitionId;
   late RemoteItemStyle style = widget.item.style;
   late final elementStyles = {...widget.item.elementStyles};
-  late int quarterTurns = widget.item.quarterTurns;
+  late ItemAxis? position = widget.item.position;
   late int width = widget.item.w, height = widget.item.h;
   late final settings = {...widget.item.config};
   final _numbers = <String, TextEditingController>{};
@@ -80,15 +81,20 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     ),
   );
 
-  GridItem get draft => widget.item.copy(
-    definitionId: definitionId,
-    w: width,
-    h: height,
-    quarterTurns: quarterTurns,
-    style: style,
-    elementStyles: elementStyles,
-    config: _configuration(),
-  );
+  GridItem get draft {
+    final edited = widget.item.copy(
+      definitionId: definitionId,
+      w: width,
+      h: height,
+      style: style,
+      elementStyles: elementStyles,
+      config: _configuration(),
+    );
+    if (!_definition.supportsPosition) {
+      return edited.withoutPosition();
+    }
+    return edited.copy(position: position ?? _definition.defaultPosition);
+  }
 
   Map<String, String> _configuration() => {
     ...settings,
@@ -105,7 +111,10 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     spacing: 12,
     children: [
       ControlDraftPreview(
-        item: draft.copy(w: width.clamp(1, 16), h: height.clamp(1, 16)),
+        item: draft.copy(
+          w: width.clamp(1, GridLayout.maxColumns),
+          h: height.clamp(1, RemoteItemDefinition.maximumHeight),
+        ),
         dependencies: widget.dependencies,
         device: widget.model.device,
         height: (constraints.maxHeight * .28).clamp(0.0, 180.0),
@@ -173,15 +182,19 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     _changeVariant(RemoteItemRegistry.resolve(id));
   }
 
+  /// Keeps the current size and Position where the new variant allows them,
+  /// growing only to its minimum and falling back to its default Position.
   void _changeVariant(RemoteItemDefinition<Object> choice) {
-    final keepSize = choice.accepts(draft.contentWidth, draft.contentHeight);
     setState(() {
       definitionId = choice.id;
-      if (!keepSize) {
-        width = choice.width;
-        height = choice.height;
-        quarterTurns = 0;
-      }
+      width = width.clamp(choice.minimumWidth, GridLayout.maxColumns);
+      height = height.clamp(
+        choice.minimumHeight,
+        RemoteItemDefinition.maximumHeight,
+      );
+      position = choice.supportsPosition
+          ? position ?? choice.defaultPosition
+          : null;
       error = null;
     });
   }
@@ -213,9 +226,17 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     _section('Layout', Icons.grid_view, [
       _dimension('Width', horizontal: true),
       _dimension('Height', horizontal: false),
-      if (!_isGroup) _rotation(),
+      _resetSize(),
+      if (_definition.supportsPosition) _position(),
     ], expanded: true),
-    _section('Border', Icons.border_outer, [
+    _section('Appearance', Icons.palette_outlined, [
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('Show Background'),
+        value: style.showBackground,
+        onChanged: (value) =>
+            _appearance(style.copyWith(showBackground: value)),
+      ),
       Padding(
         padding: const EdgeInsets.only(top: 12),
         child: BorderSizePicker(
@@ -274,29 +295,45 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     return EditorNumberField(
       label: label,
       value: horizontal ? width : height,
-      minimum: 1,
-      maximum: 16,
-      onChanged: (value) => _size(
-        horizontal ? value : width,
-        horizontal ? height : value,
-        quarterTurns,
-      ),
+      minimum: horizontal
+          ? _definition.minimumWidth
+          : _definition.minimumHeight,
+      maximum: horizontal
+          ? GridLayout.maxColumns
+          : RemoteItemDefinition.maximumHeight,
+      onChanged: (value) =>
+          _size(horizontal ? value : width, horizontal ? height : value),
     );
   }
 
-  Widget _rotation() =>
-      EditorNumberField.rotation(value: quarterTurns, onChanged: _rotate);
+  Widget _resetSize() => Align(
+    alignment: Alignment.centerLeft,
+    child: TextButton.icon(
+      onPressed: _atMinimum
+          ? null
+          : () => _size(_definition.minimumWidth, _definition.minimumHeight),
+      icon: const Icon(Icons.fit_screen_outlined),
+      label: const Text('Reset to minimum size'),
+    ),
+  );
 
-  void _rotate(int turn) {
-    final swap = (turn - quarterTurns).isOdd;
-    _size(swap ? height : width, swap ? width : height, turn);
-  }
+  bool get _atMinimum =>
+      width == _definition.minimumWidth && height == _definition.minimumHeight;
 
-  void _size(int w, int h, int turn) {
+  /// Changes only the arrangement of the elements, never the size.
+  Widget _position() => PositionPicker(
+    position: position ?? _definition.defaultPosition!,
+    onChanged: (value) => setState(() {
+      position = value;
+      error = null;
+    }),
+  );
+
+  /// Changes only the size, never the Position.
+  void _size(int w, int h) {
     setState(() {
       width = w;
       height = h;
-      quarterTurns = turn;
       error = null;
     });
   }
@@ -751,8 +788,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   }
 
   String _sizeProblem(GridItem item) {
-    if (!_definition.accepts(item.contentWidth, item.contentHeight)) {
-      return 'This control does not support ${item.w} × ${item.h} blocks at this rotation.';
+    if (!_definition.accepts(item.w, item.h)) {
+      return 'This control needs at least ${_definition.minimumWidth} × ${_definition.minimumHeight} blocks.';
     }
     return 'This size overlaps another control or extends past the group or page.';
   }

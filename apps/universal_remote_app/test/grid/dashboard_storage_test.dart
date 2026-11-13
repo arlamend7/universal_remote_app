@@ -20,8 +20,9 @@ void main() {
         definitionId: 'volumeRocker',
         x: 0,
         y: 0,
-        w: 2,
-        h: 1,
+        w: 1,
+        h: 2,
+        position: ItemAxis.horizontal,
         style: const RemoteItemStyle(background: 0xff243531, opacity: .65),
         elementStyles: const {'volume_up': RemoteElementStyle(iconSize: 32)},
       ),
@@ -34,18 +35,11 @@ void main() {
     final reloaded = await AppBootstrap.initialize(storage: storage);
     final item = reloaded.grids.forDevice(tv)!.items.single;
     expect(item.definitionId, 'volumeRocker');
+    expect(item.position, ItemAxis.horizontal);
+    expect((item.w, item.h), (1, 2));
     expect(item.style.opacity, .65);
     expect(item.elementStyles['volume_up']!.iconSize, 32);
     await reloaded.dispose();
-  });
-
-  test('loads an older saved dashboard with kind identifiers', () {
-    final layout = GridLayout.decode(
-      '{"version":2,"items":[{"id":"old","kind":"volumeUp","x":0,"y":0,"w":1,"h":1}]}',
-    );
-    expect(layout.items.single.definitionId, 'volumeUp');
-    expect(GridGeometry.valid(layout.items), isTrue);
-    expect(layout.encode(), contains('"definitionId":"volumeUp"'));
   });
 
   test(

@@ -388,7 +388,7 @@ void main() {
         tester.getTopLeft(cards.first).dy,
         tester.getTopLeft(cards.at(1)).dy,
       );
-      await tester.enterText(find.byType(TextField), 'RESIZE, wide');
+      await tester.enterText(find.byType(TextField), 'POSITION, across');
       await tester.pumpAndSettle();
       expect(cards, findsOneWidget);
       await tester.tap(find.widgetWithText(Card, 'Volume rocker'));

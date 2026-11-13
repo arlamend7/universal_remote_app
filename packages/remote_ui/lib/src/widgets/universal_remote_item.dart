@@ -16,14 +16,21 @@ class UniversalRemoteItem extends StatefulWidget {
     required this.onRemove,
     required this.onResize,
     this.canResize,
-    this.quarterTurns = 0,
+    this.minimumWidth = 1,
+    this.minimumHeight = 1,
+    this.maximumWidth = 8,
+    this.maximumHeight = 16,
     this.style = const RemoteItemStyle(),
     this.enabled = true,
     this.selected = false,
   });
 
   final String id, label;
-  final int width, height, quarterTurns;
+  final int width, height;
+
+  /// Resizing stops at these bounds: the definition's fixed minimum and the
+  /// room left on the page.
+  final int minimumWidth, minimumHeight, maximumWidth, maximumHeight;
   final Widget child;
   final RemoteItemStyle style;
   final VoidCallback onEdit, onRemove;

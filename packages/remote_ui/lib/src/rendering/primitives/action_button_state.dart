@@ -109,7 +109,7 @@ class ActionButtonState extends State<ActionButton> {
             curve: Curves.easeOut,
             child: Opacity(
               opacity: widget.onPressed == null ? .38 : 1,
-              child: _label(),
+              child: LayoutBuilder(builder: _fitted),
             ),
           ),
         ),
@@ -131,6 +131,16 @@ class ActionButtonState extends State<ActionButton> {
       (widget.elementStyle?.showIcon ??
           (widget.appearance['showIcon'] != 'false'));
 
+  /// Scales the icon and label down together when the button is given less
+  /// room than they need, instead of overflowing. They never grow.
+  Widget _fitted(BuildContext context, BoxConstraints constraints) {
+    final width = constraints.maxWidth;
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(width: width.isFinite ? width : null, child: _label()),
+    );
+  }
+
   Widget _label() => Column(
     mainAxisSize: MainAxisSize.min,
     mainAxisAlignment: MainAxisAlignment.center,
@@ -145,15 +155,13 @@ class ActionButtonState extends State<ActionButton> {
       if (widget.showLabel && widget.appearance['showLabel'] != 'false')
         const SizedBox(height: _gap),
       if (widget.showLabel && widget.appearance['showLabel'] != 'false')
-        Flexible(
-          child: Text(
-            widget.label,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: _foreground),
-          ),
+        Text(
+          widget.label,
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: _foreground),
         ),
     ],
   );

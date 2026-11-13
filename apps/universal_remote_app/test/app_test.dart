@@ -104,6 +104,8 @@ void main() {
             .onPressed,
         isNotNull,
       );
+      await tester.ensureVisible(find.byTooltip('OK'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('OK'));
       await tester.pumpAndSettle();
       expect(provider.last!.navigationControl.last, NavigationKey.enter);
@@ -161,28 +163,32 @@ void main() {
             .columns,
         4,
       );
+      final canvas = tester.getSize(find.byType(GridRemoteCanvas));
       expect(
         tester
             .widget<GridRemoteCanvas>(find.byType(GridRemoteCanvas))
             .layout
             .rows,
-        6,
+        fittedGridSize(
+          SquareGridMetrics(width: canvas.width, height: canvas.height),
+        ).rows,
       );
       await tester.tap(find.byTooltip('Customize remote'));
       await tester.pumpAndSettle();
-      expect(find.byTooltip('Add control at column 4, row 6'), findsOneWidget);
+      final rows = tester
+          .state<GridEditorPageState>(find.byType(GridEditorPage))
+          .model
+          .draft
+          .rows;
+      expect(rows, greaterThanOrEqualTo(starterRows));
       expect(find.byTooltip('Add control at column 5, row 1'), findsNothing);
-      expect(find.byTooltip('Add control at column 1, row 7'), findsNothing);
+      expect(
+        find.byTooltip('Add control at column 1, row ${rows + 1}'),
+        findsNothing,
+      );
       await tester.tap(find.byTooltip('Grid Settings'));
       await tester.pumpAndSettle();
-      expect(
-        tester
-            .widget<ChoiceChip>(
-              find.widgetWithText(ChoiceChip, '4×6 · Default'),
-            )
-            .selected,
-        isTrue,
-      );
+      expect(find.textContaining('Fits screen'), findsOneWidget);
       await tester.tap(find.widgetWithText(ChoiceChip, '5×7'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Apply Grid'));

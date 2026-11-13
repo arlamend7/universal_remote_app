@@ -186,12 +186,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('A 2 × 2 control would overlap Mute.'), findsOneWidget);
     expect(model.draft.items.first.h, 1);
-    await tester.drag(resize, const Offset(-75, 75));
+    await tester.drag(resize, const Offset(-75, 0));
     await tester.pumpAndSettle();
     final item = model.draft.items.first;
-    expect((item.x, item.y, item.w, item.h), (2, 0, 1, 2));
+    expect(
+      (item.x, item.y, item.w, item.h),
+      (2, 0, 2, 1),
+      reason: 'Home and Back cannot shrink below its 2 × 1 minimum.',
+    );
     expect(model.draft.items.last.x, 3);
-    expect(model.error, isNull);
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });

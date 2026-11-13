@@ -19,6 +19,11 @@ abstract class RemoteItemLayout {
     required Map<String, String> settings,
   }) => 0;
 
+  /// Whether an item with [elementCount] elements can arrange them either
+  /// horizontally or vertically. Layouts with their own geometry (pads, dials,
+  /// touch surfaces, groups) keep a single arrangement.
+  bool supportsPosition(int elementCount) => false;
+
   /// Double dispatch, so a consumer must handle every layout.
   T accept<T>(RemoteLayoutVisitor<T> visitor);
 }

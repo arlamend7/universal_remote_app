@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/material.dart';
 
 import 'universal_remote_item.dart';
-import '../layout/models/grid_layout.dart';
 import '../layout/models/square_grid_metrics.dart';
 import 'mouse_item_drag.dart';
 import 'resize_handle.dart';
@@ -17,11 +16,7 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: _layout);
 
-  Widget get _content => StyledItem(
-    style: widget.style,
-    quarterTurns: widget.quarterTurns,
-    child: widget.child,
-  );
+  Widget get _content => StyledItem(style: widget.style, child: widget.child);
   Widget _layout(BuildContext context, BoxConstraints constraints) => Semantics(
     button: true,
     label: '${widget.label}. Tap to edit, drag with a mouse or hold to move.',
@@ -65,7 +60,9 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
   }
 
   Widget _surface(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+    color: widget.style.showBackground
+        ? Theme.of(context).colorScheme.surfaceContainerHigh
+        : Colors.transparent,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
       side: BorderSide(
@@ -166,15 +163,17 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
     final width = widget.width + (delta.dx / _stride.width).round();
     final height = widget.height + (delta.dy / _stride.height).round();
     return (
-      width: width.clamp(
-        1,
-        widget.quarterTurns.isOdd ? 16 : GridLayout.maxColumns,
-      ),
-      height: height.clamp(
-        1,
-        widget.quarterTurns.isOdd ? GridLayout.maxColumns : 16,
-      ),
+      width: _bounded(width, widget.minimumWidth, widget.maximumWidth),
+      height: _bounded(height, widget.minimumHeight, widget.maximumHeight),
     );
+  }
+
+  /// Never below the fixed minimum, even when the page has less room.
+  int _bounded(int value, int minimum, int maximum) {
+    if (maximum < minimum) {
+      return minimum;
+    }
+    return value.clamp(minimum, maximum);
   }
 
   void _end(PointerUpEvent event) {

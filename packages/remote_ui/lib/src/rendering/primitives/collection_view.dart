@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/src/ui_model.dart';
 
 import '../viewmodels/grid_remote_viewmodel.dart';
-import '../../layout/models/square_grid_metrics.dart';
 import 'action_button.dart';
 import 'unavailable_notice.dart';
 import 'styled_element.dart';
@@ -77,14 +76,25 @@ class CollectionView extends StatelessWidget {
     children: targets.map(_button).toList(),
   );
 
+  /// Scrolls along the item's Position: across when horizontal, down when
+  /// vertical.
   Widget _strip(List<(String, String)> targets) => ListView.separated(
     padding: const EdgeInsets.all(_gap / 2),
-    scrollDirection: Axis.horizontal,
+    scrollDirection: _axis,
     itemCount: targets.length,
-    separatorBuilder: (_, _) => const SizedBox(width: _gap),
-    itemBuilder: (_, index) =>
-        SizedBox(width: 76, child: _button(targets[index])),
+    separatorBuilder: (_, _) => const SizedBox.square(dimension: _gap),
+    itemBuilder: (_, index) => _entry(targets[index]),
   );
+
+  Axis get _axis =>
+      item.arrangement == ItemAxis.vertical ? Axis.vertical : Axis.horizontal;
+
+  Widget _entry((String, String) target) {
+    if (_axis == Axis.vertical) {
+      return SizedBox(height: 76, child: _button(target));
+    }
+    return SizedBox(width: 76, child: _button(target));
+  }
 
   Widget _button((String, String) target) {
     final (id, name) = target;

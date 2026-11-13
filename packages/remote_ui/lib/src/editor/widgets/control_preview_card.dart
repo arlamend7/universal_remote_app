@@ -34,10 +34,9 @@ class ControlPreviewCard extends StatelessWidget {
         width: item.w * 80.0,
         height: item.h * 80.0,
         child: StyledItem(
-          quarterTurns: item.quarterTurns,
           style: item.style,
           child: GridItemPreview(
-            item: item.unrotated,
+            item: item,
             dependencies: dependencies,
             device: device,
           ),

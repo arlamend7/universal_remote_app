@@ -12,6 +12,14 @@ final class CollectionLayout extends RemoteItemLayout {
   @override
   final RemoteItemSize? size;
 
+  /// Scrolling rows can scroll either horizontally or vertically.
+  bool get scrolls =>
+      presentation == CollectionPresentation.strip ||
+      presentation == CollectionPresentation.recents;
+
+  @override
+  bool supportsPosition(int elementCount) => scrolls;
+
   @override
   T accept<T>(RemoteLayoutVisitor<T> visitor) => visitor.visitCollection(this);
 }

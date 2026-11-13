@@ -5,7 +5,6 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
-import '../../layout/models/square_grid_metrics.dart';
 import 'grid_edit_tile.dart';
 import 'grid_editor_canvas.dart';
 import 'grid_editor_page_geometry.dart';
@@ -24,8 +23,6 @@ class GridEditorCanvasState extends State<GridEditorCanvas>
   Offset _grabOffset = Offset.zero;
   int? _pointerId;
   DragTargetDetails<String>? _drag;
-  final _extraRows = <int, int>{};
-  int _extraColumns = 0;
 
   List<GridEditorPageGeometry> _geometry() {
     final model = widget.model;
@@ -45,18 +42,12 @@ class GridEditorCanvasState extends State<GridEditorCanvas>
   ) {
     final model = widget.model;
     final layout = model.draft;
-    final last = index == layout.pageStarts.length - 1;
     final page = GridEditorPageGeometry(
       start: start,
-      columns: model.isGroup
-          ? model.columns
-          : layout.pageColumns(index) + (last ? _extraColumns : 0),
+      columns: model.isGroup ? model.columns : layout.pageColumns(index),
       rows: model.isGroup
           ? model.maxRows
-          : math.min(
-              model.maxRows,
-              layout.pageRows(index) + (_extraRows[start] ?? 0),
-            ),
+          : math.min(model.maxRows, layout.pageRows(index)),
       left: left,
       side: layout.pageCellSize(index),
     );
@@ -281,18 +272,14 @@ class GridEditorCanvasState extends State<GridEditorCanvas>
     final column = ((local.dx - page.left) / page.stride).round();
     final row = (local.dy / page.stride).round();
     return item.copy(
-      x:
-          page.start +
-          column.clamp(
-            0,
-            widget.model.isGroup ? page.columns - item.w : page.columns - 1,
-          ),
-      y: row.clamp(
-        widget.model.reservedRows,
-        widget.model.isGroup ? page.rows - item.h : page.rows - 1,
-      ),
+      x: page.start + _within(column, 0, page.columns - item.w),
+      y: _within(row, widget.model.reservedRows, page.rows - item.h),
     );
   }
+
+  /// Keeps the whole footprint on the page. The grid never grows to make room.
+  int _within(int value, int minimum, int maximum) =>
+      value.clamp(minimum, math.max(minimum, maximum));
 
   void _move(DragTargetDetails<String> details) {
     final firstMove = _drag == null;
@@ -347,29 +334,10 @@ class GridEditorCanvasState extends State<GridEditorCanvas>
       return;
     }
     final item = _candidate(drag.data, offset);
-    final page = item == null ? null : _pageForColumn(item.x);
-    final expand = item != null && page != null && !widget.model.isGroup;
-    final growDown =
-        expand &&
-        item.y + item.h >= page.rows - 1 &&
-        page.rows < widget.model.maxRows;
-    final growRight =
-        expand &&
-        page == _pages.last &&
-        item.x + item.w >= page.start + page.columns - 1 &&
-        page.start + page.columns < GridLayout.coordinateLimit;
-    if (!growDown && !growRight && item?.x == ghost?.x && item?.y == ghost?.y) {
+    if (item?.x == ghost?.x && item?.y == ghost?.y) {
       return;
     }
-    setState(() {
-      ghost = item;
-      if (growDown) {
-        _extraRows.update(page.start, (rows) => rows + 4, ifAbsent: () => 4);
-      }
-      if (growRight) {
-        _extraColumns += 4;
-      }
-    });
+    setState(() => ghost = item);
   }
 
   void _stopScroll() {
@@ -380,11 +348,7 @@ class GridEditorCanvasState extends State<GridEditorCanvas>
 
   void _clearDrag() {
     _stopScroll();
-    setState(() {
-      ghost = null;
-      _extraRows.clear();
-      _extraColumns = 0;
-    });
+    setState(() => ghost = null);
   }
 
   void _accept(DragTargetDetails<String> details) {

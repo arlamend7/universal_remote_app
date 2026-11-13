@@ -13,6 +13,7 @@ export 'elements/remote_info.dart';
 export 'elements/remote_input.dart';
 export 'feedback/remote_feedback.dart';
 export 'functions/default_remote_grid.dart';
+export 'layout/models/square_grid_metrics.dart';
 export 'functions/widget_targets.dart';
 export 'items/ac_items.dart';
 export 'items/tv_items.dart';

@@ -55,32 +55,29 @@ void main() {
     },
   );
 
-  test('quarter turns persist with their rotated collision footprint', () {
+  test('Position persists independently of the saved size', () {
     final rocker = GridItem(
       id: 'rocker',
       definitionId: 'volumeRocker',
       x: 0,
       y: 0,
-      w: 1,
-      h: 2,
+      w: 2,
+      h: 4,
+      position: ItemAxis.horizontal,
     );
-    final neighbor = rocker.copy(id: 'neighbor', x: 1);
-    for (final turns in [1, 2, 3]) {
-      final rotated = rocker.copy(
-        quarterTurns: turns,
-        w: turns.isOdd ? 2 : 1,
-        h: turns.isOdd ? 1 : 2,
-      );
-      expect(GridGeometry.valid([rotated]), isTrue);
-      expect(GridGeometry.overlaps(rotated, neighbor), turns.isOdd);
-      final restored = GridLayout.decode(GridLayout([rotated]).encode())
-          .items
-          .single;
-      expect(restored.quarterTurns, turns);
-      expect((restored.contentWidth, restored.contentHeight), (1, 2));
-    }
-    final legacy = GridLayout.decode(GridLayout([rocker]).encode());
-    expect(legacy.items.single.quarterTurns, 0);
+    final restored = GridLayout.decode(GridLayout([rocker]).encode())
+        .items
+        .single;
+    expect(restored.position, ItemAxis.horizontal);
+    expect((restored.w, restored.h), (2, 4));
+    expect(restored.arrangement, ItemAxis.horizontal);
+
+    final unset = GridLayout.decode(
+      GridLayout([rocker.withoutPosition()]).encode(),
+    ).items.single;
+    expect(unset.position, isNull);
+    expect(unset.arrangement, ItemAxis.vertical);
+    expect((unset.w, unset.h), (2, 4));
   });
 
   test(

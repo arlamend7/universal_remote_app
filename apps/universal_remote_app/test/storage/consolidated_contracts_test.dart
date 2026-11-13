@@ -93,7 +93,7 @@ const _savedDashboard = '''
   "items": [
     {
       "id": "home-shortcut",
-      "kind": "home",
+      "definitionId": "home",
       "x": 0, "y": 0, "w": 1, "h": 1,
       "elements": {"nav_home": {"showLabel": false}}
     },

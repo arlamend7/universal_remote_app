@@ -78,8 +78,12 @@ class RemoteViewModel implements RemotePanel {
   RemoteDevice? get device => connection.selected.value;
   DeviceConnectionState get state => connection.state.value;
   String? get error => connection.error.value;
-  GridLayout? get grid =>
-      device == null ? null : dependencies.grids.layoutFor(device!);
+
+  /// The dashboard to show in a grid area of [viewport]. A device without a
+  /// saved dashboard gets a starter grid fitted to that area.
+  GridLayout? gridFor(SquareGridMetrics viewport) => device == null
+      ? null
+      : dependencies.grids.layoutFor(device!, viewport: viewport);
   String get displayName =>
       dependencies.savedDevices.byId(device?.id)?.name ??
       device?.name ??

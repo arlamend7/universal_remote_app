@@ -1,8 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
+import '../definitions/remote_item_definition.dart';
 import '../definitions/remote_item_registry.dart';
-import '../functions/default_remote_grid.dart';
 import '../layout/grid_arrangement.dart';
 import '../layout/grid_geometry.dart';
 import '../layout/models/enums/editor_mode.dart';
@@ -53,7 +55,7 @@ final class GridEditorViewModel extends ChangeNotifier {
         pageSizes: {
           ...draft.pageSizes,
           columns: GridPageSize(
-            GridLayout.defaultRows,
+            draft.pageRows(draft.pageIndexAt(pageStart)),
             draft.pageCellSize(draft.pageIndexAt(pageStart)),
           ),
         },
@@ -165,6 +167,9 @@ final class GridEditorViewModel extends ChangeNotifier {
   GridItem? get selection =>
       draft.items.where((item) => item.id == selected).firstOrNull;
   void select(String? id) {
+    if (_disposed || selected == id) {
+      return;
+    }
     selected = id;
     notifyListeners();
   }
@@ -206,6 +211,7 @@ final class GridEditorViewModel extends ChangeNotifier {
       y: at?.y ?? reservedRows,
       w: definition.width.clamp(1, columns),
       h: definition.height,
+      position: definition.supportsPosition ? definition.defaultPosition : null,
     );
     final next = at == null ? _append(item) : _insert(item);
     if (next == null) {
@@ -232,10 +238,12 @@ final class GridEditorViewModel extends ChangeNotifier {
     );
     return placed == null
         ? null
-        : _insert(placed.copy(x: placed.x + pageStart));
+        : _insert(placed.copy(x: placed.x + pageStart), grow: true);
   }
 
-  GridLayout? _insert(GridItem item) {
+  /// Adds [item] at its default size, or its minimum when that is all that
+  /// fits. Only appending may add rows to the page; a chosen slot never does.
+  GridLayout? _insert(GridItem item, {bool grow = false}) {
     final definition = item.definition;
     final source = draft.withItems([...draft.items, item]);
     for (final size in [
@@ -243,7 +251,7 @@ final class GridEditorViewModel extends ChangeNotifier {
       (definition.minimumWidth, definition.minimumHeight),
     ]) {
       final candidate = item.copy(w: size.$1, h: size.$2);
-      final next = _arrange(source, candidate);
+      final next = _arrange(source, candidate, grow: grow);
       if (next != null) {
         return next;
       }
@@ -266,10 +274,10 @@ final class GridEditorViewModel extends ChangeNotifier {
 
   String _placementProblem(GridItem item) {
     final size = '${item.w} × ${item.h}';
-    if (!item.definition.accepts(item.contentWidth, item.contentHeight)) {
+    if (!item.definition.accepts(item.w, item.h)) {
       return '${item.definition.name} does not support $size blocks.';
     }
-    if (!draft.staysOnPage(item)) {
+    if (!draft.staysOnPage(item) || !_insidePage(draft, item)) {
       return 'A $size control would cross the page boundary.';
     }
     if (isGroup && (item.x + item.w > columns || item.y + item.h > maxRows)) {
@@ -288,7 +296,37 @@ final class GridEditorViewModel extends ChangeNotifier {
 
   bool canReplace(GridItem item) => _arrange(draft, item) != null;
 
-  GridLayout? _arrange(GridLayout source, GridItem item) {
+  /// The largest size [item] may grow to from where it stands: the room left
+  /// on its page (or group), capped by the definition limits.
+  ({int width, int height}) roomFor(GridItem item) {
+    if (isGroup) {
+      return (
+        width: math.min(columns - item.x, GridLayout.maxColumns),
+        height: math.min(maxRows - item.y, RemoteItemDefinition.maximumHeight),
+      );
+    }
+    final index = draft.pageIndexAt(item.x);
+    return (
+      width: math.min(draft.pageEnd(index) - item.x, GridLayout.maxColumns),
+      height: math.min(
+        draft.pageRows(index) - item.y,
+        RemoteItemDefinition.maximumHeight,
+      ),
+    );
+  }
+
+  /// Whether [item]'s whole footprint lies inside its page's configured
+  /// columns and rows.
+  bool _insidePage(GridLayout source, GridItem item) {
+    final others = source.withItems(
+      source.items.where((other) => other.id != item.id),
+    );
+    final index = others.pageIndexAt(item.x);
+    return item.x + item.w <= others.pageEnd(index) &&
+        item.y + item.h <= others.pageRows(index);
+  }
+
+  GridLayout? _arrange(GridLayout source, GridItem item, {bool grow = false}) {
     if (isGroup) {
       return GridArrangement.replace(
         source,
@@ -297,6 +335,9 @@ final class GridEditorViewModel extends ChangeNotifier {
         rows: maxRows,
         reservedRows: reservedRows,
       );
+    }
+    if (!grow && !_insidePage(source, item)) {
+      return null;
     }
     final next = source.withItems(
       source.items.map((old) => old.id == item.id ? item : old),
@@ -353,7 +394,7 @@ final class GridEditorViewModel extends ChangeNotifier {
   }
 
   void reset() =>
-      change(_groupRows != null ? draft.withItems([]) : defaultRemoteGrid());
+      change(_groupRows != null ? draft.withItems([]) : grids.defaultLayout());
   Future<bool> save() async {
     if (saving) {
       return false;

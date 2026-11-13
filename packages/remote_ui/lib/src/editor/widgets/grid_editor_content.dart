@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/src/ui_model.dart';
 
 import '../viewmodels/grid_editor_actions.dart';
-import '../../layout/models/square_grid_metrics.dart';
 import '../../widgets/grid/grid_page_dots.dart';
 import 'grid_editor_canvas.dart';
 import 'editor_toolbar.dart';

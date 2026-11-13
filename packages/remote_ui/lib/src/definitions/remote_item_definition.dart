@@ -37,28 +37,37 @@ final class RemoteItemDefinition<TDevice> {
   final String name;
   final RemoteItemCategory category;
 
-  /// The direction elements are laid out in, and the side an item grows along.
+  /// The canonical direction of the elements. It sizes linear items and is
+  /// the arrangement of items whose Position cannot be chosen.
   final ItemAxis axis;
+
+  /// Tallest an item may be resized to, in grid cells.
+  static const maximumHeight = 16;
 
   int get width => layout.size?.width ?? _linearWidth;
   int get height => layout.size?.height ?? _linearHeight;
-  int get minimumWidth =>
-      layout.size?.minimumWidth ?? (_adaptive ? 1 : _linearWidth);
-  int get minimumHeight =>
-      layout.size?.minimumHeight ?? (_adaptive ? 1 : _linearHeight);
 
-  bool get _adaptive => switch (layout) {
-    LinearLayout(:final adaptive) => adaptive,
-    _ => false,
-  };
+  /// The smallest size an instance may have. Fixed by the definition; the
+  /// user's Position never changes it.
+  int get minimumWidth => layout.size?.minimumWidth ?? _linearWidth;
+  int get minimumHeight => layout.size?.minimumHeight ?? _linearHeight;
 
-  /// The direction the elements run for an item of this shape.
-  ItemAxis axisFor(int width, int height) {
-    if (!_adaptive || width == height) {
-      return axis;
+  /// The Position a new instance starts with: the longer side of the minimum
+  /// size. Null when the minimum is square, which has no preference.
+  ItemAxis? get defaultPosition {
+    if (minimumWidth > minimumHeight) {
+      return ItemAxis.horizontal;
     }
-    return width > height ? ItemAxis.horizontal : ItemAxis.vertical;
+    if (minimumHeight > minimumWidth) {
+      return ItemAxis.vertical;
+    }
+    return null;
   }
+
+  /// Whether the user can choose how the elements are arranged. Square-minimum
+  /// items and layouts with their own geometry cannot.
+  bool get supportsPosition =>
+      defaultPosition != null && layout.supportsPosition(elements.length);
 
   bool get _vertical => axis == ItemAxis.vertical;
   int get _slots => elements.isEmpty
@@ -69,19 +78,13 @@ final class RemoteItemDefinition<TDevice> {
 
   final String? description;
   String get searchText => '$name ${category.label} ${description ?? ''}';
-  bool accepts(int w, int h) {
-    final inRange =
-        w >= minimumWidth &&
-        w <= GridLayout.maxColumns &&
-        h >= minimumHeight &&
-        h <= 16;
-    if (!_adaptive) {
-      return inRange;
-    }
-    // The side the elements run along must hold all of them.
-    final run = axisFor(w, h) == ItemAxis.horizontal ? w : h;
-    return inRange && run >= _slots;
-  }
+
+  /// Whether an instance may occupy [w] by [h] cells, whatever its Position.
+  bool accepts(int w, int h) =>
+      w >= minimumWidth &&
+      w <= GridLayout.maxColumns &&
+      h >= minimumHeight &&
+      h <= maximumHeight;
 
   final Set<RemoteCapability> requires;
 

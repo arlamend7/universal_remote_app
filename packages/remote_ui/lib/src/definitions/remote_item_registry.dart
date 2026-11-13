@@ -4,6 +4,7 @@ import '../layout/models/grid_item.dart';
 import '../items/ac_items.dart';
 import '../items/standard_items.dart';
 import '../items/tv_item_registration.dart';
+import 'enums/item_axis.dart';
 import 'layouts/layouts.dart';
 import 'remote_item_definition.dart';
 
@@ -66,6 +67,16 @@ extension RegisteredGridItem on GridItem {
       RemoteItemRegistry.resolve(definitionId);
 
   bool get isGroup => definition.layout is GroupLayout;
+
+  /// How the item's elements are arranged. Only the user's Position (or the
+  /// definition's default) decides it, never the item's current size.
+  ItemAxis get arrangement {
+    final definition = this.definition;
+    if (!definition.supportsPosition) {
+      return definition.axis;
+    }
+    return position ?? definition.defaultPosition!;
+  }
 
   /// A saved item whose definition this version cannot draw.
   bool get isUnavailable => definition.layout is UnavailableLayout;

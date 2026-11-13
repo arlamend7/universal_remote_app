@@ -20,8 +20,21 @@ final class DeviceGridsController {
   GridLayout? forDevice(RemoteDevice device) =>
       _decode(_dashboards[_key(device)] ?? _dashboards[device.id]);
 
-  GridLayout layoutFor(RemoteDevice device) =>
-      forDevice(device) ?? defaultRemoteGrid();
+  /// The last grid area the remote was laid out in. A device without a saved
+  /// dashboard gets a starter grid fitted to it.
+  SquareGridMetrics? viewport;
+
+  /// The saved dashboard, or a starter grid fitted to [viewport] (or the last
+  /// one measured). Saved dashboards keep their own rows on any screen.
+  GridLayout layoutFor(RemoteDevice device, {SquareGridMetrics? viewport}) {
+    if (viewport != null) {
+      this.viewport = viewport;
+    }
+    return forDevice(device) ?? defaultLayout();
+  }
+
+  /// The starter grid for the last measured grid area.
+  GridLayout defaultLayout() => defaultRemoteGrid(viewport: viewport);
 
   String _key(RemoteDevice device) => deviceKey?.call(device) ?? device.id;
 

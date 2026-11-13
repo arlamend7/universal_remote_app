@@ -27,10 +27,13 @@ class InfoDisplay extends StatelessWidget {
     return showLabel ? style?.label ?? info.defaultLabel : null;
   }
 
+  /// The border, when shown, surrounds the whole cell the information gets,
+  /// with the text centered inside and clear of it.
   @override
   Widget build(BuildContext context) => StyledElement(
     style: item.elementStyles[info.id],
-    child: _display(context),
+    inset: true,
+    child: SizedBox.expand(child: Center(child: _display(context))),
   );
 
   Widget _display(BuildContext context) {

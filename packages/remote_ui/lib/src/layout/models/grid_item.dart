@@ -1,5 +1,6 @@
 import '../../configuration/remote_item_style.dart';
 import '../../configuration/remote_element_style.dart';
+import '../../definitions/enums/item_axis.dart';
 
 /// An instance, not a singleton widget type. Groups use relative child coordinates.
 final class GridItem {
@@ -10,7 +11,7 @@ final class GridItem {
     required this.y,
     required this.w,
     required this.h,
-    this.quarterTurns = 0,
+    this.position,
     this.style = const RemoteItemStyle(),
     Map<String, String> config = const {},
     Map<String, RemoteElementStyle> elementStyles = const {},
@@ -22,14 +23,28 @@ final class GridItem {
   final String definitionId;
   final RemoteItemStyle style;
   final Map<String, RemoteElementStyle> elementStyles;
-  final int x, y, w, h, quarterTurns;
-  int get contentWidth => quarterTurns.isOdd ? h : w;
-  int get contentHeight => quarterTurns.isOdd ? w : h;
-  GridItem get unrotated => quarterTurns == 0
-      ? this
-      : copy(w: contentWidth, h: contentHeight, quarterTurns: 0);
+  final int x, y, w, h;
+
+  /// How the user arranged the elements, independent of [w] and [h]. Null for
+  /// items whose minimum size is square, which have no Position to choose.
+  final ItemAxis? position;
   final Map<String, String> config;
   final List<GridItem> children;
+
+  /// The same item with no chosen Position, for definitions without one.
+  GridItem withoutPosition() => GridItem(
+    id: id,
+    definitionId: definitionId,
+    x: x,
+    y: y,
+    w: w,
+    h: h,
+    style: style,
+    elementStyles: elementStyles,
+    config: config,
+    children: children,
+  );
+
   GridItem copy({
     String? id,
     String? definitionId,
@@ -37,7 +52,7 @@ final class GridItem {
     int? y,
     int? w,
     int? h,
-    int? quarterTurns,
+    ItemAxis? position,
     RemoteItemStyle? style,
     Map<String, RemoteElementStyle>? elementStyles,
     Map<String, String>? config,
@@ -49,7 +64,7 @@ final class GridItem {
     y: y ?? this.y,
     w: w ?? this.w,
     h: h ?? this.h,
-    quarterTurns: quarterTurns ?? this.quarterTurns,
+    position: position ?? this.position,
     style: style ?? this.style,
     elementStyles: elementStyles ?? this.elementStyles,
     config: config ?? this.config,
@@ -62,7 +77,7 @@ final class GridItem {
     'y': y,
     'w': w,
     'h': h,
-    if (quarterTurns != 0) 'rotation': quarterTurns,
+    if (position case final chosen?) 'position': chosen.name,
     if (!style.isDefault) 'style': style.toJson(),
     if (elementStyles.isNotEmpty)
       'elements': elementStyles.map(
@@ -79,14 +94,14 @@ final class GridItem {
     final children = value['children'] as List<dynamic>? ?? [];
     return GridItem(
       id: value['id'] as String,
-      definitionId: (value['definitionId'] ?? value['kind']) as String,
+      definitionId: value['definitionId'] as String,
       style: RemoteItemStyle.fromJson(value['style']),
       elementStyles: _elementStyles(value['elements']),
       x: value['x'] as int,
       y: value['y'] as int,
       w: value['w'] as int,
       h: value['h'] as int,
-      quarterTurns: value['rotation'] as int? ?? 0,
+      position: ItemAxis.values.asNameMap()[value['position']],
       config: (value['config'] as Map<String, dynamic>? ?? {})
           .cast<String, String>(),
       children: children

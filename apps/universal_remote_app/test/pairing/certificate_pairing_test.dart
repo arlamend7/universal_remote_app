@@ -129,6 +129,8 @@ void main() {
             DeviceConnectionState.connected,
           );
           expect(await credentials.read(tv.id), 'test-only-paired-key');
+          await tester.ensureVisible(find.byTooltip('OK'));
+          await tester.pumpAndSettle();
           await tester.tap(find.byTooltip('OK'));
           await tester.pumpAndSettle();
           expect(pointer.frames, contains('type:button\nname:ENTER\n\n'));

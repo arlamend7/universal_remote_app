@@ -12,18 +12,17 @@ class GridRemoteItem extends StatelessWidget {
   final GridRemoteViewModel model;
   @override
   Widget build(BuildContext context) => StyledItem(
-    quarterTurns: item.quarterTurns,
     style: item.style,
     child: Semantics(container: true, child: _content()),
   );
 
   Widget _content() {
     if (item.isGroup) {
-      return ElementRenderer(item: item.unrotated, model: model);
+      return ElementRenderer(item: item, model: model);
     }
     return ListenableBuilder(
       listenable: _changes,
-      builder: (_, _) => ElementRenderer(item: item.unrotated, model: model),
+      builder: (_, _) => ElementRenderer(item: item, model: model),
     );
   }
 

@@ -16,13 +16,18 @@ class RemoteViewport extends StatelessWidget {
       children: [
         RemoteHeader(model: model),
         Divider(height: 1, thickness: 1, color: Theme.of(context).dividerColor),
-        Expanded(child: _controls()),
+        Expanded(child: LayoutBuilder(builder: _controls)),
       ],
     ),
   );
 
-  Widget _controls() {
-    final grid = model.grid;
+  Widget _controls(BuildContext context, BoxConstraints constraints) {
+    final grid = model.gridFor(
+      SquareGridMetrics(
+        width: constraints.maxWidth,
+        height: constraints.maxHeight,
+      ),
+    );
     if (grid == null) {
       return const SizedBox.shrink();
     }

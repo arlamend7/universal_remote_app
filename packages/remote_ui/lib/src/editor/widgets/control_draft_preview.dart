@@ -52,10 +52,9 @@ class ControlDraftPreview extends StatelessWidget {
   );
 
   Widget _styledControl() => StyledItem(
-    quarterTurns: item.quarterTurns,
     style: item.style,
     child: GridItemPreview(
-      item: item.unrotated,
+      item: item,
       dependencies: dependencies,
       device: device,
       sample: true,
