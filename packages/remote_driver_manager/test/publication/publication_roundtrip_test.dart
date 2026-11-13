@@ -18,8 +18,16 @@ Directory _repository() {
   return directory;
 }
 
+/// Runs a publishing tool. Its helper scripts call `dart`, so the SDK running
+/// this test goes first on their PATH, whether or not the shell has one.
 Future<void> _run(String executable, List<String> arguments) async {
-  final result = await Process.run(executable, arguments);
+  final sdk = File(Platform.resolvedExecutable).parent.path;
+  final path = Platform.environment['PATH'];
+  final result = await Process.run(
+    executable,
+    arguments,
+    environment: {'PATH': path == null ? sdk : '$sdk:$path'},
+  );
   if (result.exitCode != 0) {
     throw StateError('$executable failed: ${result.stderr}');
   }

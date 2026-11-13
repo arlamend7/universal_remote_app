@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/remote_ui.dart';
 
 import '../../../domains/session/services/active_session.dart';
+import 'enums/countdown_precision.dart';
 import 'session_countdown.dart';
 import 'session_reward_highlight.dart';
 import 'session_time_sheet.dart';
@@ -36,7 +37,11 @@ class SessionTimeSheetState extends State<SessionTimeSheet> {
     children: [
       widget.session.expired
           ? SessionRewardHighlight(duration: _rewardDuration)
-          : SessionCountdown(session: widget.session, builder: _clock),
+          : SessionCountdown(
+              session: widget.session,
+              precision: CountdownPrecision.seconds,
+              builder: _clock,
+            ),
       _statusCard(
         context,
         icon: Icons.ondemand_video_outlined,

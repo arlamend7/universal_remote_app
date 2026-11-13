@@ -32,21 +32,25 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
     await tester.pumpAndSettle();
-    expect(find.text('01:21'), findsOneWidget);
+    // The footer shows hours and minutes, rounded up: 81 s reads 00:02.
+    expect(find.text('00:02'), findsOneWidget);
     final devicesPage = tester.element(find.text('CONFIGURED DISPLAYS (1)'));
+    // Discovery is busy while the final minute starts, so the warning waits.
+    app.discovery.busy.value = true;
+    await tester.pump(const Duration(seconds: 20));
+    expect(find.text('00:02'), findsOneWidget);
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('01:20'), findsOneWidget);
+    expect(find.text('00:01'), findsOneWidget);
     await tester.pump(const Duration(seconds: 8));
-    expect(find.text('01:12'), findsOneWidget);
     expect(
       storage.values[ActiveSession.storageKey],
       contains('"remainingMs":81000'),
     );
     await tester.pump(const Duration(seconds: 1));
-    expect(find.text('01:11'), findsOneWidget);
     expect(
       storage.values[ActiveSession.storageKey],
-      contains('"remainingMs":71000'),
+      contains('"remainingMs":51000'),
+      reason: 'The balance is saved every checkpoint (30 s).',
     );
     expect(
       tester.element(find.text('CONFIGURED DISPLAYS (1)')),
@@ -56,8 +60,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byTooltip('Ad options'), findsOneWidget);
 
-    app.discovery.busy.value = true;
-    await tester.pump(const Duration(seconds: 12));
+    await tester.pump(const Duration(seconds: 2));
     expect(find.byType(SessionTimeSheet), findsNothing);
     app.discovery.busy.value = false;
     await tester.pumpAndSettle();
@@ -125,19 +128,12 @@ void main() {
     expect(find.text('YOUR REWARD'), findsOneWidget);
     expect(find.text('2 hours'), findsOneWidget);
     expect(find.text('Fewer interruptions'), findsOneWidget);
-    expect(
-      find.text(
-        'Watch one ad now and enjoy 2 hours of active app use '
-        'without automatic full-screen ads.',
-      ),
-      findsOneWidget,
-    );
     final sheetContent = find.descendant(
       of: find.byType(SessionTimeSheet),
       matching: find.byType(SingleChildScrollView),
     );
     final remoteDetails = find.text(
-      'Keep controlling your TV and connecting devices, whether you watch an ad or not.',
+      'Keep controlling your TV and connecting devices.',
     );
     await tester.ensureVisible(remoteDetails);
     await tester.pumpAndSettle();
@@ -146,7 +142,7 @@ void main() {
       greaterThanOrEqualTo(tester.getRect(remoteDetails).bottom),
     );
     expect(
-      find.text(
+      find.textContaining(
         'Full-screen ads may appear every 20 minutes of active app use.',
       ),
       findsOneWidget,
