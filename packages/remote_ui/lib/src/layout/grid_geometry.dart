@@ -14,7 +14,7 @@ abstract final class GridGeometry {
         item.y < 0 ||
         item.x + item.w > columns ||
         item.y + item.h > rows ||
-        !item.definition.accepts(item.w, item.h)) {
+        !item.definition.acceptsArranged(item.w, item.h, item.arrangement)) {
       return false;
     }
     return !items.any((other) => other.id != item.id && overlaps(item, other));
@@ -36,6 +36,30 @@ abstract final class GridGeometry {
     }
     return null;
   }
+
+  /// The free slot closest to [item]'s current place (then the top-left
+  /// most), so only this item moves. Null when nothing fits.
+  static GridItem? nearest(
+    GridItem item,
+    List<GridItem> items, {
+    int columns = 4,
+    int rows = 128,
+    int startRow = 0,
+  }) {
+    final slots = [
+      for (var y = startRow; y <= rows - item.h; y++)
+        for (var x = 0; x <= columns - item.w; x++) item.copy(x: x, y: y),
+    ].where((slot) => fits(slot, items, columns: columns, rows: rows));
+    return slots.fold<GridItem?>(null, (best, slot) {
+      if (best == null) {
+        return slot;
+      }
+      return _distance(slot, item) < _distance(best, item) ? slot : best;
+    });
+  }
+
+  static int _distance(GridItem a, GridItem b) =>
+      (a.x - b.x).abs() + (a.y - b.y).abs();
 
   static GridItem? _row(
     GridItem item,

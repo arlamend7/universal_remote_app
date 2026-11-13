@@ -79,12 +79,32 @@ final class RemoteItemDefinition<TDevice> {
   final String? description;
   String get searchText => '$name ${category.label} ${description ?? ''}';
 
-  /// Whether an instance may occupy [w] by [h] cells, whatever its Position.
-  bool accepts(int w, int h) =>
-      w >= minimumWidth &&
-      w <= GridLayout.maxColumns &&
-      h >= minimumHeight &&
-      h <= maximumHeight;
+  /// Whether an instance in the default arrangement may occupy [w] by [h]
+  /// cells.
+  bool accepts(int w, int h) => acceptsArranged(w, h, defaultPosition);
+
+  /// The smallest size in [arrangement]: the canonical minimum, swapped when
+  /// the elements run the other way. The canonical minimum never changes.
+  ({int width, int height}) minimumFor(ItemAxis? arrangement) {
+    final swapped =
+        supportsPosition &&
+        arrangement != null &&
+        arrangement != defaultPosition;
+    if (swapped) {
+      return (width: minimumHeight, height: minimumWidth);
+    }
+    return (width: minimumWidth, height: minimumHeight);
+  }
+
+  /// Whether an instance arranged along [arrangement] may occupy [w] by [h]
+  /// cells.
+  bool acceptsArranged(int w, int h, ItemAxis? arrangement) {
+    final minimum = minimumFor(arrangement);
+    return w >= minimum.width &&
+        w <= GridLayout.maxColumns &&
+        h >= minimum.height &&
+        h <= maximumHeight;
+  }
 
   final Set<RemoteCapability> requires;
 

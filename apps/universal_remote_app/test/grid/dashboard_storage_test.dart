@@ -20,8 +20,8 @@ void main() {
         definitionId: 'volumeRocker',
         x: 0,
         y: 0,
-        w: 1,
-        h: 2,
+        w: 2,
+        h: 1,
         position: ItemAxis.horizontal,
         style: const RemoteItemStyle(background: 0xff243531, opacity: .65),
         elementStyles: const {'volume_up': RemoteElementStyle(iconSize: 32)},
@@ -36,7 +36,7 @@ void main() {
     final item = reloaded.grids.forDevice(tv)!.items.single;
     expect(item.definitionId, 'volumeRocker');
     expect(item.position, ItemAxis.horizontal);
-    expect((item.w, item.h), (1, 2));
+    expect((item.w, item.h), (2, 1));
     expect(item.style.opacity, .65);
     expect(item.elementStyles['volume_up']!.iconSize, 32);
     await reloaded.dispose();

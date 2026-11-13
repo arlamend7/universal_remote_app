@@ -73,7 +73,7 @@ void main() {
           .state<GridEditorPageState>(find.byType(GridEditorPage))
           .model;
       final strip = model.draft.items.single;
-      expect((strip.w, strip.h), (2, 1));
+      expect((strip.w, strip.h), (1, 2), reason: 'Position swaps the size.');
       expect(strip.position, ItemAxis.vertical);
       final buttons = find.descendant(
         of: tile,
@@ -95,7 +95,7 @@ void main() {
       await tester.tap(done);
       await tester.pumpAndSettle();
       final grown = model.draft.items.single;
-      expect((grown.w, grown.h), (2, 2));
+      expect((grown.w, grown.h), (1, 3));
       expect(grown.position, ItemAxis.vertical);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpAndSettle();
@@ -400,12 +400,12 @@ void main() {
       await tester.tap(find.text('Done').last);
       await tester.pumpAndSettle();
       expect(model.draft.items.first.position, isNull);
-      expect((model.draft.items.first.w, model.draft.items.first.h), (4, 2));
+      expect((model.draft.items.first.w, model.draft.items.first.h), (2, 4));
       expect(GridGeometry.valid(model.draft.items), isTrue);
       await tester.tap(find.byTooltip('Done'));
       await tester.pumpAndSettle();
       expect(find.byType(GridEditorPage), findsNothing);
-      expect(app.grids.forDevice(tv)!.items.first.w, 4);
+      expect(app.grids.forDevice(tv)!.items.first.w, 2);
       expect(app.grids.forDevice(tv)!.items.first.definitionId, 'volumeUp');
       expect(provider.last!.volumeControl.level, 20);
       await tester.pumpWidget(const SizedBox.shrink());

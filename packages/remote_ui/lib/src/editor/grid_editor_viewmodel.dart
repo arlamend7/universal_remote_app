@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
+import '../definitions/enums/item_axis.dart';
 import '../definitions/remote_item_definition.dart';
 import '../definitions/remote_item_registry.dart';
 import '../layout/grid_arrangement.dart';
@@ -274,7 +275,7 @@ final class GridEditorViewModel extends ChangeNotifier {
 
   String _placementProblem(GridItem item) {
     final size = '${item.w} × ${item.h}';
-    if (!item.definition.accepts(item.w, item.h)) {
+    if (!item.definition.acceptsArranged(item.w, item.h, item.arrangement)) {
       return '${item.definition.name} does not support $size blocks.';
     }
     if (!draft.staysOnPage(item) || !_insidePage(draft, item)) {
@@ -295,6 +296,68 @@ final class GridEditorViewModel extends ChangeNotifier {
   }
 
   bool canReplace(GridItem item) => _arrange(draft, item) != null;
+
+  /// [item] where it stands if it fits there, otherwise at the nearest free
+  /// slot on its own page (or group). Other controls never move and the grid
+  /// never grows; null when there is no room.
+  GridItem? placementFor(GridItem item) {
+    if (canReplace(item)) {
+      return item;
+    }
+    final placed = _nearestSlot(item);
+    if (placed == null || !canReplace(placed)) {
+      return null;
+    }
+    return placed;
+  }
+
+  GridItem? _nearestSlot(GridItem item) {
+    final others = draft.withItems(
+      draft.items.where((other) => other.id != item.id),
+    );
+    if (isGroup) {
+      return GridGeometry.nearest(
+        item,
+        others.items,
+        columns: columns,
+        rows: maxRows,
+        startRow: reservedRows,
+      );
+    }
+    final index = others.pageIndexAt(item.x);
+    final start = others.pageStarts[index];
+    final page = others.pageLayout(index);
+    final placed = GridGeometry.nearest(
+      item.copy(x: item.x - start),
+      page.items,
+      columns: page.columns,
+      rows: page.rows,
+      startRow: reservedRows,
+    );
+    return placed?.copy(x: placed.x + start);
+  }
+
+  /// Arranges [item]'s elements along [next], swapping its width and height
+  /// (and so its effective minimum) in one change. Moves it to the nearest
+  /// free slot when the swapped footprint does not fit where it is.
+  bool changePosition(GridItem item, ItemAxis next) {
+    final swapped = item.withPosition(next);
+    if (identical(swapped, item)) {
+      return true;
+    }
+    final placed = placementFor(swapped);
+    if (placed == null) {
+      error = noRoomFor(swapped);
+      notifyListeners();
+      return false;
+    }
+    replace(placed);
+    return error == null;
+  }
+
+  /// Why [item] cannot be placed anywhere on its page.
+  String noRoomFor(GridItem item) =>
+      'This control has no room for a ${item.w} × ${item.h} footprint on this page.';
 
   /// The largest size [item] may grow to from where it stands: the room left
   /// on its page (or group), capped by the definition limits.

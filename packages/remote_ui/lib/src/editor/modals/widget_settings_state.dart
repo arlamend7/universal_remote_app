@@ -187,14 +187,12 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
   void _changeVariant(RemoteItemDefinition<Object> choice) {
     setState(() {
       definitionId = choice.id;
-      width = width.clamp(choice.minimumWidth, GridLayout.maxColumns);
-      height = height.clamp(
-        choice.minimumHeight,
-        RemoteItemDefinition.maximumHeight,
-      );
       position = choice.supportsPosition
           ? position ?? choice.defaultPosition
           : null;
+      final minimum = choice.minimumFor(position);
+      width = width.clamp(minimum.width, GridLayout.maxColumns);
+      height = height.clamp(minimum.height, RemoteItemDefinition.maximumHeight);
       error = null;
     });
   }
@@ -295,9 +293,7 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     return EditorNumberField(
       label: label,
       value: horizontal ? width : height,
-      minimum: horizontal
-          ? _definition.minimumWidth
-          : _definition.minimumHeight,
+      minimum: horizontal ? _minimum.width : _minimum.height,
       maximum: horizontal
           ? GridLayout.maxColumns
           : RemoteItemDefinition.maximumHeight,
@@ -311,20 +307,26 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     child: TextButton.icon(
       onPressed: _atMinimum
           ? null
-          : () => _size(_definition.minimumWidth, _definition.minimumHeight),
+          : () => _size(_minimum.width, _minimum.height),
       icon: const Icon(Icons.fit_screen_outlined),
       label: const Text('Reset to minimum size'),
     ),
   );
 
-  bool get _atMinimum =>
-      width == _definition.minimumWidth && height == _definition.minimumHeight;
+  /// The smallest size in the draft's current arrangement.
+  ({int width, int height}) get _minimum => draft.minimumSize;
 
-  /// Changes only the arrangement of the elements, never the size.
+  bool get _atMinimum => width == _minimum.width && height == _minimum.height;
+
+  /// Rearranges the elements and swaps the whole footprint: width and height,
+  /// and with them the effective minimum.
   Widget _position() => PositionPicker(
-    position: position ?? _definition.defaultPosition!,
+    position: draft.arrangement,
     onChanged: (value) => setState(() {
-      position = value;
+      final swapped = draft.withPosition(value);
+      position = swapped.position;
+      width = swapped.w;
+      height = swapped.h;
       error = null;
     }),
   );
@@ -771,9 +773,8 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
               .map((child) => child.copy(y: child.y + 1))
               .toList()
         : widget.item.children;
-    final replacement = draft.copy(children: children);
-    if (!widget.model.canReplace(replacement)) {
-      setState(() => error = _sizeProblem(replacement));
+    final replacement = _placed(draft.copy(children: children));
+    if (replacement == null) {
       return false;
     }
     widget.model.replace(replacement);
@@ -787,9 +788,29 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     return true;
   }
 
-  String _sizeProblem(GridItem item) {
-    if (!_definition.accepts(item.w, item.h)) {
-      return 'This control needs at least ${_definition.minimumWidth} × ${_definition.minimumHeight} blocks.';
+  /// Where [item] goes on Done. A Position change may move the item to the
+  /// nearest free slot when its swapped footprint does not fit in place;
+  /// other edits stay where they are or are rejected.
+  GridItem? _placed(GridItem item) {
+    final model = widget.model;
+    if (model.canReplace(item)) {
+      return item;
+    }
+    final moved = item.arrangement != widget.item.arrangement;
+    final placed = moved ? model.placementFor(item) : null;
+    if (placed == null) {
+      setState(() => error = _sizeProblem(item, moved: moved));
+    }
+    return placed;
+  }
+
+  String _sizeProblem(GridItem item, {required bool moved}) {
+    final minimum = item.minimumSize;
+    if (!_definition.acceptsArranged(item.w, item.h, item.arrangement)) {
+      return 'This control needs at least ${minimum.width} × ${minimum.height} blocks.';
+    }
+    if (moved) {
+      return widget.model.noRoomFor(item);
     }
     return 'This size overlaps another control or extends past the group or page.';
   }

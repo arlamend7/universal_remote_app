@@ -74,7 +74,24 @@ void main() {
     expectCentered(tester, card);
   });
 
-  testWidgets('Position changes the child order, not the card', (tester) async {
+  testWidgets('a rocker switched to horizontal (4 × 2) is a centered row', (
+    tester,
+  ) async {
+    final vertical = rocker(2, 4, ItemAxis.vertical);
+    final card = await pumpItem(
+      tester,
+      vertical.withPosition(ItemAxis.horizontal),
+    );
+    expect(card.width, greaterThan(card.height));
+    expect(tester.getCenter(louder).dx, lessThan(tester.getCenter(lower).dx));
+    expect(tester.getCenter(louder).dy, tester.getCenter(lower).dy);
+    expectCentered(tester, card);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the card follows the saved size; Position only arranges', (
+    tester,
+  ) async {
     final vertical = await pumpItem(tester, rocker(2, 4, ItemAxis.vertical));
     final horizontal = await pumpItem(
       tester,

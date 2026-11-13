@@ -19,13 +19,14 @@ class GridEditTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final room = model.roomFor(item);
+    final minimum = item.minimumSize;
     return UniversalRemoteItem(
       id: item.id,
       label: item.config['label'] ?? item.definition.name,
       width: item.w,
       height: item.h,
-      minimumWidth: item.definition.minimumWidth,
-      minimumHeight: item.definition.minimumHeight,
+      minimumWidth: minimum.width,
+      minimumHeight: minimum.height,
       maximumWidth: room.width,
       maximumHeight: room.height,
       style: item.style,

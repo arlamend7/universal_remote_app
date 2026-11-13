@@ -31,25 +31,31 @@ void main() {
   });
 }
 
+/// Each Position the definition supports, at that Position's effective
+/// minimum and at an enlarged size.
 Iterable<GridItem> _variants(RemoteItemDefinition<Object> definition) sync* {
-  final sizes = {
-    (definition.minimumWidth, definition.minimumHeight),
-    (
-      math.min(definition.minimumWidth + 2, GridLayout.defaultColumns),
-      definition.minimumHeight + 2,
-    ),
-  };
   final positions = definition.supportsPosition
       ? ItemAxis.values
       : const <ItemAxis?>[null];
-  for (final (w, h) in sizes) {
-    for (final position in positions) {
+  for (final position in positions) {
+    final minimum = definition.minimumFor(position);
+    final sizes = {
+      (minimum.width, minimum.height),
+      (
+        math.max(
+          minimum.width,
+          math.min(minimum.width + 2, GridLayout.defaultColumns),
+        ),
+        minimum.height + 2,
+      ),
+    };
+    for (final (w, h) in sizes) {
       yield GridItem(
         id: definition.id,
         definitionId: definition.id,
         x: 0,
         y: 0,
-        w: math.max(w, definition.minimumWidth),
+        w: w,
         h: h,
         position: position,
       );

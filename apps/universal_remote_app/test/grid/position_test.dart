@@ -113,20 +113,145 @@ void main() {
       expect(item('rocker').arrangement, ItemAxis.horizontal);
     });
 
-    test('vertical 2 × 4 switched to horizontal keeps 2 × 4', () async {
+    test('vertical 2 × 4 switched to horizontal becomes 4 × 2', () async {
       await edit([rocker(2, 4, ItemAxis.vertical)]);
-      editor.replace(item('rocker').copy(position: ItemAxis.horizontal));
-      expect(item('rocker').arrangement, ItemAxis.horizontal);
       expect(
-        (
-          item('rocker').x,
-          item('rocker').y,
-          item('rocker').w,
-          item('rocker').h,
-        ),
-        (0, 0, 2, 4),
+        editor.changePosition(item('rocker'), ItemAxis.horizontal),
+        isTrue,
       );
+      final switched = item('rocker');
+      expect(switched.arrangement, ItemAxis.horizontal);
+      expect((switched.x, switched.y, switched.w, switched.h), (0, 0, 4, 2));
     });
+
+    test('horizontal 4 × 2 switched to vertical becomes 2 × 4', () async {
+      await edit([rocker(4, 2, ItemAxis.horizontal)]);
+      editor.changePosition(item('rocker'), ItemAxis.vertical);
+      expect((item('rocker').w, item('rocker').h), (2, 4));
+      expect(item('rocker').arrangement, ItemAxis.vertical);
+    });
+
+    test(
+      'vertical 1 × 3 resized to 4 × 4 stays vertical until switched',
+      () async {
+        await edit([
+          GridItem(
+            id: 'rocker',
+            definitionId: 'volumeDisplayRocker',
+            x: 0,
+            y: 0,
+            w: 1,
+            h: 3,
+            position: ItemAxis.vertical,
+          ),
+        ]);
+        editor.resize(item('rocker'), 4, 4);
+        expect((item('rocker').w, item('rocker').h), (4, 4));
+        expect(item('rocker').arrangement, ItemAxis.vertical);
+        editor.changePosition(item('rocker'), ItemAxis.horizontal);
+        expect((item('rocker').w, item('rocker').h), (4, 4));
+        expect(item('rocker').arrangement, ItemAxis.horizontal);
+      },
+    );
+
+    test('repeated switching never drifts', () async {
+      await edit([rocker(1, 3, ItemAxis.vertical)]);
+      for (final next in [
+        ItemAxis.horizontal,
+        ItemAxis.vertical,
+        ItemAxis.horizontal,
+        ItemAxis.vertical,
+      ]) {
+        expect(editor.changePosition(item('rocker'), next), isTrue);
+      }
+      final back = item('rocker');
+      expect((back.x, back.y, back.w, back.h), (0, 0, 1, 3));
+      expect(back.arrangement, ItemAxis.vertical);
+    });
+
+    test('the effective minimum swaps; the canonical one does not', () async {
+      await edit([rocker(1, 2, ItemAxis.vertical)]);
+      expect(item('rocker').minimumSize, (width: 1, height: 2));
+      editor.changePosition(item('rocker'), ItemAxis.horizontal);
+      expect((item('rocker').w, item('rocker').h), (2, 1));
+      expect(item('rocker').minimumSize, (width: 2, height: 1));
+      expect(editor.canReplace(item('rocker').copy(w: 1, h: 2)), isFalse);
+      editor.resize(item('rocker'), 1, 1);
+      expect((item('rocker').w, item('rocker').h), (2, 1));
+      editor.changePosition(item('rocker'), ItemAxis.vertical);
+      expect(item('rocker').minimumSize, (width: 1, height: 2));
+      final definition = item('rocker').definition;
+      expect((definition.minimumWidth, definition.minimumHeight), (1, 2));
+      expect(definition.minimumFor(ItemAxis.horizontal), (width: 2, height: 1));
+    });
+
+    test('a colliding swap moves to the nearest free slot only', () async {
+      await edit([
+        rocker(2, 4, ItemAxis.vertical),
+        GridItem(id: 'mute', definitionId: 'mute', x: 2, y: 0, w: 1, h: 1),
+      ]);
+      expect(
+        editor.changePosition(item('rocker'), ItemAxis.horizontal),
+        isTrue,
+      );
+      final moved = item('rocker');
+      expect((moved.x, moved.y, moved.w, moved.h), (0, 1, 4, 2));
+      expect((item('mute').x, item('mute').y), (2, 0));
+      expect(GridGeometry.valid(editor.draft.items), isTrue);
+    });
+
+    test('a swap with no room is rejected and nothing changes', () async {
+      await edit([
+        GridItem(
+          id: 'rocker',
+          definitionId: 'volumeDisplayRocker',
+          x: 0,
+          y: 0,
+          w: 1,
+          h: 4,
+          position: ItemAxis.vertical,
+        ),
+        for (var y = 0; y < 8; y++)
+          GridItem(id: 'mute$y', definitionId: 'mute', x: 2, y: y, w: 1, h: 1),
+      ]);
+      final before = editor.draft.encode();
+      expect(
+        editor.changePosition(item('rocker'), ItemAxis.horizontal),
+        isFalse,
+      );
+      expect(editor.error, contains('no room for a 4 × 1'));
+      expect(editor.draft.encode(), before);
+      expect((editor.draft.canvasColumns, editor.draft.rows), (4, 8));
+    });
+
+    test('square-minimum items never swap', () async {
+      await edit([
+        GridItem(
+          id: 'dial',
+          definitionId: 'volumeDial',
+          x: 0,
+          y: 0,
+          w: 4,
+          h: 2,
+        ),
+      ]);
+      final dial = item('dial');
+      expect(identical(dial.withPosition(ItemAxis.vertical), dial), isTrue);
+      editor.changePosition(dial, ItemAxis.vertical);
+      expect((item('dial').w, item('dial').h), (4, 2));
+    });
+
+    test(
+      'save and reload keep Position and size without a second swap',
+      () async {
+        await edit([rocker(2, 4, ItemAxis.vertical)]);
+        editor.changePosition(item('rocker'), ItemAxis.horizontal);
+        final restored = GridLayout.decode(editor.draft.encode()).items.single;
+        expect((restored.w, restored.h), (4, 2));
+        expect(restored.arrangement, ItemAxis.horizontal);
+        expect(GridGeometry.valid([restored]), isTrue);
+      },
+    );
 
     test('horizontal 3 × 3 switched to vertical keeps 3 × 3', () async {
       await edit([
@@ -140,7 +265,7 @@ void main() {
           position: ItemAxis.horizontal,
         ),
       ]);
-      editor.replace(item('transport').copy(position: ItemAxis.vertical));
+      editor.changePosition(item('transport'), ItemAxis.vertical);
       final switched = item('transport');
       expect(switched.arrangement, ItemAxis.vertical);
       expect((switched.x, switched.y, switched.w, switched.h), (1, 2, 3, 3));

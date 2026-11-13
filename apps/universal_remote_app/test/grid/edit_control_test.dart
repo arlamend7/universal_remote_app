@@ -73,8 +73,12 @@ void main() {
       await tester.tap(find.text('Horizontal'));
       await tester.pumpAndSettle();
       await done();
-      expect(item('rocker').position, ItemAxis.horizontal);
-      expect((item('rocker').w, item('rocker').h), (2, 4));
+      // The footprint swaps to 4 × 2; it would overlap the dial at (2, 0), so
+      // it moves to the nearest free slot and the dial stays put.
+      final rocker = item('rocker');
+      expect(rocker.position, ItemAxis.horizontal);
+      expect((rocker.x, rocker.y, rocker.w, rocker.h), (0, 2, 4, 2));
+      expect((item('dial').x, item('dial').y), (2, 0));
       expect(model.selected, isNull, reason: 'Done clears the highlight.');
 
       // Swiping the sheet away discards the draft and the highlight.
@@ -85,7 +89,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Edit Control'), findsNothing);
       expect(model.selected, isNull, reason: 'Dismissal clears it too.');
-      expect((item('rocker').w, item('rocker').h), (2, 4));
+      expect((item('rocker').w, item('rocker').h), (4, 2));
 
       // Back navigation clears it as well.
       await open('rocker');
@@ -108,7 +112,11 @@ void main() {
       await tester.tap(background);
       await tester.pumpAndSettle();
       await done();
-      expect((item('rocker').w, item('rocker').h), (1, 2));
+      expect(
+        (item('rocker').w, item('rocker').h),
+        (2, 1),
+        reason: 'The horizontal minimum is the swapped 2 × 1.',
+      );
       expect(item('rocker').position, ItemAxis.horizontal);
       expect(item('rocker').style.showBackground, isFalse);
 

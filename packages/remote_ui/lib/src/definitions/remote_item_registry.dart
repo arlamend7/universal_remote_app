@@ -78,6 +78,20 @@ extension RegisteredGridItem on GridItem {
     return position ?? definition.defaultPosition!;
   }
 
+  /// The smallest size in the item's current arrangement.
+  ({int width, int height}) get minimumSize =>
+      definition.minimumFor(arrangement);
+
+  /// The item arranged along [next]. Changing Position swaps the whole
+  /// footprint (width and height, and so the effective minimum); it is the
+  /// only operation that does. Items without a Position stay as they are.
+  GridItem withPosition(ItemAxis next) {
+    if (!definition.supportsPosition || next == arrangement) {
+      return this;
+    }
+    return copy(position: next, w: h, h: w);
+  }
+
   /// A saved item whose definition this version cannot draw.
   bool get isUnavailable => definition.layout is UnavailableLayout;
 }
