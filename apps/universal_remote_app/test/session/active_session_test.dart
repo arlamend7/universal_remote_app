@@ -8,60 +8,57 @@ import '../support/fake_rewarded_advertising.dart';
 import '../support/memory_storage.dart';
 
 void main() {
-  testWidgets(
-    'uses elapsed foreground time and checkpoints every ten seconds',
-    (tester) async {
-      final storage = MemoryStorage();
-      await storage.write(ActiveSession.storageKey, '{"remainingMs":1800000}');
-      final startedAt = tester.binding.clock.now();
-      Duration now() => tester.binding.clock.now().difference(startedAt);
-      final session = ActiveSession(
-        storage,
-        FakeRewardedAdvertising(),
-        now: now,
-      );
-      await session.restore();
-      var changes = 0;
-      session.addListener(() => changes++);
-      expect(session.remaining, const Duration(minutes: 30));
-      session.setForeground(true);
-      await tester.pump(const Duration(seconds: 9));
-      expect(session.remaining, const Duration(minutes: 29, seconds: 51));
-      expect(_savedTime(storage), 1800000);
-      expect(storage.writes, [ActiveSession.storageKey]);
-      await tester.pump(const Duration(seconds: 1));
-      expect(_savedTime(storage), 1790000);
-      await tester.pump(const Duration(seconds: 9));
-      expect(_savedTime(storage), 1790000);
-      expect(storage.writes, hasLength(2));
-      expect(changes, 1);
+  testWidgets('uses elapsed foreground time and saves on schedule', (
+    tester,
+  ) async {
+    final storage = MemoryStorage();
+    await storage.write(ActiveSession.storageKey, '{"remainingMs":1800000}');
+    final startedAt = tester.binding.clock.now();
+    Duration now() => tester.binding.clock.now().difference(startedAt);
+    final session = ActiveSession(storage, FakeRewardedAdvertising(), now: now);
+    await session.restore();
+    var changes = 0;
+    session.addListener(() => changes++);
+    expect(session.remaining, const Duration(minutes: 30));
+    session.setForeground(true);
+    const startingBalance = Duration(minutes: 30);
+    const checkpoint = ActiveSession.checkpoint;
+    const second = Duration(seconds: 1);
+    await tester.pump(checkpoint - second);
+    expect(session.remaining, startingBalance - checkpoint + second);
+    expect(_savedTime(storage), 1800000);
+    expect(storage.writes, [ActiveSession.storageKey]);
+    await tester.pump(second);
+    final checkpointBalance = startingBalance - checkpoint;
+    expect(_savedTime(storage), checkpointBalance.inMilliseconds);
+    await tester.pump(const Duration(seconds: 9));
+    expect(_savedTime(storage), checkpointBalance.inMilliseconds);
+    expect(storage.writes, hasLength(2));
+    expect(changes, 1);
 
-      final restarted = ActiveSession(
-        storage,
-        FakeRewardedAdvertising(),
-        now: now,
-      );
-      await restarted.restore();
-      expect(
-        restarted.remaining - session.remaining,
-        const Duration(seconds: 9),
-      );
+    final restarted = ActiveSession(
+      storage,
+      FakeRewardedAdvertising(),
+      now: now,
+    );
+    await restarted.restore();
+    expect(restarted.remaining - session.remaining, const Duration(seconds: 9));
 
-      session.setForeground(false);
-      session.setForeground(false);
-      await tester.pump(const Duration(hours: 1));
-      expect(_savedTime(storage), 1781000);
-      expect(storage.writes, hasLength(3));
-      expect(changes, 2);
-      expect(session.remaining, const Duration(minutes: 29, seconds: 41));
-      session.setForeground(true);
-      await tester.pump(const Duration(seconds: 2));
-      expect(session.remaining, const Duration(minutes: 29, seconds: 39));
-      await session.close();
-      expect(_savedTime(storage), 1779000);
-      await restarted.close();
-    },
-  );
+    session.setForeground(false);
+    session.setForeground(false);
+    await tester.pump(const Duration(hours: 1));
+    final pausedBalance = checkpointBalance - const Duration(seconds: 9);
+    expect(_savedTime(storage), pausedBalance.inMilliseconds);
+    expect(storage.writes, hasLength(3));
+    expect(changes, 2);
+    expect(session.remaining, pausedBalance);
+    session.setForeground(true);
+    await tester.pump(const Duration(seconds: 2));
+    expect(session.remaining, pausedBalance - const Duration(seconds: 2));
+    await session.close();
+    expect(_savedTime(storage), session.remaining.inMilliseconds);
+    await restarted.close();
+  });
 
   testWidgets('warns once, expires, and grants only one confirmed reward', (
     tester,
@@ -160,7 +157,7 @@ void main() {
     },
   );
 
-  testWidgets('the new interval preserves elapsed time across upgrades', (
+  testWidgets('restores the saved interstitial delay across restarts', (
     tester,
   ) async {
     final storage = MemoryStorage();
@@ -178,7 +175,7 @@ void main() {
     );
     await first.restore();
     first.setForeground(true);
-    await tester.pump(const Duration(minutes: 14, seconds: 59));
+    await tester.pump(const Duration(minutes: 4, seconds: 59));
     expect(await first.showInterstitial(canPresent: () => true), isFalse);
     await first.close();
 

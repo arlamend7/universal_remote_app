@@ -22,9 +22,8 @@ final class ActiveSession extends ChangeNotifier {
   static const storageKey = 'active-session.v1';
   static const extension = Duration(hours: 2);
   static const interstitialInterval = Duration(minutes: 20);
-  static const _legacyInterstitialInterval = Duration(minutes: 10);
   static const warningTime = Duration(minutes: 1);
-  static const checkpoint = Duration(seconds: 10);
+  static const checkpoint = Duration(seconds: 30);
 
   static Duration Function() _monotonicClock() {
     final clock = Stopwatch()..start();
@@ -106,27 +105,19 @@ final class ActiveSession extends ChangeNotifier {
     _warningShown = snapshot['warningShown'] == true;
     _lastSnapshot = stored;
     if (_interstitial != null) {
-      _restoreInterstitialWait(
-        snapshot['interstitialWaitMs'],
-        snapshot['interstitialIntervalMs'],
-      );
+      _restoreInterstitialWait(snapshot['interstitialWaitMs']);
     }
     return true;
   }
 
-  void _restoreInterstitialWait(Object? storedWait, Object? storedInterval) {
+  void _restoreInterstitialWait(Object? storedWait) {
     if (storedWait is! int) {
       _interstitialWait = _balance + interstitialInterval;
       return;
     }
     final maximum = (extension + interstitialInterval).inMilliseconds;
-    final previousInterval = storedInterval is int
-        ? storedInterval.clamp(0, maximum)
-        : _legacyInterstitialInterval.inMilliseconds;
-    final adjustment = interstitialInterval.inMilliseconds - previousInterval;
-    final adjustedWait = storedWait.clamp(0, maximum) + adjustment;
     _interstitialWait = Duration(
-      milliseconds: adjustedWait.clamp(_balance.inMilliseconds, maximum),
+      milliseconds: storedWait.clamp(_balance.inMilliseconds, maximum),
     );
   }
 
@@ -344,7 +335,6 @@ final class ActiveSession extends ChangeNotifier {
     final snapshot = jsonEncode({
       'remainingMs': remaining.inMilliseconds,
       'interstitialWaitMs': _untilInterstitial.inMilliseconds,
-      'interstitialIntervalMs': interstitialInterval.inMilliseconds,
       'warningShown': _warningShown,
     });
     if (snapshot == _lastSnapshot) {
