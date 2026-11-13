@@ -788,31 +788,27 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     return true;
   }
 
-  /// Where [item] goes on Done. A Position change may move the item to the
-  /// nearest free slot when its swapped footprint does not fit in place;
-  /// other edits stay where they are or are rejected.
+  /// Where [item] goes on Done, from the same resolver as the nine-dot
+  /// handle: its exact size, in place or at the nearest free slot; rejected
+  /// when there is no room.
   GridItem? _placed(GridItem item) {
     final model = widget.model;
     if (model.canReplace(item)) {
       return item;
     }
-    final moved = item.arrangement != widget.item.arrangement;
-    final placed = moved ? model.placementFor(item) : null;
+    final placed = model.placementFor(item);
     if (placed == null) {
-      setState(() => error = _sizeProblem(item, moved: moved));
+      setState(() => error = _sizeProblem(item));
     }
     return placed;
   }
 
-  String _sizeProblem(GridItem item, {required bool moved}) {
+  String _sizeProblem(GridItem item) {
     final minimum = item.minimumSize;
     if (!_definition.acceptsArranged(item.w, item.h, item.arrangement)) {
       return 'This control needs at least ${minimum.width} × ${minimum.height} blocks.';
     }
-    if (moved) {
-      return widget.model.noRoomFor(item);
-    }
-    return 'This size overlaps another control or extends past the group or page.';
+    return widget.model.noRoomFor(item);
   }
 
   void _editGroup() {

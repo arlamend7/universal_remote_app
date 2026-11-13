@@ -182,19 +182,21 @@ void main() {
         .state<GridEditorPageState>(find.byType(GridEditorPage))
         .model;
     final resize = find.byTooltip('Resize Home and Back');
+    // 2 × 2 in place would overlap Mute, so it moves to the nearest free
+    // slot instead; Mute stays where it is.
     await tester.drag(resize, const Offset(0, 75));
     await tester.pumpAndSettle();
-    expect(find.text('A 2 × 2 control would overlap Mute.'), findsOneWidget);
-    expect(model.draft.items.first.h, 1);
-    await tester.drag(resize, const Offset(-75, 0));
+    final grown = model.draft.items.first;
+    expect((grown.w, grown.h), (2, 2));
+    expect(GridGeometry.valid(model.draft.items), isTrue);
+    expect((model.draft.items.last.x, model.draft.items.last.y), (3, 1));
+    expect(model.error, isNull);
+    // Shrinking stops at the 2 × 1 minimum.
+    await tester.drag(resize, const Offset(-75, -75));
     await tester.pumpAndSettle();
-    final item = model.draft.items.first;
-    expect(
-      (item.x, item.y, item.w, item.h),
-      (2, 0, 2, 1),
-      reason: 'Home and Back cannot shrink below its 2 × 1 minimum.',
-    );
-    expect(model.draft.items.last.x, 3);
+    final shrunk = model.draft.items.first;
+    expect((shrunk.w, shrunk.h), (2, 1));
+    expect((model.draft.items.last.x, model.draft.items.last.y), (3, 1));
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
   });

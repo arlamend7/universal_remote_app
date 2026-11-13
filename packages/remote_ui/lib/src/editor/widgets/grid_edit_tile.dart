@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:remote_ui/src/ui_model.dart';
 
+import '../../widgets/models/resize_candidate.dart';
 import 'grid_item_preview.dart';
 
 class GridEditTile extends StatelessWidget {
@@ -18,7 +19,6 @@ class GridEditTile extends StatelessWidget {
   final ValueChanged<GridItem>? onEdit;
   @override
   Widget build(BuildContext context) {
-    final room = model.roomFor(item);
     final minimum = item.minimumSize;
     return UniversalRemoteItem(
       id: item.id,
@@ -27,8 +27,6 @@ class GridEditTile extends StatelessWidget {
       height: item.h,
       minimumWidth: minimum.width,
       minimumHeight: minimum.height,
-      maximumWidth: room.width,
-      maximumHeight: room.height,
       style: item.style,
       enabled: !model.saving,
       selected: model.selected == item.id,
@@ -37,8 +35,15 @@ class GridEditTile extends StatelessWidget {
         onEdit?.call(item);
       },
       onRemove: () => model.remove(item.id),
-      canResize: (w, h) => model.canReplace(item.copy(w: w, h: h)),
-      onResize: (w, h) => model.resize(item, w, h),
+      resolveResize: _resolve,
+      onResize: (candidate) => model.applyResize(
+        item.copy(
+          x: item.x + candidate.dx,
+          y: item.y + candidate.dy,
+          w: candidate.width,
+          h: candidate.height,
+        ),
+      ),
       child: GridItemPreview(
         item: item,
         dependencies: dependencies,
@@ -46,6 +51,21 @@ class GridEditTile extends StatelessWidget {
         sample: true,
         sampleAppTargets: false,
       ),
+    );
+  }
+
+  /// The shared resolver's answer for a requested size, as an offset from
+  /// where the item stands.
+  ResizeCandidate? _resolve(int width, int height) {
+    final resolved = model.resolveResize(item, width, height);
+    if (resolved == null) {
+      return null;
+    }
+    return (
+      dx: resolved.x - item.x,
+      dy: resolved.y - item.y,
+      width: resolved.w,
+      height: resolved.h,
     );
   }
 }

@@ -1,13 +1,11 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
 import '../definitions/enums/item_axis.dart';
-import '../definitions/remote_item_definition.dart';
 import '../definitions/remote_item_registry.dart';
 import '../layout/grid_arrangement.dart';
 import '../layout/grid_geometry.dart';
+import '../layout/grid_resize_resolver.dart';
 import '../layout/models/enums/editor_mode.dart';
 import '../layout/models/grid_item.dart';
 import '../layout/models/grid_layout.dart';
@@ -297,44 +295,65 @@ final class GridEditorViewModel extends ChangeNotifier {
 
   bool canReplace(GridItem item) => _arrange(draft, item) != null;
 
-  /// [item] where it stands if it fits there, otherwise at the nearest free
-  /// slot on its own page (or group). Other controls never move and the grid
-  /// never grows; null when there is no room.
-  GridItem? placementFor(GridItem item) {
-    if (canReplace(item)) {
-      return item;
-    }
-    final placed = _nearestSlot(item);
-    if (placed == null || !canReplace(placed)) {
+  /// [item] at its own size: where it stands, or at the nearest free slot on
+  /// its page (or group). Null when there is no room; nothing shrinks.
+  GridItem? placementFor(GridItem item) =>
+      resolveResize(item, item.w, item.h, shrinkToFit: false);
+
+  /// The nearest valid footprint for [item] at [width] by [height], from the
+  /// shared [GridResizeResolver]: clamped to its effective minimum and the
+  /// page, kept in place when it fits, otherwise moved to the nearest free
+  /// slot and (with [shrinkToFit]) made only as much smaller as needed.
+  /// Other controls never move and the grid never grows. Null when nothing
+  /// valid exists.
+  GridItem? resolveResize(
+    GridItem item,
+    int width,
+    int height, {
+    bool shrinkToFit = true,
+  }) {
+    final resolved = _resolveOnPage(item, width, height, shrinkToFit);
+    if (resolved == null || !canReplace(resolved)) {
       return null;
     }
-    return placed;
+    return resolved;
   }
 
-  GridItem? _nearestSlot(GridItem item) {
+  GridItem? _resolveOnPage(
+    GridItem item,
+    int width,
+    int height,
+    bool shrinkToFit,
+  ) {
     final others = draft.withItems(
       draft.items.where((other) => other.id != item.id),
     );
     if (isGroup) {
-      return GridGeometry.nearest(
+      return GridResizeResolver.resolve(
         item,
+        width,
+        height,
         others.items,
         columns: columns,
         rows: maxRows,
         startRow: reservedRows,
+        shrinkToFit: shrinkToFit,
       );
     }
     final index = others.pageIndexAt(item.x);
     final start = others.pageStarts[index];
     final page = others.pageLayout(index);
-    final placed = GridGeometry.nearest(
+    final resolved = GridResizeResolver.resolve(
       item.copy(x: item.x - start),
+      width,
+      height,
       page.items,
       columns: page.columns,
       rows: page.rows,
       startRow: reservedRows,
+      shrinkToFit: shrinkToFit,
     );
-    return placed?.copy(x: placed.x + start);
+    return resolved?.copy(x: resolved.x + start);
   }
 
   /// Arranges [item]'s elements along [next], swapping its width and height
@@ -358,25 +377,6 @@ final class GridEditorViewModel extends ChangeNotifier {
   /// Why [item] cannot be placed anywhere on its page.
   String noRoomFor(GridItem item) =>
       'This control has no room for a ${item.w} × ${item.h} footprint on this page.';
-
-  /// The largest size [item] may grow to from where it stands: the room left
-  /// on its page (or group), capped by the definition limits.
-  ({int width, int height}) roomFor(GridItem item) {
-    if (isGroup) {
-      return (
-        width: math.min(columns - item.x, GridLayout.maxColumns),
-        height: math.min(maxRows - item.y, RemoteItemDefinition.maximumHeight),
-      );
-    }
-    final index = draft.pageIndexAt(item.x);
-    return (
-      width: math.min(draft.pageEnd(index) - item.x, GridLayout.maxColumns),
-      height: math.min(
-        draft.pageRows(index) - item.y,
-        RemoteItemDefinition.maximumHeight,
-      ),
-    );
-  }
 
   /// Whether [item]'s whole footprint lies inside its page's configured
   /// columns and rows.
@@ -427,8 +427,20 @@ final class GridEditorViewModel extends ChangeNotifier {
     return expanded;
   }
 
-  void resize(GridItem item, int width, int height) =>
-      replace(item.copy(w: width, h: height));
+  /// Resizes [item] towards [width] by [height] through the shared resolver,
+  /// in one change. Keeps the draft as it is when nothing valid exists.
+  void resize(GridItem item, int width, int height) {
+    final resolved = resolveResize(item, width, height);
+    if (resolved == null) {
+      error = noRoomFor(item.copy(w: width, h: height));
+      notifyListeners();
+      return;
+    }
+    applyResize(resolved);
+  }
+
+  /// Commits a footprint chosen by [resolveResize]: size and place together.
+  void applyResize(GridItem resolved) => replace(resolved);
   void remove(String id) {
     selected = null;
     change(draft.withItems(draft.items.where((item) => item.id != id)));

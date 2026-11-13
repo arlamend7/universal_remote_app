@@ -36,7 +36,7 @@ void main() {
     },
   );
 
-  test('resizing past the page edge is rejected', () async {
+  test('resizing past the page edge moves inside it, never grows it', () async {
     final app = await AppBootstrap.initialize(storage: MemoryStorage());
     final editor = GridEditorViewModel(
       app.grids,
@@ -45,10 +45,9 @@ void main() {
         GridItem(id: 'mute', definitionId: 'mute', x: 3, y: 5, w: 1, h: 1),
       ], configuredRows: 6),
     );
+    editor.resize(editor.draft.items.single, 2, 2);
     final mute = editor.draft.items.single;
-    expect(editor.roomFor(mute), (width: 1, height: 1));
-    editor.resize(mute, 2, 2);
-    expect((editor.draft.items.single.w, editor.draft.items.single.h), (1, 1));
+    expect((mute.x, mute.y, mute.w, mute.h), (2, 4, 2, 2));
     expect((editor.draft.canvasColumns, editor.draft.rows), (4, 6));
   });
 

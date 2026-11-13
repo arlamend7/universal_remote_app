@@ -19,6 +19,7 @@ export 'items/ac_items.dart';
 export 'items/tv_items.dart';
 export 'layout/grid_arrangement.dart';
 export 'layout/grid_geometry.dart';
+export 'layout/grid_resize_resolver.dart';
 export 'layout/models/enums/editor_mode.dart';
 export 'layout/models/grid_item.dart';
 export 'layout/models/grid_layout.dart';

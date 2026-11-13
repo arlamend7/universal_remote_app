@@ -271,7 +271,7 @@ void main() {
       expect((switched.x, switched.y, switched.w, switched.h), (1, 2, 3, 3));
     });
 
-    test('a 2 × 2 minimum rejects 1 × 2 and accepts 4 × 4', () async {
+    test('a 2 × 2 minimum clamps 1 × 2 and accepts 4 × 4', () async {
       await edit([
         GridItem(
           id: 'inputs',
@@ -284,8 +284,11 @@ void main() {
       ]);
       expect(editor.canReplace(item('inputs').copy(w: 1)), isFalse);
       editor.resize(item('inputs'), 1, 2);
-      expect((item('inputs').w, item('inputs').h), (2, 2));
-      expect(editor.error, contains('does not support 1 × 2'));
+      expect(
+        (item('inputs').w, item('inputs').h),
+        (2, 2),
+        reason: 'A request below the minimum clamps to the minimum.',
+      );
       editor.resize(item('inputs'), 4, 4);
       expect((item('inputs').w, item('inputs').h), (4, 4));
       expect(editor.error, isNull);

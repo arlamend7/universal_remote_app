@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../configuration/remote_item_style.dart';
+import 'models/resize_candidate.dart';
 import 'universal_remote_item_state.dart';
 
 /// Shared item shell. Edit mode adds selection and manipulation affordances.
@@ -15,11 +16,9 @@ class UniversalRemoteItem extends StatefulWidget {
     required this.onEdit,
     required this.onRemove,
     required this.onResize,
-    this.canResize,
+    required this.resolveResize,
     this.minimumWidth = 1,
     this.minimumHeight = 1,
-    this.maximumWidth = 8,
-    this.maximumHeight = 16,
     this.style = const RemoteItemStyle(),
     this.enabled = true,
     this.selected = false,
@@ -28,14 +27,17 @@ class UniversalRemoteItem extends StatefulWidget {
   final String id, label;
   final int width, height;
 
-  /// Resizing stops at these bounds: the definition's fixed minimum and the
-  /// room left on the page.
-  final int minimumWidth, minimumHeight, maximumWidth, maximumHeight;
+  /// The item's effective minimum; a drag never asks for less.
+  final int minimumWidth, minimumHeight;
   final Widget child;
   final RemoteItemStyle style;
   final VoidCallback onEdit, onRemove;
-  final void Function(int width, int height) onResize;
-  final bool Function(int width, int height)? canResize;
+
+  /// Commits the last valid footprint shown while resizing.
+  final ValueChanged<ResizeCandidate> onResize;
+
+  /// The nearest valid footprint for a requested size, or null.
+  final ResizeCandidate? Function(int width, int height) resolveResize;
   final bool enabled, selected;
   @override
   State<UniversalRemoteItem> createState() => UniversalRemoteItemState();

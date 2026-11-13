@@ -2,7 +2,10 @@ import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/material.dart';
 
 import 'universal_remote_item.dart';
+import '../definitions/remote_item_definition.dart';
+import '../layout/models/grid_layout.dart';
 import '../layout/models/square_grid_metrics.dart';
+import 'models/resize_candidate.dart';
 import 'mouse_item_drag.dart';
 import 'resize_handle.dart';
 import 'styled_item.dart';
@@ -10,7 +13,8 @@ import 'styled_item.dart';
 class UniversalRemoteItemState extends State<UniversalRemoteItem> {
   int? _resizePointer;
   Offset _startPosition = Offset.zero;
-  ({int width, int height})? _pendingSize;
+  ({int width, int height})? _requested;
+  ResizeCandidate? _preview;
   bool resizing = false;
   Size _stride = Size.zero;
   @override
@@ -101,34 +105,36 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
     onEnd: _end,
     onCancel: _cancelPointer,
   );
+
+  /// The last valid footprint, drawn over the grid without taking part in
+  /// layout. It only ever shows a size and place that can be applied.
   Widget _ghost(BuildContext context) {
-    final size = _pendingSize!;
-    final valid = widget.canResize?.call(size.width, size.height) ?? true;
-    final colors = Theme.of(context).colorScheme;
+    final preview = _preview!;
+    final cell = Size(
+      _stride.width - SquareGridMetrics.gap,
+      _stride.height - SquareGridMetrics.gap,
+    );
     return Positioned(
-      left: 0,
-      top: 0,
-      width: SquareGridMetrics.extent(
-        size.width,
-        _stride.width - SquareGridMetrics.gap,
-      ),
-      height: SquareGridMetrics.extent(
-        size.height,
-        _stride.height - SquareGridMetrics.gap,
-      ),
+      left: preview.dx * _stride.width,
+      top: preview.dy * _stride.height,
+      width: SquareGridMetrics.extent(preview.width, cell.width),
+      height: SquareGridMetrics.extent(preview.height, cell.height),
       child: IgnorePointer(
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               width: 2,
-              color: valid ? colors.primary : colors.error,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
       ),
     );
   }
+
+  ResizeCandidate get _unchanged =>
+      (dx: 0, dy: 0, width: widget.width, height: widget.height);
 
   void _start(PointerDownEvent event) {
     if (_resizePointer != null || event.buttons != kPrimaryButton) {
@@ -143,48 +149,61 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
       );
       _startPosition = event.position;
       _resizePointer = event.pointer;
-      _pendingSize = (width: widget.width, height: widget.height);
+      _requested = (width: widget.width, height: widget.height);
+      _preview = _unchanged;
       resizing = true;
     });
   }
 
+  /// Snaps the pointer to whole cells and asks for the nearest valid
+  /// footprint only when the snapped request changes. An invalid request
+  /// keeps the last valid preview.
   void _update(PointerMoveEvent event) {
     if (event.pointer != _resizePointer) {
       return;
     }
-    final size = _sizeAt(event.position);
-    if (size != _pendingSize) {
-      setState(() => _pendingSize = size);
+    final requested = _sizeAt(event.position);
+    if (requested == _requested) {
+      return;
     }
+    _requested = requested;
+    final candidate = widget.resolveResize(requested.width, requested.height);
+    if (candidate == null || candidate == _preview) {
+      return;
+    }
+    setState(() => _preview = candidate);
   }
 
+  /// Pointer movement in whole cells, in any direction, never below the
+  /// effective minimum or above the largest allowed size.
   ({int width, int height}) _sizeAt(Offset position) {
     final delta = position - _startPosition;
     final width = widget.width + (delta.dx / _stride.width).round();
     final height = widget.height + (delta.dy / _stride.height).round();
     return (
-      width: _bounded(width, widget.minimumWidth, widget.maximumWidth),
-      height: _bounded(height, widget.minimumHeight, widget.maximumHeight),
+      width: _bounded(width, widget.minimumWidth, GridLayout.maxColumns),
+      height: _bounded(
+        height,
+        widget.minimumHeight,
+        RemoteItemDefinition.maximumHeight,
+      ),
     );
   }
 
-  /// Never below the fixed minimum, even when the page has less room.
-  int _bounded(int value, int minimum, int maximum) {
-    if (maximum < minimum) {
-      return minimum;
-    }
-    return value.clamp(minimum, maximum);
-  }
+  int _bounded(int value, int minimum, int maximum) =>
+      value.clamp(minimum, maximum < minimum ? minimum : maximum);
 
+  /// Applies the last valid preview in one change; nothing when unchanged.
   void _end(PointerUpEvent event) {
     if (event.pointer != _resizePointer) {
       return;
     }
-    final size = _sizeAt(event.position);
+    final preview = _preview;
     _cancel();
-    if (size.width != widget.width || size.height != widget.height) {
-      widget.onResize(size.width, size.height);
+    if (preview == null || preview == _unchanged) {
+      return;
     }
+    widget.onResize(preview);
   }
 
   void _cancelPointer(PointerCancelEvent event) {
@@ -193,9 +212,11 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
     }
   }
 
+  /// Drops the preview; a cancelled gesture leaves the item as it was.
   void _cancel() => setState(() {
     resizing = false;
-    _pendingSize = null;
+    _requested = null;
+    _preview = null;
     _resizePointer = null;
   });
 }
