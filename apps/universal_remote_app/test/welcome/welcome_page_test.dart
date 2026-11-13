@@ -25,7 +25,8 @@ void main() {
 
       await _launch(tester, storage);
       expect(find.text('Welcome to your TV'), findsOneWidget);
-      await tester.tap(find.text('Configure later'));
+      await tester.ensureVisible(find.text('Find Nearby TVs'));
+      await tester.tap(find.text('Find Nearby TVs'));
       await tester.pumpAndSettle();
       expect(find.text('Welcome to your TV'), findsNothing);
       expect(find.text('Preparation'), findsOneWidget);

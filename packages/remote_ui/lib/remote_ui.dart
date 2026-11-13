@@ -34,3 +34,4 @@ export 'src/host/current_content_observer.dart';
 export 'src/host/volume_observer.dart';
 export 'src/host/remote_command_controller.dart';
 export 'src/widgets/theme/remote_tabs_theme.dart';
+export 'src/widgets/tabs/remote_tabs.dart';

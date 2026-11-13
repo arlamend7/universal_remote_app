@@ -14,10 +14,12 @@ final class DevicesViewModel {
     this.dependencies, {
     required this.onConnect,
     required this.onWake,
+    required this.onCustomize,
   });
   final AppDependencies dependencies;
   final void Function(RemoteDevice) onConnect;
   final void Function(RemoteDevice) onWake;
+  final Future<void> Function(BuildContext, RemoteDevice) onCustomize;
   Listenable get changes => Listenable.merge([
     dependencies.savedDevices.devices,
     dependencies.connection.state,
@@ -26,8 +28,12 @@ final class DevicesViewModel {
     dependencies.discovery.recentDevices,
   ]);
   List<RemoteDevice> get saved => dependencies.savedDevices.devices.value;
-  Future<void> info(BuildContext context, RemoteDevice device) =>
-      showDeviceDetails(context, dependencies, device);
+  Future<void> info(BuildContext context, RemoteDevice device) async {
+    final customize = await showDeviceDetails(context, dependencies, device);
+    if (customize && context.mounted) {
+      await onCustomize(context, device);
+    }
+  }
 
   Future<void> search(BuildContext context) async {
     final device = await showDeviceDiscovery(context, dependencies);

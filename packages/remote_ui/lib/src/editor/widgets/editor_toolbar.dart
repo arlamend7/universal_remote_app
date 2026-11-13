@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:remote_ui/src/ui_model.dart';
 
 import '../viewmodels/grid_editor_actions.dart';
-import 'editor_tabs.dart';
+import '../../widgets/tabs/remote_tabs.dart';
 
 class EditorToolbar extends StatelessWidget {
   const EditorToolbar({
@@ -24,14 +24,21 @@ class EditorToolbar extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        EditorTabs(
-          first: 'Edit Layout',
-          second: 'View Mode',
-          firstIcon: Icons.edit_outlined,
-          secondIcon: Icons.visibility_outlined,
-          showSecond: model.mode == EditorMode.view,
-          onChanged: (view) =>
-              model.setMode(view ? EditorMode.view : EditorMode.edit),
+        RemoteTabs(
+          tabs: const [
+            (
+              value: EditorMode.edit,
+              label: 'Edit Layout',
+              icon: Icons.edit_outlined,
+            ),
+            (
+              value: EditorMode.view,
+              label: 'View Mode',
+              icon: Icons.visibility_outlined,
+            ),
+          ],
+          selected: model.mode,
+          onChanged: model.setMode,
         ),
         if (model.mode == EditorMode.edit) _tools(context),
       ],

@@ -161,15 +161,6 @@ abstract final class AppThemes {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: SegmentedButton.styleFrom(
-          shape: shape,
-          side: BorderSide.none,
-          backgroundColor: scheme.surface,
-          selectedBackgroundColor: scheme.primary,
-          selectedForegroundColor: scheme.onPrimary,
-        ),
-      ),
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
@@ -216,6 +207,10 @@ abstract final class AppThemes {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
     return RemoteTabsTheme(
+      padding: const EdgeInsets.all(4),
+      spacing: 4,
+      iconSize: 17,
+      iconSpacing: 6,
       track: BoxDecoration(
         color: colors.surfaceContainerLow,
         border: Border.all(color: colors.outlineVariant),

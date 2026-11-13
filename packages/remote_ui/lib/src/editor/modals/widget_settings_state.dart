@@ -14,7 +14,7 @@ import '../widgets/border_shape_picker.dart';
 import '../widgets/border_size_picker.dart';
 import '../widgets/editor_number_field.dart';
 import '../widgets/position_picker.dart';
-import '../widgets/editor_tabs.dart';
+import '../../widgets/tabs/remote_tabs.dart';
 import '../viewmodels/widget_target_choices.dart';
 import 'widget_settings_sheet.dart';
 
@@ -197,10 +197,12 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
     });
   }
 
-  Widget _tabs() => EditorTabs(
-    first: 'Element',
-    second: 'Item Configuration',
-    showSecond: itemTab,
+  Widget _tabs() => RemoteTabs(
+    tabs: const [
+      (value: false, label: 'Element', icon: null),
+      (value: true, label: 'Item Configuration', icon: null),
+    ],
+    selected: itemTab,
     onChanged: (value) => setState(() => itemTab = value),
   );
 

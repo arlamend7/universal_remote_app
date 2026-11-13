@@ -8,14 +8,19 @@ import 'package:remote_ui/remote_ui.dart';
 import '../viewmodels/device_details_viewmodel.dart';
 import '../widgets/device_details_content.dart';
 
-Future<void> showDeviceDetails(
+Future<bool> showDeviceDetails(
   BuildContext context,
   AppDependencies dependencies,
   RemoteDevice device,
-) => showAppSheet<void>(
-  context,
-  title: 'Device info',
-  child: DeviceDetailsContent(
-    model: DeviceDetailsViewModel(dependencies, device),
-  ),
-);
+) async =>
+    await showAppModal<bool>(
+      context,
+      builder: (sheetContext) => AppSheet(
+        title: 'Device info',
+        child: DeviceDetailsContent(
+          model: DeviceDetailsViewModel(dependencies, device),
+          onCustomize: () => Navigator.pop(sheetContext, true),
+        ),
+      ),
+    ) ??
+    false;

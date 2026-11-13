@@ -125,10 +125,6 @@ class WelcomePage extends StatelessWidget {
           icon: const Icon(Icons.search),
           label: const Text('Find Nearby TVs'),
         ),
-        OutlinedButton(
-          onPressed: () => onContinue(context),
-          child: const Text('Configure later'),
-        ),
       ],
     ),
   );

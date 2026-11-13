@@ -5,7 +5,6 @@ import '../../../../app/app_dependencies.dart';
 
 import 'package:remote_ui/remote_ui.dart';
 
-import '../../../../routes/open_remote_editor.dart';
 import '../modals/edit_device.dart';
 
 final class DeviceDetailsViewModel {
@@ -136,8 +135,6 @@ final class DeviceDetailsViewModel {
     }
   }
 
-  Future<void> customize(BuildContext context) =>
-      openRemoteEditor(context, dependencies, device);
   Future<void> edit(BuildContext context) async {
     final edited = await editDevice(context, dependencies, device: device);
     if (edited == null || !context.mounted) {

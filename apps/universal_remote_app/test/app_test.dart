@@ -142,8 +142,18 @@ void main() {
       expect(find.text('STEP 4 OF 4'), findsOneWidget);
       expect(find.text('Supported controls'), findsOneWidget);
       expect(find.text('Directional pad'), findsNothing);
-      await tester.tap(find.text('Start controlling'));
+      await tester.tap(find.text('Customize remote'));
       await tester.pumpAndSettle();
+      expect(find.byType(GridEditorPage), findsOneWidget);
+      await tester.tap(find.text('View Mode'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Back to remote'));
+      await tester.pumpAndSettle();
+      expect(find.text('Supported controls'), findsNothing);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        0,
+      );
       expect(find.byTooltip('OK'), findsOneWidget);
       final ok = tester.widget<ActionButton>(
         find

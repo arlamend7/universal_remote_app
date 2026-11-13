@@ -5,8 +5,13 @@ import '../viewmodels/device_details_viewmodel.dart';
 import 'capability_evidence_list.dart';
 
 class DeviceDetailsContent extends StatelessWidget {
-  const DeviceDetailsContent({super.key, required this.model});
+  const DeviceDetailsContent({
+    super.key,
+    required this.model,
+    required this.onCustomize,
+  });
   final DeviceDetailsViewModel model;
+  final VoidCallback onCustomize;
   @override
   Widget build(BuildContext context) =>
       ListenableBuilder(listenable: model.changes, builder: _body);
@@ -33,7 +38,7 @@ class DeviceDetailsContent extends StatelessWidget {
       if (model.currentApp != null) _value('Current app', model.currentApp!),
       const SizedBox(height: 16),
       FilledButton(
-        onPressed: () => model.customize(context),
+        onPressed: onCustomize,
         child: const Text('Customize remote'),
       ),
       _advanced(context),

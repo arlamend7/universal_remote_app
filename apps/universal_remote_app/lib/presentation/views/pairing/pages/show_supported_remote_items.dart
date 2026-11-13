@@ -40,7 +40,7 @@ Widget _overview(AppDependencies dependencies, RemoteDevice device) {
       ),
       body: SupportedRemoteItems(remote: remote),
       secondary: OutlinedButton(
-        onPressed: () => openRemoteEditor(context, dependencies, device),
+        onPressed: () => _customize(context, dependencies, device),
         child: const Text('Customize remote'),
       ),
       primary: FilledButton(
@@ -48,9 +48,33 @@ Widget _overview(AppDependencies dependencies, RemoteDevice device) {
         child: const Text('Start controlling'),
       ),
       footerLink: TextButton(
-        onPressed: () => showDeviceDetails(context, dependencies, device),
+        onPressed: () async {
+          final customize = await showDeviceDetails(
+            context,
+            dependencies,
+            device,
+          );
+          if (customize && context.mounted) {
+            await _customize(context, dependencies, device);
+          }
+        },
         child: const Text('Device details'),
       ),
     ),
   );
+}
+
+Future<void> _customize(
+  BuildContext context,
+  AppDependencies dependencies,
+  RemoteDevice device,
+) async {
+  final overview = ModalRoute.of(context);
+  if (overview?.isCurrent != true) {
+    return;
+  }
+  await openRemoteEditor(context, dependencies, device);
+  if (context.mounted && overview?.isCurrent == true) {
+    Navigator.pop(context, true);
+  }
 }

@@ -53,7 +53,7 @@ class AppearanceSettings extends StatelessWidget {
     return Row(
       children: [
         const Expanded(child: Text('Theme')),
-        _segments(context),
+        Flexible(flex: 2, child: _segments(context)),
       ],
     );
   }
@@ -70,14 +70,13 @@ class AppearanceSettings extends StatelessWidget {
         onChanged: (value) => model.setTheme(context, value),
       );
 
-  Widget _segments(BuildContext context) => SegmentedButton<ThemeMode>(
-    segments: [
+  Widget _segments(BuildContext context) => RemoteTabs<ThemeMode>(
+    tabs: [
       for (final mode in ThemeMode.values)
-        ButtonSegment(value: mode, label: Text(_themeLabel(mode))),
+        (value: mode, label: _themeLabel(mode), icon: null),
     ],
-    selected: {model.theme},
-    showSelectedIcon: false,
-    onSelectionChanged: (selection) => model.setTheme(context, selection.first),
+    selected: model.theme,
+    onChanged: (mode) => model.setTheme(context, mode),
   );
 
   String _themeLabel(ThemeMode mode) => switch (mode) {

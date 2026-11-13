@@ -68,8 +68,16 @@ class RemoteViewModel implements RemotePanel {
   @override
   Future<void> showDeviceDetails(BuildContext context) async {
     final target = device;
-    if (target != null) {
-      await details_dialog.showDeviceDetails(context, dependencies, target);
+    if (target == null) {
+      return;
+    }
+    final customize = await details_dialog.showDeviceDetails(
+      context,
+      dependencies,
+      target,
+    );
+    if (customize && context.mounted) {
+      await openRemoteEditor(context, dependencies, target);
     }
   }
 

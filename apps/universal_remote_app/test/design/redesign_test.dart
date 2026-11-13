@@ -63,7 +63,12 @@ void main() {
       await tester.tap(find.byTooltip('Back to remote').last);
       await tester.pumpAndSettle();
       expect(app.grids.forDevice(tv), isNull);
-      await tester.tap(find.text('Customize remote'));
+      expect(find.text('Device info'), findsNothing);
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        0,
+      );
+      await tester.tap(find.byTooltip('Customize remote'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('add-control')));
       await tester.pumpAndSettle();
@@ -81,10 +86,10 @@ void main() {
         isFalse,
       );
       expect(app.grids.forDevice(bedroom), isNull);
-      await tester.tap(find.byTooltip('Close'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Living room'));
-      await tester.pumpAndSettle();
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        0,
+      );
       expect(find.text('YouTube'), findsOneWidget);
       expect(find.text('Inputs'), findsNothing);
       await captureDesign(tester, key, '05-remote');

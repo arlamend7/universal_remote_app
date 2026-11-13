@@ -20,6 +20,12 @@ void main() {
     await tester.tap(find.widgetWithText(NavigationDestination, 'Settings'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Light'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(FilledButton, 'Light'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Dark'), findsOneWidget);
+    expect(await storage.read('settings.theme'), 'light');
+
     expect(
       tester.getCenter(find.byTooltip('Turquoise')).dy,
       tester.getCenter(find.byTooltip('Custom Accent')).dy,

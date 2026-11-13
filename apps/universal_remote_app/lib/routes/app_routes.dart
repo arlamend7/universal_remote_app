@@ -13,6 +13,7 @@ import '../presentation/views/discovery/pages/device_preparation_page.dart';
 import '../presentation/views/welcome/welcome_page.dart';
 import '../presentation/views/network/startup_network_prompt.dart';
 import '../presentation/views/session/session_prompt_coordinator.dart';
+import 'open_remote_editor.dart';
 
 /// Route definitions and navigation decisions live outside presentation widgets.
 final class AppRoutes {
@@ -69,6 +70,7 @@ final class AppRoutes {
     dependencies: dependencies,
     onConnect: connect,
     onWake: wake,
+    onCustomize: _customizeFromDevices,
   );
 
   void select(int destination) => _selectedPage.value = destination;
@@ -94,6 +96,16 @@ final class AppRoutes {
   void wake(RemoteDevice device) {
     select(_remoteIndex);
     unawaited(dependencies.connection.turnOn(_savedConfiguration(device)));
+  }
+
+  Future<void> _customizeFromDevices(
+    BuildContext context,
+    RemoteDevice device,
+  ) async {
+    await openRemoteEditor(context, dependencies, device);
+    if (context.mounted) {
+      connect(device);
+    }
   }
 
   RemoteDevice _savedConfiguration(RemoteDevice device) {
