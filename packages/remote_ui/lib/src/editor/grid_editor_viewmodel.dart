@@ -439,6 +439,12 @@ final class GridEditorViewModel extends ChangeNotifier {
     applyResize(resolved);
   }
 
+  /// The nearest valid footprint for a nine-dot drag to [width] by [height].
+  /// Like [resolveResize], except that a shape only the other Position
+  /// allows switches the item to that Position (without swapping the size).
+  GridItem? resolveDrag(GridItem item, int width, int height) =>
+      resolveResize(item.arrangedFor(width, height), width, height);
+
   /// Commits a footprint chosen by [resolveResize]: size and place together.
   void applyResize(GridItem resolved) => replace(resolved);
   void remove(String id) {

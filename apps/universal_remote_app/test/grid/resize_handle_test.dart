@@ -175,6 +175,39 @@ void main() {
     await close(tester);
   });
 
+  testWidgets(
+    'your screenshot: Home and Back dragged to 1 × 2 turns vertical',
+    (tester) async {
+      final editor = await openEditor(tester, null);
+      final id = editor.model.draft.items
+          .firstWhere((item) => item.definitionId == 'navigationStrip')
+          .id;
+      expect(editor.footprint(id), (1, 4, 2, 1));
+      expect(editor.item(id).arrangement, ItemAxis.horizontal);
+      await editor.resize(id, -1, 1);
+      expect(editor.footprint(id), (1, 4, 1, 2));
+      expect(editor.item(id).arrangement, ItemAxis.vertical);
+      expect(GridGeometry.valid(editor.model.draft.items), isTrue);
+      // Dragging back to 2 × 1 turns it horizontal again.
+      await editor.resize(id, 1, -1);
+      expect(editor.footprint(id), (1, 4, 2, 1));
+      expect(editor.item(id).arrangement, ItemAxis.horizontal);
+      await close(tester);
+    },
+  );
+
+  testWidgets('shapes valid for the current Position never flip it', (
+    tester,
+  ) async {
+    final editor = await openEditor(tester, [
+      rocker(0, 0, 1, 2, ItemAxis.vertical),
+    ]);
+    await editor.resize('rocker', 3, 0);
+    expect(editor.footprint('rocker'), (0, 0, 4, 2));
+    expect(editor.item('rocker').arrangement, ItemAxis.vertical);
+    await close(tester);
+  });
+
   testWidgets('growing at the bottom edge moves up instead of adding rows', (
     tester,
   ) async {

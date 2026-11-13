@@ -74,6 +74,49 @@ void main() {
     });
   });
 
+  group('a drag into the other shape switches Position', () {
+    GridItem strip(int w, int h, ItemAxis position) => GridItem(
+      id: 'strip',
+      definitionId: 'navigationStrip',
+      x: 0,
+      y: 0,
+      w: w,
+      h: h,
+      position: position,
+    );
+
+    test('horizontal 2 × 1 asked for 1 × 2 becomes vertical', () {
+      final arranged = strip(2, 1, ItemAxis.horizontal).arrangedFor(1, 2);
+      expect(arranged.arrangement, ItemAxis.vertical);
+      expect((arranged.w, arranged.h), (2, 1), reason: 'Size is not swapped.');
+    });
+
+    test('a shape the current Position allows keeps it', () {
+      final wide = strip(2, 1, ItemAxis.horizontal);
+      expect(wide.arrangedFor(2, 3).arrangement, ItemAxis.horizontal);
+      expect(wide.arrangedFor(4, 4).arrangement, ItemAxis.horizontal);
+    });
+
+    test('a shape neither Position allows keeps Position', () {
+      final wide = strip(2, 1, ItemAxis.horizontal);
+      expect(wide.arrangedFor(1, 1).arrangement, ItemAxis.horizontal);
+      expect(wide.resizeFloor, (width: 1, height: 1));
+    });
+
+    test('square-minimum items never switch', () {
+      final dial = GridItem(
+        id: 'dial',
+        definitionId: 'volumeDial',
+        x: 0,
+        y: 0,
+        w: 2,
+        h: 2,
+      );
+      expect(identical(dial.arrangedFor(1, 4), dial), isTrue);
+      expect(dial.resizeFloor, (width: 2, height: 2));
+    });
+  });
+
   group('size and Position stay independent in the editor', () {
     late GridEditorViewModel editor;
 

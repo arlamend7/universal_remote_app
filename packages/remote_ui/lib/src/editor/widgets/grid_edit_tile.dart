@@ -19,7 +19,7 @@ class GridEditTile extends StatelessWidget {
   final ValueChanged<GridItem>? onEdit;
   @override
   Widget build(BuildContext context) {
-    final minimum = item.minimumSize;
+    final minimum = item.resizeFloor;
     return UniversalRemoteItem(
       id: item.id,
       label: item.config['label'] ?? item.definition.name,
@@ -36,14 +36,7 @@ class GridEditTile extends StatelessWidget {
       },
       onRemove: () => model.remove(item.id),
       resolveResize: _resolve,
-      onResize: (candidate) => model.applyResize(
-        item.copy(
-          x: item.x + candidate.dx,
-          y: item.y + candidate.dy,
-          w: candidate.width,
-          h: candidate.height,
-        ),
-      ),
+      onResize: _commit,
       child: GridItemPreview(
         item: item,
         dependencies: dependencies,
@@ -54,10 +47,19 @@ class GridEditTile extends StatelessWidget {
     );
   }
 
+  /// Re-resolves the released size (the resolver is deterministic) so the
+  /// committed item also carries any Position switch the drag implied.
+  void _commit(ResizeCandidate candidate) {
+    final resolved = model.resolveDrag(item, candidate.width, candidate.height);
+    if (resolved != null) {
+      model.applyResize(resolved);
+    }
+  }
+
   /// The shared resolver's answer for a requested size, as an offset from
   /// where the item stands.
   ResizeCandidate? _resolve(int width, int height) {
-    final resolved = model.resolveResize(item, width, height);
+    final resolved = model.resolveDrag(item, width, height);
     if (resolved == null) {
       return null;
     }
