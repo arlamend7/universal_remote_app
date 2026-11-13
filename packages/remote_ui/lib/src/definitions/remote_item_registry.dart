@@ -92,20 +92,6 @@ extension RegisteredGridItem on GridItem {
     return copy(position: next, w: h, h: w);
   }
 
-  /// The smallest size a resize may ask for in either Position. A request
-  /// below the current minimum is only meaningful when the other Position
-  /// allows it (see [arrangedFor]).
-  ({int width, int height}) get resizeFloor {
-    final current = minimumSize;
-    if (!definition.supportsPosition) {
-      return current;
-    }
-    return (
-      width: current.width < current.height ? current.width : current.height,
-      height: current.width < current.height ? current.width : current.height,
-    );
-  }
-
   /// The item arranged for a resize to [width] by [height]. Keeps its
   /// Position unless that shape is below the current Position's minimum but
   /// valid for the other one (a 2 × 1 horizontal pair dragged to 1 × 2 turns

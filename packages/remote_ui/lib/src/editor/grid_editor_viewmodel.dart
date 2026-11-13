@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 
@@ -10,6 +12,7 @@ import '../layout/models/enums/editor_mode.dart';
 import '../layout/models/grid_item.dart';
 import '../layout/models/grid_layout.dart';
 import '../layout/models/grid_page_size.dart';
+import '../widgets/models/resize_candidate.dart';
 import 'device_grids_controller.dart';
 
 final class GridEditorViewModel extends ChangeNotifier {
@@ -442,8 +445,21 @@ final class GridEditorViewModel extends ChangeNotifier {
   /// The nearest valid footprint for a nine-dot drag to [width] by [height].
   /// Like [resolveResize], except that a shape only the other Position
   /// allows switches the item to that Position (without swapping the size).
-  GridItem? resolveDrag(GridItem item, int width, int height) =>
-      resolveResize(item.arrangedFor(width, height), width, height);
+  ///
+  /// [request] is a rectangle relative to [item]'s place: a negative offset
+  /// grows the item up or left. It is kept on [item]'s own page.
+  GridItem? resolveDrag(GridItem item, ResizeCandidate request) {
+    final pageStart = isGroup ? 0 : draft.pageStarts[draft.pageIndexAt(item.x)];
+    final requested = item.copy(
+      x: math.max(pageStart, item.x + request.dx),
+      y: math.max(reservedRows, item.y + request.dy),
+    );
+    return resolveResize(
+      requested.arrangedFor(request.width, request.height),
+      request.width,
+      request.height,
+    );
+  }
 
   /// Commits a footprint chosen by [resolveResize]: size and place together.
   void applyResize(GridItem resolved) => replace(resolved);

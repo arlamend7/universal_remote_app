@@ -12,7 +12,7 @@ final class RemoteItemStyle {
     this.borderColor,
     this.borderWidth = 1,
     this.cornerRadius = defaultCornerRadius,
-    this.showBackground = true,
+    this.showBackground = false,
   });
 
   static const defaultCornerRadius = 12.0;
@@ -21,9 +21,10 @@ final class RemoteItemStyle {
   final double padding, opacity, borderWidth, cornerRadius;
   final bool showBorder;
 
-  /// Whether the item's outer container paints its background. Turning it off
-  /// leaves the container transparent; borders and the controls inside keep
-  /// their own colours.
+  /// Whether the item's outer container paints a background: [background]
+  /// when set, otherwise the theme's card colour. Off (the default) leaves the
+  /// container transparent; borders and the controls inside keep their own
+  /// colours.
   final bool showBackground;
 
   bool get isRounded => cornerRadius > 0;
@@ -37,7 +38,7 @@ final class RemoteItemStyle {
       borderColor == null &&
       borderWidth == 1 &&
       cornerRadius == defaultCornerRadius &&
-      showBackground;
+      !showBackground;
 
   RemoteItemStyle copyWith({
     Object? background = _keep,
@@ -87,7 +88,7 @@ final class RemoteItemStyle {
         RemoteBorderShape.circle.radius,
         defaultCornerRadius,
       ),
-      showBackground: value['showBackground'] != false,
+      showBackground: value['showBackground'] == true,
     );
   }
 
@@ -100,6 +101,6 @@ final class RemoteItemStyle {
     if (borderColor != null) 'borderColor': borderColor,
     if (borderWidth != 1) 'borderWidth': borderWidth,
     if (cornerRadius != defaultCornerRadius) 'radius': cornerRadius,
-    if (!showBackground) 'showBackground': false,
+    if (showBackground) 'showBackground': true,
   };
 }

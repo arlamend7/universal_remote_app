@@ -133,6 +133,66 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('dragging past the top or left edge extends that way', (
+    tester,
+  ) async {
+    final editor = await openEditor(tester, [
+      mute('up', 1, 3),
+      mute('left', 1, 5),
+      mute('both', 3, 3),
+    ]);
+    await editor.resize('up', 0, -1);
+    expect(editor.footprint('up'), (1, 2, 1, 2), reason: 'up');
+    await editor.resize('left', -1, 0);
+    expect(editor.footprint('left'), (0, 5, 2, 1), reason: 'left');
+    await editor.resize('both', -1, -1);
+    expect(editor.footprint('both'), (2, 2, 2, 2), reason: 'up and left');
+    expect(GridGeometry.valid(editor.model.draft.items), isTrue);
+    await close(tester);
+  });
+
+  testWidgets('your screenshot: Home dragged up into the pad stays valid', (
+    tester,
+  ) async {
+    final editor = await openEditor(tester, null);
+    String idOf(String definitionId) => editor.model.draft.items
+        .firstWhere((item) => item.definitionId == definitionId)
+        .id;
+    final strip = idOf('navigationStrip');
+    final pad = editor.footprint(idOf('directionPad'));
+    expect(editor.footprint(strip), (1, 4, 2, 1));
+    // One column, one row up: 1 × 2 over the pad. The pad is in the way, so
+    // the vertical 1 × 2 goes to the nearest free place instead.
+    await editor.resize(strip, -1, -1);
+    expect(editor.footprint(strip), (1, 4, 1, 2));
+    expect(editor.item(strip).arrangement, ItemAxis.vertical);
+    expect(editor.footprint(idOf('directionPad')), pad);
+    expect(GridGeometry.valid(editor.model.draft.items), isTrue);
+    // Dragging left into Apps never overlaps it.
+    final apps = editor.footprint(idOf('apps'));
+    await editor.resize(strip, -2, -1);
+    expect(editor.footprint(idOf('apps')), apps);
+    expect(GridGeometry.valid(editor.model.draft.items), isTrue);
+    await close(tester);
+  });
+
+  testWidgets('reaching left from page 2 stays on page 2', (tester) async {
+    final editor = await openEditor(
+      tester,
+      [mute('m', 4, 0)],
+      columns: 8,
+      pageStarts: const [0, 4],
+    );
+    await tester.tap(find.byTooltip('Page 2 of 2'));
+    await tester.pumpAndSettle();
+    await editor.resize('m', -2, 0);
+    final grown = editor.item('m');
+    expect(grown.x, greaterThanOrEqualTo(4));
+    expect(editor.model.draft.staysOnPage(grown), isTrue);
+    expect(editor.model.draft.canvasColumns, 8);
+    await close(tester);
+  });
+
   testWidgets('a mouse drag on the handle resizes, not moves', (tester) async {
     final editor = await openEditor(tester, [mute('m', 0, 0)]);
     final step = editor.stride('m');
@@ -152,7 +212,8 @@ void main() {
     final editor = await openEditor(tester, [
       rocker(0, 0, 2, 4, ItemAxis.vertical),
     ]);
-    await editor.resize('rocker', -3, -3);
+    // Back to the top-left cell: 1 × 1 asked, clamped to the 1 × 2 minimum.
+    await editor.resize('rocker', -1, -3);
     expect(editor.footprint('rocker'), (0, 0, 1, 2));
     expect(editor.item('rocker').arrangement, ItemAxis.vertical);
     await close(tester);

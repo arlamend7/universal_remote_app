@@ -100,7 +100,6 @@ void main() {
     test('a shape neither Position allows keeps Position', () {
       final wide = strip(2, 1, ItemAxis.horizontal);
       expect(wide.arrangedFor(1, 1).arrangement, ItemAxis.horizontal);
-      expect(wide.resizeFloor, (width: 1, height: 1));
     });
 
     test('square-minimum items never switch', () {
@@ -113,7 +112,6 @@ void main() {
         h: 2,
       );
       expect(identical(dial.arrangedFor(1, 4), dial), isTrue);
-      expect(dial.resizeFloor, (width: 2, height: 2));
     });
   });
 

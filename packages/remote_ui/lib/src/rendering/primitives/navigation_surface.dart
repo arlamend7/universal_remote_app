@@ -60,8 +60,11 @@ class NavigationSurface extends StatelessWidget {
     height: side,
     decoration: BoxDecoration(
       shape: _shape == PadShape.square ? BoxShape.rectangle : BoxShape.circle,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest
-          .withValues(alpha: .35),
+      // With the item's background on, the card fill covers everything and
+      // the ring adds no second shape on top.
+      color: item.style.showBackground
+          ? null
+          : StyledItem.cardColor(Theme.of(context).colorScheme),
     ),
     child: Stack(
       alignment: Alignment.center,

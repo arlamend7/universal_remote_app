@@ -19,14 +19,11 @@ class GridEditTile extends StatelessWidget {
   final ValueChanged<GridItem>? onEdit;
   @override
   Widget build(BuildContext context) {
-    final minimum = item.resizeFloor;
     return UniversalRemoteItem(
       id: item.id,
       label: item.config['label'] ?? item.definition.name,
       width: item.w,
       height: item.h,
-      minimumWidth: minimum.width,
-      minimumHeight: minimum.height,
       style: item.style,
       enabled: !model.saving,
       selected: model.selected == item.id,
@@ -47,19 +44,20 @@ class GridEditTile extends StatelessWidget {
     );
   }
 
-  /// Re-resolves the released size (the resolver is deterministic) so the
-  /// committed item also carries any Position switch the drag implied.
-  void _commit(ResizeCandidate candidate) {
-    final resolved = model.resolveDrag(item, candidate.width, candidate.height);
+  /// Re-resolves the released request (the resolver is deterministic), so
+  /// the committed item is exactly the last preview, including any Position
+  /// switch the drag implied.
+  void _commit(ResizeCandidate request) {
+    final resolved = model.resolveDrag(item, request);
     if (resolved != null) {
       model.applyResize(resolved);
     }
   }
 
-  /// The shared resolver's answer for a requested size, as an offset from
-  /// where the item stands.
-  ResizeCandidate? _resolve(int width, int height) {
-    final resolved = model.resolveDrag(item, width, height);
+  /// The shared resolver's answer for a requested rectangle, as an offset
+  /// from where the item stands.
+  ResizeCandidate? _resolve(ResizeCandidate request) {
+    final resolved = model.resolveDrag(item, request);
     if (resolved == null) {
       return null;
     }

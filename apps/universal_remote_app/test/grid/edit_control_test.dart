@@ -118,7 +118,7 @@ void main() {
         reason: 'The horizontal minimum is the swapped 2 × 1.',
       );
       expect(item('rocker').position, ItemAxis.horizontal);
-      expect(item('rocker').style.showBackground, isFalse);
+      expect(item('rocker').style.showBackground, isTrue);
 
       // Square minimums never offer Position, even when enlarged.
       await open('dial');

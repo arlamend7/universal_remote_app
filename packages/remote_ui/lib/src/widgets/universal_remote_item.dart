@@ -17,8 +17,6 @@ class UniversalRemoteItem extends StatefulWidget {
     required this.onRemove,
     required this.onResize,
     required this.resolveResize,
-    this.minimumWidth = 1,
-    this.minimumHeight = 1,
     this.style = const RemoteItemStyle(),
     this.enabled = true,
     this.selected = false,
@@ -27,17 +25,16 @@ class UniversalRemoteItem extends StatefulWidget {
   final String id, label;
   final int width, height;
 
-  /// The item's effective minimum; a drag never asks for less.
-  final int minimumWidth, minimumHeight;
   final Widget child;
   final RemoteItemStyle style;
   final VoidCallback onEdit, onRemove;
 
-  /// Commits the last valid footprint shown while resizing.
+  /// Commits the request whose valid footprint was last shown.
   final ValueChanged<ResizeCandidate> onResize;
 
-  /// The nearest valid footprint for a requested size, or null.
-  final ResizeCandidate? Function(int width, int height) resolveResize;
+  /// The nearest valid footprint for a requested rectangle (cells relative
+  /// to the item's current place), or null when none exists.
+  final ResizeCandidate? Function(ResizeCandidate request) resolveResize;
   final bool enabled, selected;
   @override
   State<UniversalRemoteItem> createState() => UniversalRemoteItemState();

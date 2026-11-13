@@ -27,11 +27,43 @@ void main() {
         ),
       );
 
-  const styled = RemoteItemStyle(background: 0xff243531, showBorder: true);
+  const styled = RemoteItemStyle(
+    background: 0xff243531,
+    showBorder: true,
+    showBackground: true,
+  );
 
-  testWidgets('Show Background paints the outer container', (tester) async {
+  testWidgets('Show Background paints the chosen colour', (tester) async {
     await pumpStyled(tester, styled);
     expect(outer(tester).color, const Color(0xff243531));
+  });
+
+  testWidgets('Show Background without a colour paints the whole card', (
+    tester,
+  ) async {
+    await pumpStyled(
+      tester,
+      const RemoteItemStyle(showBackground: true, cornerRadius: 1000),
+    );
+    final colors = Theme.of(tester.element(find.text('content'))).colorScheme;
+    expect(outer(tester).color, StyledItem.cardColor(colors));
+    expect(outer(tester).borderRadius, BorderRadius.circular(1000));
+    final fill = find
+        .descendant(
+          of: find.byType(StyledItem),
+          matching: find.byType(DecoratedBox),
+        )
+        .first;
+    expect(
+      tester.getRect(fill),
+      tester.getRect(find.byType(StyledItem)),
+      reason: 'The fill covers the whole outer container.',
+    );
+  });
+
+  testWidgets('Show Background is off by default', (tester) async {
+    await pumpStyled(tester, const RemoteItemStyle(showBorder: true));
+    expect(outer(tester).color, isNull);
   });
 
   testWidgets('Show Background off leaves a transparent card with its border', (
@@ -43,12 +75,64 @@ void main() {
     expect(find.text('content'), findsOneWidget);
   });
 
-  test('Show Background is saved only when turned off', () {
+  test('Show Background is saved only when turned on', () {
     expect(const RemoteItemStyle().toJson(), isEmpty);
-    final off = const RemoteItemStyle().copyWith(showBackground: false);
-    expect(off.toJson(), {'showBackground': false});
-    expect(RemoteItemStyle.fromJson(off.toJson()).showBackground, isFalse);
-    expect(RemoteItemStyle.fromJson(const {}).showBackground, isTrue);
+    final on = const RemoteItemStyle().copyWith(showBackground: true);
+    expect(on.isDefault, isFalse);
+    expect(on.toJson(), {'showBackground': true});
+    expect(RemoteItemStyle.fromJson(on.toJson()).showBackground, isTrue);
+    expect(RemoteItemStyle.fromJson(const {}).showBackground, isFalse);
+  });
+
+  testWidgets('with the background on, the pad ring adds no second fill', (
+    tester,
+  ) async {
+    final app = await AppBootstrap.initialize(storage: MemoryStorage());
+    Future<List<Color?>> ringFills(bool background) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 4 * 90 + 3 * SquareGridMetrics.gap,
+                child: GridRemoteCanvas(
+                  remote: RemoteViewModel(app),
+                  previewData: RemotePreviewData.example,
+                  columns: 4,
+                  rows: 3,
+                  layout: GridLayout([
+                    GridItem(
+                      id: 'pad',
+                      definitionId: 'directionPad',
+                      x: 1,
+                      y: 0,
+                      w: 2,
+                      h: 3,
+                      style: RemoteItemStyle(showBackground: background),
+                    ),
+                  ], configuredRows: 3),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return tester
+          .widgetList<Container>(
+            find.descendant(
+              of: find.byType(NavigationSurface),
+              matching: find.byType(Container),
+            ),
+          )
+          .map((ring) => (ring.decoration as BoxDecoration?)?.color)
+          .toList();
+    }
+
+    final off = await ringFills(false);
+    expect(off, contains(isNotNull), reason: 'The ring keeps its own fill.');
+    final on = await ringFills(true);
+    expect(on, everyElement(isNull));
   });
 
   testWidgets('a bordered item keeps its content inside the border', (

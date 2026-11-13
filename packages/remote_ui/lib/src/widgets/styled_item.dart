@@ -24,7 +24,7 @@ class StyledItem extends StatelessWidget {
       opacity: style.opacity,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: _background,
+          color: _background(context),
           borderRadius: radius,
           border: style.showBorder ? _border(context) : null,
         ),
@@ -33,13 +33,22 @@ class StyledItem extends StatelessWidget {
     );
   }
 
-  Color? get _background {
-    final background = style.background;
-    if (!style.showBackground || background == null) {
+  /// The fill of the whole outer container, following its corner radius:
+  /// the chosen colour, or the theme's card colour when none is chosen.
+  Color? _background(BuildContext context) {
+    if (!style.showBackground) {
       return null;
+    }
+    final background = style.background;
+    if (background == null) {
+      return cardColor(Theme.of(context).colorScheme);
     }
     return Color(background);
   }
+
+  /// The default card fill, shared with the pad's own ring.
+  static Color cardColor(ColorScheme colors) =>
+      colors.surfaceContainerHighest.withValues(alpha: .35);
 
   /// Keeps the content clear of the border so they never overlap.
   Widget _padded() {

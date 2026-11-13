@@ -2,8 +2,6 @@ import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/material.dart';
 
 import 'universal_remote_item.dart';
-import '../definitions/remote_item_definition.dart';
-import '../layout/models/grid_layout.dart';
 import '../layout/models/square_grid_metrics.dart';
 import 'models/resize_candidate.dart';
 import 'mouse_item_drag.dart';
@@ -13,8 +11,11 @@ import 'styled_item.dart';
 class UniversalRemoteItemState extends State<UniversalRemoteItem> {
   int? _resizePointer;
   Offset _startPosition = Offset.zero;
-  ({int width, int height})? _requested;
+  ResizeCandidate? _requested;
   ResizeCandidate? _preview;
+
+  /// The request that produced [_preview]; committed on release.
+  ResizeCandidate? _previewRequest;
   bool resizing = false;
   Size _stride = Size.zero;
   @override
@@ -149,8 +150,9 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
       );
       _startPosition = event.position;
       _resizePointer = event.pointer;
-      _requested = (width: widget.width, height: widget.height);
+      _requested = _unchanged;
       _preview = _unchanged;
+      _previewRequest = _unchanged;
       resizing = true;
     });
   }
@@ -162,36 +164,35 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
     if (event.pointer != _resizePointer) {
       return;
     }
-    final requested = _sizeAt(event.position);
+    final requested = _requestAt(event.position);
     if (requested == _requested) {
       return;
     }
     _requested = requested;
-    final candidate = widget.resolveResize(requested.width, requested.height);
+    final candidate = widget.resolveResize(requested);
     if (candidate == null || candidate == _preview) {
       return;
     }
-    setState(() => _preview = candidate);
+    setState(() {
+      _preview = candidate;
+      _previewRequest = requested;
+    });
   }
 
-  /// Pointer movement in whole cells, in any direction, never below the
-  /// effective minimum or above the largest allowed size.
-  ({int width, int height}) _sizeAt(Offset position) {
+  /// The rectangle between the item's top-left cell and the cell under the
+  /// pointer, on whichever side it is. The handle starts on the bottom-right
+  /// cell, so crossing the top or left edge extends the item that way.
+  ResizeCandidate _requestAt(Offset position) {
     final delta = position - _startPosition;
-    final width = widget.width + (delta.dx / _stride.width).round();
-    final height = widget.height + (delta.dy / _stride.height).round();
+    final column = widget.width - 1 + (delta.dx / _stride.width).round();
+    final row = widget.height - 1 + (delta.dy / _stride.height).round();
     return (
-      width: _bounded(width, widget.minimumWidth, GridLayout.maxColumns),
-      height: _bounded(
-        height,
-        widget.minimumHeight,
-        RemoteItemDefinition.maximumHeight,
-      ),
+      dx: column < 0 ? column : 0,
+      dy: row < 0 ? row : 0,
+      width: column.abs() + 1,
+      height: row.abs() + 1,
     );
   }
-
-  int _bounded(int value, int minimum, int maximum) =>
-      value.clamp(minimum, maximum < minimum ? minimum : maximum);
 
   /// Applies the last valid preview in one change; nothing when unchanged.
   void _end(PointerUpEvent event) {
@@ -199,11 +200,12 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
       return;
     }
     final preview = _preview;
+    final request = _previewRequest;
     _cancel();
-    if (preview == null || preview == _unchanged) {
+    if (preview == null || request == null || preview == _unchanged) {
       return;
     }
-    widget.onResize(preview);
+    widget.onResize(request);
   }
 
   void _cancelPointer(PointerCancelEvent event) {
@@ -217,6 +219,7 @@ class UniversalRemoteItemState extends State<UniversalRemoteItem> {
     resizing = false;
     _requested = null;
     _preview = null;
+    _previewRequest = null;
     _resizePointer = null;
   });
 }
