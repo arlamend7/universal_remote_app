@@ -102,7 +102,7 @@ final tvItemDefinitions = <RemoteItemDefinition<GridRemoteViewModel>>[
     'directionPad',
     'Directional pad',
     RemoteItemCategory.directionPad,
-    layout: DirectionPadLayout(PadShape.circle, size: RemoteItemSize(2, 3)),
+    layout: DirectionPadLayout(PadShape.circle, size: RemoteItemSize(2, 2)),
     requires: const {RemoteCapability.navigation},
     elements: [
       TvItems.up,
@@ -116,7 +116,7 @@ final tvItemDefinitions = <RemoteItemDefinition<GridRemoteViewModel>>[
     'arrowPad',
     'Arrow keys',
     RemoteItemCategory.directionPad,
-    layout: DirectionPadLayout(PadShape.square, size: RemoteItemSize(3, 3)),
+    layout: DirectionPadLayout(PadShape.circle, size: RemoteItemSize(2, 2)),
     description: 'Just the four arrows, without an OK key.',
     requires: const {RemoteCapability.navigation},
     elements: [TvItems.up, TvItems.right, TvItems.down, TvItems.left],
