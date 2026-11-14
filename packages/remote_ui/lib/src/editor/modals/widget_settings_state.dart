@@ -711,17 +711,19 @@ class WidgetSettingsState extends State<WidgetSettingsSheet> {
       error = null;
     });
     try {
-      final choices = await _choices.load(definitionId);
+      final options = await _choices.load(definitionId);
       if (!mounted) {
         return;
       }
       final id = await DeviceChoiceSheet.choose(
         context,
         'Choose shortcut',
-        choices,
+        options.choices,
+        showAppIcons: _appCollection,
+        artwork: options.artwork,
       );
       if (id != null && mounted) {
-        _remember(choices.firstWhere((item) => item.$1 == id));
+        _remember(options.choices.firstWhere((item) => item.$1 == id));
       }
     } catch (exception) {
       if (mounted) {

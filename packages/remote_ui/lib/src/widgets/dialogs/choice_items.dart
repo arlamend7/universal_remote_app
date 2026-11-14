@@ -11,12 +11,14 @@ class ChoiceItems extends StatelessWidget {
     this.selectedId,
     this.artwork = const {},
     this.readOnly = false,
+    this.showAppIcons = false,
   });
   final List<(String, String)> choices;
   final bool grid;
   final String? selectedId;
   final Map<String, Uri> artwork;
   final bool readOnly;
+  final bool showAppIcons;
   @override
   Widget build(BuildContext context) {
     if (choices.isEmpty) {
@@ -42,7 +44,9 @@ class ChoiceItems extends StatelessWidget {
 
   Widget _row(BuildContext context, (String, String) choice) => ListTile(
     contentPadding: EdgeInsets.zero,
-    leading: Icon(choice.$1 == '@add-tv' ? Icons.add : Icons.tv_outlined),
+    leading: showAppIcons
+        ? _artwork(choice)
+        : Icon(choice.$1 == '@add-tv' ? Icons.add : Icons.tv_outlined),
     title: Text(choice.$2),
     trailing: choice.$1 == selectedId ? const Icon(Icons.check) : null,
     onTap: readOnly ? null : () => Navigator.pop(context, choice.$1),

@@ -3,6 +3,11 @@ import 'package:flutter/widgets.dart' show Widget;
 import '../widgets/grid/models/remote_preview_data.dart';
 import 'remote_element.dart';
 
+typedef RemoteCollectionOptions = ({
+  List<(String, String)> choices,
+  Map<String, Uri> artwork,
+});
+
 final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
   const RemoteCollection(
     super.id, {
@@ -55,7 +60,16 @@ final class RemoteCollection<TDevice, TEntry> extends RemoteElement<TDevice> {
   Future<void> select(TDevice device, String id, String name) =>
       onSelected(device, fromOption(id, name));
 
-  Future<List<(String, String)>> options(TDevice device) async => [
-    for (final entry in await load(device)) (entryId(entry), entryName(entry)),
-  ];
+  Future<RemoteCollectionOptions> options(TDevice device) async {
+    final entries = await load(device);
+    return (
+      choices: List<(String, String)>.unmodifiable([
+        for (final entry in entries) (entryId(entry), entryName(entry)),
+      ]),
+      artwork: Map<String, Uri>.unmodifiable({
+        for (final entry in entries)
+          if (artwork?.call(entry) case final uri?) entryId(entry): uri,
+      }),
+    );
+  }
 }

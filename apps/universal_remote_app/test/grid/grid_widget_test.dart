@@ -172,10 +172,28 @@ void main() {
         findsNothing,
       );
       final choose = find.text('Choose apps');
+      final artwork = Uri.parse('http://192.168.1.20/youtube.png');
+      provider.last!.appControl.installed = [
+        DeviceApplication('test.youtube', 'YouTube', artwork: artwork),
+        const DeviceApplication('test.music', 'Music'),
+      ];
       await tester.ensureVisible(choose);
       await tester.pumpAndSettle();
       await tester.tap(choose);
       await tester.pumpAndSettle();
+      final youtubeChoice = find.widgetWithText(ListTile, 'YouTube');
+      expect(
+        find.descendant(
+          of: youtubeChoice,
+          matching: find.byKey(ValueKey(artwork)),
+        ),
+        findsOneWidget,
+      );
+      final musicChoice = find.widgetWithText(ListTile, 'Music');
+      expect(
+        find.descendant(of: musicChoice, matching: find.byType(TvAppIcon)),
+        findsOneWidget,
+      );
       await tester.tap(find.text('Music'));
       await tester.pumpAndSettle();
       expect(

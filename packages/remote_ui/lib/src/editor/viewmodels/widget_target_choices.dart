@@ -8,10 +8,10 @@ final class WidgetTargetChoices {
   WidgetTargetChoices(this.dependencies, this.device);
   final RemoteEditorHost dependencies;
   final RemoteDevice device;
-  final _cache = <String, List<(String, String)>>{};
+  final _cache = <String, RemoteCollectionOptions>{};
   RemoteBase? _owner;
 
-  Future<List<(String, String)>> load(String definitionId) async {
+  Future<RemoteCollectionOptions> load(String definitionId) async {
     final connection = dependencies.live.connection;
     if (connection.selected.value?.id != device.id ||
         connection.state.value != DeviceConnectionState.connected) {
@@ -37,7 +37,7 @@ final class WidgetTargetChoices {
         'The TV connection changed. Try again.',
       );
     }
-    return _cache[definitionId] = List.unmodifiable(choices);
+    return _cache[definitionId] = choices;
   }
 
   List<(String, String)>? cached(String definitionId) {
@@ -46,16 +46,19 @@ final class WidgetTargetChoices {
             DeviceConnectionState.connected) {
       return null;
     }
-    return _cache[definitionId];
+    return _cache[definitionId]?.choices;
   }
 
-  Future<List<(String, String)>> _query(String definitionId) async {
+  Future<RemoteCollectionOptions> _query(String definitionId) async {
     final elements = RemoteItemRegistry.resolve(definitionId).elements;
     final collection = elements
         .whereType<RemoteCollection<GridRemoteViewModel, Object>>()
         .firstOrNull;
     if (collection == null) {
-      return const [];
+      return (
+        choices: const <(String, String)>[],
+        artwork: const <String, Uri>{},
+      );
     }
     return collection.options(GridRemoteViewModel(dependencies.live));
   }

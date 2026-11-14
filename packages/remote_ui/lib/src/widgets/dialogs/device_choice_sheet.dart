@@ -12,6 +12,7 @@ class DeviceChoiceSheet extends StatefulWidget {
     this.artwork = const {},
     this.readOnly = false,
     this.grid = false,
+    this.showAppIcons = false,
   });
   final String title;
   final List<(String, String)> choices;
@@ -21,12 +22,14 @@ class DeviceChoiceSheet extends StatefulWidget {
 
   /// Shows large icons with a search box instead of a plain list.
   final bool grid;
+  final bool showAppIcons;
   static Future<String?> choose(
     BuildContext context,
     String title,
     List<(String, String)> choices, {
     String? selectedId,
     bool grid = false,
+    bool showAppIcons = false,
     Map<String, Uri> artwork = const {},
     bool readOnly = false,
   }) => showAppModal<String>(
@@ -36,6 +39,7 @@ class DeviceChoiceSheet extends StatefulWidget {
       choices: choices,
       selectedId: selectedId,
       grid: grid,
+      showAppIcons: showAppIcons,
       artwork: artwork,
       readOnly: readOnly,
     ),
