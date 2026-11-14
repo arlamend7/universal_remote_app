@@ -106,7 +106,14 @@ void main() {
         lastUpdatedAt: '2026-11-12T08:00:00Z',
       );
       await publish(changed, lastUpdatedAt: '2026-11-12T08:00:00Z');
-      final report = await updates(target).checkNow();
+      final service = updates(target);
+      server.requests.clear();
+      final catalog = await service.catalogs.refresh();
+      expect(await service.hasUpdates(catalog), isTrue);
+      expect(server.requests, [IntegrationCatalogRepository.path]);
+      expect((await target.inventory()).values.single.current, first);
+      final report = await service.installUpdates(catalog);
+      expect(await service.hasUpdates(catalog), isFalse);
       final second = report.updated['example.json-websocket']!;
       expect(second, isNot(first));
       final record = (await target.installation('example.json-websocket'))!;

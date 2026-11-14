@@ -1,4 +1,5 @@
 import 'package:remote_ui/remote_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_network/remote_network.dart';
 import 'package:remote_driver_manager/remote_driver_manager.dart';
@@ -36,6 +37,40 @@ final class AppDependencies {
   final ProviderRegistry providers;
   final IntegrationService? drivers;
   final Future<void> Function()? checkDriverUpdates;
+  final driverUpdatesAvailable = ValueNotifier<bool>(false);
+  Future<void>? _driverCheck;
+
+  Future<void> refreshDriverUpdates() {
+    final check = checkDriverUpdates;
+    if (check == null || _disposeFuture != null) {
+      return Future.value();
+    }
+    return _driverCheck ??= _refreshDriverUpdates(check)
+        .whenComplete(() => _driverCheck = null);
+  }
+
+  Future<void> _refreshDriverUpdates(Future<void> Function() check) async {
+    await check();
+    try {
+      await updateDriverAvailability();
+    } on Exception {
+      // Keep the last known status if the cached catalog cannot be read.
+    }
+  }
+
+  Future<void> updateDriverAvailability() async {
+    final service = drivers;
+    if (service == null || _disposeFuture != null) {
+      return;
+    }
+    final catalog = await service.catalogs.cached();
+    final available =
+        catalog != null && await service.updates.hasUpdates(catalog);
+    if (_disposeFuture == null) {
+      driverUpdatesAvailable.value = available;
+    }
+  }
+
   final Future<PeerCertificate> Function(Uri) inspectCertificate;
   final void Function()? disposeCredentials;
   Future<List<String>> identifyAddress(
@@ -61,6 +96,7 @@ final class AppDependencies {
   Future<void>? _disposeFuture;
   Future<void> dispose() => _disposeFuture ??= _dispose();
   Future<void> _dispose() async {
+    driverUpdatesAvailable.dispose();
     sleep.dispose();
     discovery.dispose();
     final sessionClosed = session?.close();

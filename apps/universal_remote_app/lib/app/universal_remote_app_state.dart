@@ -33,7 +33,7 @@ class UniversalRemoteAppState extends State<UniversalRemoteApp>
   }
 
   void _checkDriverUpdates() {
-    unawaited(widget.dependencies.checkDriverUpdates?.call());
+    unawaited(widget.dependencies.refreshDriverUpdates());
   }
 
   void _cancelBackgroundDiscovery(AppLifecycleState state) {

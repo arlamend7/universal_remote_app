@@ -27,6 +27,35 @@ final class SettingsViewModel {
       dependencies.settings.applyScreenAwake != null;
   bool get screenAwake => dependencies.settings.screenAwake.value;
   bool get autoReconnect => dependencies.settings.autoReconnect.value;
+
+  Future<(bool, String?)> installDriverUpdates() async {
+    final drivers = dependencies.drivers;
+    if (drivers == null) {
+      return (false, 'Driver downloads are unavailable.');
+    }
+    try {
+      final catalog = await drivers.catalogs.cached();
+      if (catalog == null) {
+        return (false, 'Could not load driver updates. Try again.');
+      }
+      final report = await drivers.updates.installUpdates(catalog);
+      await drivers.register(dependencies.providers);
+      await dependencies.updateDriverAvailability();
+      if (report.failed.isNotEmpty) {
+        return (
+          false,
+          'Some driver updates could not be installed. Try again.',
+        );
+      }
+      return (
+        true,
+        report.staged.isEmpty ? null : 'Reconnect your TV to apply the update.',
+      );
+    } on Exception {
+      return (false, 'Could not install driver updates. Try again.');
+    }
+  }
+
   Future<void> setScreenAwake(BuildContext context, bool value) =>
       _protect(context, () => dependencies.settings.setScreenAwake(value));
   Future<void> setAutoReconnect(BuildContext context, bool value) =>

@@ -28,9 +28,14 @@ installed-drivers/
 
 ## Update check (`IntegrationUpdateService`)
 
-1. Due at most once per 24 h while the app runs (`updates.json`, scheduled before
-   any network access; failures back off to 48 h). No background execution is promised.
-2. Refresh the signed catalog; lower or conflicting revisions are rejected.
+The app refreshes the signed catalog when it opens or returns to the foreground.
+If an installed driver has an eligible new package, Settings → Drivers shows
+a download action. Tapping it installs the updates from that catalog. Updates
+downloaded during a connection take effect after the session ends.
+
+1. Refresh the signed catalog when the app opens; lower or conflicting
+   revisions are rejected.
+2. Check for eligible updates without downloading packages.
 3. Match installed integrations by ID and compare the installed SHA-256 with the
    catalog SHA-256. Equal hashes download nothing.
 4. Otherwise skip if rolled back, disabled, development-only, or the runtime cannot

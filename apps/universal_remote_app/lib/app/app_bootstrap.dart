@@ -223,7 +223,7 @@ abstract final class AppBootstrap {
     DiagnosticLogger logger,
   ) async {
     try {
-      await drivers.checkUpdates(providers);
+      await drivers.refresh(providers);
     } on Exception {
       logger.record(AppLogLevel.warning, 'drivers.updateFailed');
     }

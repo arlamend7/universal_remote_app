@@ -7,6 +7,30 @@ import '../support/memory_storage.dart';
 import '../support/test_device.dart';
 
 void main() {
+  testWidgets('Drivers shows download only when an update is available', (
+    tester,
+  ) async {
+    final app = await AppBootstrap.initialize(storage: MemoryStorage());
+    await app.savedDevices.save(tv);
+    await tester.pumpWidget(UniversalRemoteApp(dependencies: app));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Settings'));
+    await tester.pumpAndSettle();
+    final drivers = find.widgetWithText(ListTile, 'Drivers');
+    final chevron = find.descendant(
+      of: drivers,
+      matching: find.byIcon(Icons.chevron_right),
+    );
+    expect(chevron, findsOneWidget);
+    app.driverUpdatesAvailable.value = true;
+    await tester.pumpAndSettle();
+    expect(chevron, findsNothing);
+    expect(find.byIcon(Icons.download_outlined), findsOneWidget);
+    expect(find.text('Updates available'), findsOneWidget);
+    app.driverUpdatesAvailable.value = false;
+    await tester.pumpAndSettle();
+    expect(chevron, findsOneWidget);
+  });
+
   testWidgets('custom accent applies and persists only after confirmation', (
     tester,
   ) async {

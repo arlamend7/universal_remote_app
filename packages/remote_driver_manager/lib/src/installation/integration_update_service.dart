@@ -57,9 +57,23 @@ final class IntegrationUpdateService {
     }
   }
 
-  Future<IntegrationUpdateReport> checkNow() async {
+  /// Checks the verified catalog for eligible updates without downloading packages.
+  Future<bool> hasUpdates(IntegrationCatalog catalog) async {
     final installed = await installer.inventory();
-    final catalog = await catalogs.refresh();
+    return installed.values.any(
+      (record) =>
+          _skipReason(record, catalog.integration(record.integrationId)) ==
+          null,
+    );
+  }
+
+  Future<IntegrationUpdateReport> checkNow() async =>
+      installUpdates(await catalogs.refresh());
+
+  Future<IntegrationUpdateReport> installUpdates(
+    IntegrationCatalog catalog,
+  ) async {
+    final installed = await installer.inventory();
     final updated = <String, String>{};
     final staged = <String, String>{};
     final unchanged = <String>{};
