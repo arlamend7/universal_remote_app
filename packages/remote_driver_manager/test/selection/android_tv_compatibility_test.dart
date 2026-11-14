@@ -44,7 +44,6 @@ void main() {
     for (final software in [
       null,
       _reported(null, null),
-      _reported('TCL', 'Smart TV Pro'),
       _reported('TCL', null),
       _reported('Google', 'Chromecast'),
       _reported('Sony', 'BRAVIA 4K VH2'),
@@ -57,9 +56,19 @@ void main() {
     }
   });
 
+  test('Smart TV Pro uses a single standard power key on the same driver', () {
+    final bootstrap = IntegrationResolver.bootstrap('android.tv', [androidTv])!;
+    final plan = IntegrationResolver.identified(bootstrap, [
+      androidTv,
+    ], _reported('TCL', 'Smart TV Pro'));
+    expect(plan.identity.integrationId, 'android.tv.remote-v2');
+    expect(plan.profile.mappingOverrides['power-off'], {
+      'kind': 'remote-v2.key',
+      'code': 26,
+    });
+  });
+
   test('a model profile can refine the integration once evidence exists', () {
-    // Illustrative only: no TCL profile ships, because no verified TCL
-    // behaviour differs from other Remote v2 televisions.
     final withProfile = IntegrationCandidate(
       identity: androidTv.identity,
       compatibility: androidTv.compatibility,

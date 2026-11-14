@@ -31,6 +31,19 @@
     {
       "id": "bootstrap",
       "stage": "bootstrap"
+    },
+    {
+      "id": "smart-tv-pro",
+      "stage": "identified",
+      "compatibility": {
+        "models": ["Smart TV Pro"]
+      },
+      "mappingOverrides": {
+        "power-off": {
+          "kind": "remote-v2.key",
+          "code": 26
+        }
+      }
     }
   ],
   "capabilities": [

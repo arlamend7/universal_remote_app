@@ -131,13 +131,11 @@ Documented TCL observations (not verified here):
 
 ### Compatibility profiles
 
-TCL stays on `android.tv.remote-v2` with its unrestricted `bootstrap` profile.
-No TCL profile is shipped, because no TCL behaviour that differs from other
-Remote v2 televisions has been verified. Resolver tests
-(`remote_driver_manager/test/selection/android_tv_compatibility_test.dart`)
-prove that a reported vendor or model, or unknown OS and firmware, never
-reject the integration or switch profile, and that a model profile *would*
-apply once evidence exists.
+The Android TV integration uses key 223 for standby by default. The
+`smart-tv-pro` profile overrides `power-off` with key 26 when the
+authenticated session reports the exact model `Smart TV Pro`. This
+compatibility change still needs a hardware test on the reported TCL.
+Key 26 is a toggle, so the app sends it once after power-off confirmation.
 
 When hardware shows a model-specific difference, add an `identified` profile
 to `drivers/providers/android-tv/remote-v2/manifest.json`. Match on the exact
@@ -295,7 +293,7 @@ been available, so every hardware result is *Not tested*.
 | Special keys | Settings 176, menu 82, info 165, guide 172, Live TV 170, captions 175, input 178, CH± 166/167, digits | Automated test passed | Not tested | One TCL model ignored TV/MENU/INFO/GUIDE/CH± | none |
 | Text input | IME batch edit when IME negotiated | Automated test passed | Not tested | | none |
 | Applications | App links when APP_LINK negotiated | Automated test passed | Not tested | No app list in Remote v2 | none |
-| Power off | KeyEvent 223 when POWER + KEY | Automated test passed | Not tested | | none |
+| Power off | With POWER + KEY, send 223 by default or 26 for the Smart TV Pro profile | Mapping and profile selection covered | Not tested | Verify the reported model and screen behavior | none |
 | Wake | Wake-on-LAN with a learned MAC; retry after wake | Automated test passed (policy) | Not tested | Needs Network Standby / Screenless service | none |
 | Reconnection | Reconnect with the stored pairing; IP change keeps identity | Automated test passed | Not tested | | none |
 | Persistence | Manufacturer, model, evidence saved; old devices load | Automated test passed | Not tested | | none |
