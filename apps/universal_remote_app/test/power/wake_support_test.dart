@@ -11,6 +11,29 @@ import 'package:universal_remote_app/data/pairing/repositories/secure_credential
 import '../support/test_device.dart';
 
 void main() {
+  test('paired Smart TV Pro can wake through its driver without a MAC', () {
+    final registry = integrationProviders(
+      SecureCredentialStore(MemoryStorage()),
+    );
+    final device = RemoteDevice(
+      id: 'android-tv',
+      name: 'Living room',
+      providerId: 'android.tv',
+      model: 'Smart TV Pro',
+      endpoints: [Uri.parse('tls://192.168.1.20:6466')],
+    );
+    expect(registry.canWake(device), isFalse);
+    expect(
+      registry.canWake(
+        copyDevice(
+          device,
+          metadata: {DeviceMetadataKeys.verifiedPeerIdentity: 'paired'},
+        ),
+      ),
+      isTrue,
+    );
+  });
+
   test('wake needs integration support and a valid configured MAC, not metadata alone', () async {
     final fake = await AppBootstrap.initialize(
       storage: MemoryStorage(),

@@ -294,6 +294,6 @@ been available, so every hardware result is *Not tested*.
 | Text input | IME batch edit when IME negotiated | Automated test passed | Not tested | | none |
 | Applications | App links when APP_LINK negotiated | Automated test passed | Not tested | No app list in Remote v2 | none |
 | Power off | With POWER + KEY, send 223 by default or 26 for the Smart TV Pro profile | Mapping and profile selection covered | Not tested | Verify the reported model and screen behavior | none |
-| Wake | Wake-on-LAN with a learned MAC; retry after wake | Automated test passed (policy) | Not tested | Needs Network Standby / Screenless service | none |
+| Wake | Open the advertised Bonjour wake port, then send key 224 over the paired session. Smart TV Pro defaults to port 6465 when no port was saved. Other devices can use Wake-on-LAN when a MAC is known. | Loopback coverage | Not tested | Verify the screen wakes on the reported TCL | none |
 | Reconnection | Reconnect with the stored pairing; IP change keeps identity | Automated test passed | Not tested | | none |
 | Persistence | Manufacturer, model, evidence saved; old devices load | Automated test passed | Not tested | | none |

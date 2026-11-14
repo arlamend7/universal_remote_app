@@ -20,7 +20,8 @@
       "remote-v2.set-volume",
       "remote-v2.submit",
       "remote-v2.text",
-      "remote-v2.volume"
+      "remote-v2.volume",
+      "remote-v2.wake"
     ]
   },
   "credentialScope": "device",

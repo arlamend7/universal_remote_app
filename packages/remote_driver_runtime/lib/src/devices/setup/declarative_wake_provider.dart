@@ -12,12 +12,14 @@ final class DeclarativeWakeProvider implements DeviceWakeProvider {
     this.json, {
     this.engine,
     this.operation,
+    this.credentials,
   });
 
   final String providerId;
   final Map<String, Object?> json;
   final OfflineWakeEngine? engine;
   final EngineOperation? operation;
+  final CredentialStore? credentials;
 
   String get _message =>
       (json['message'] as String?) ??
@@ -28,10 +30,9 @@ final class DeclarativeWakeProvider implements DeviceWakeProvider {
     if (device.providerId != providerId) {
       return false;
     }
-    if (json['kind'] == 'engine') {
-      return engine != null && operation != null && _hasCapability(device);
-    }
-    return deviceWakeTarget(device) != null;
+    return _canWakeWithEngine(device) ||
+        (json['kind'] != 'engine' || json['fallback'] == 'wake-on-lan') &&
+            deviceWakeTarget(device) != null;
   }
 
   @override
@@ -39,11 +40,19 @@ final class DeclarativeWakeProvider implements DeviceWakeProvider {
     if (!canWakeDevice(device)) {
       throw RemoteException('wakeUnavailable', _message);
     }
-    if (json['kind'] == 'engine') {
-      return engine!.wakeOffline(device, operation!);
+    if (_canWakeWithEngine(device)) {
+      return engine!.wakeOffline(device, operation!, credentials: credentials!);
     }
     final target = deviceWakeTarget(device)!;
     await sendWakeOnLan(target.macAddress, broadcast: target.broadcastAddress!);
+  }
+
+  bool _canWakeWithEngine(RemoteDevice device) {
+    final mapping = operation;
+    return mapping != null &&
+        credentials != null &&
+        _hasCapability(device) &&
+        engine?.canWakeOffline(device, mapping) == true;
   }
 
   bool _hasCapability(RemoteDevice device) {

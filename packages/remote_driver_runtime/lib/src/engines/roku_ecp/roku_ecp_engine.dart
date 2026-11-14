@@ -74,9 +74,18 @@ final class RokuEcpEngine implements ProtocolEngine, OfflineWakeEngine {
 
   /// Sends a key in network standby; only documented key names compile.
   @override
-  Future<void> wakeOffline(RemoteDevice device, EngineOperation operation) {
+  bool canWakeOffline(RemoteDevice device, EngineOperation operation) =>
+      device.endpoints.singleOrNull != null &&
+      operation.kind == RokuEcpKinds.key;
+
+  @override
+  Future<void> wakeOffline(
+    RemoteDevice device,
+    EngineOperation operation, {
+    required CredentialStore credentials,
+  }) {
     final endpoint = device.endpoints.singleOrNull;
-    if (endpoint == null || operation.kind != RokuEcpKinds.key) {
+    if (endpoint == null || !canWakeOffline(device, operation)) {
       throw const RemoteException(
         'wakeUnavailable',
         'This device cannot be woken from the network.',

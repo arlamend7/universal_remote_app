@@ -15,5 +15,15 @@
     "retryAfterWake": ["network", "networkAccess", "connectionRefused", "timeout"],
     "mergeDiscovered": "replace-host"
   },
-  "wake": {"kind": "wake-on-lan", "message": "The TV’s MAC address is not known yet. Connect once so it can be learned."}
+  "wake": {
+    "kind": "engine",
+    "mapping": {
+      "kind": "remote-v2.wake",
+      "code": 224,
+      "portMetadata": "remoteWakePort",
+      "fallbackPorts": {"Smart TV Pro": 6465}
+    },
+    "fallback": "wake-on-lan",
+    "message": "Connect to the TV once while it is on to set up network wake."
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:remote_core/remote_core.dart';
 import 'package:remote_driver_runtime/protocol_engines.dart';
 import 'package:remote_driver_runtime/remote_v2.dart';
@@ -8,6 +10,62 @@ import '../parity/support/parity_recorder.dart';
 import 'engine_test_context.dart';
 
 void main() {
+  test(
+    'wakes the network before sending Wakeup over the paired session',
+    () async {
+      final wakePort = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(wakePort.close);
+      final knocked = wakePort.first.then((socket) => socket.destroy());
+      final recorder = ParityRecorder();
+      final [tv, client] = await Future.wait([
+        ClientIdentity.generate(),
+        ClientIdentity.generate(),
+      ]);
+      final server = AndroidTvParityServer(recorder);
+      await server.start(tv, client);
+      addTearDown(server.close);
+      final fingerprint = PairingProof.fingerprint(tv.certificateDer);
+      final device = RemoteDevice(
+        id: 'tv',
+        name: 'TV',
+        providerId: 'android.tv',
+        model: 'Smart TV Pro',
+        endpoints: [Uri(scheme: 'tls', host: '127.0.0.1', port: server.port)],
+        metadata: {DeviceMetadataKeys.verifiedPeerIdentity: fingerprint},
+      );
+      final credentials = EngineTestContext(device).credentials;
+      await credentials.write(
+        device.id,
+        PairedIdentity(client, fingerprint).encode(),
+      );
+      final engine = RemoteV2Engine(portOverride: server.port);
+      final mapping = engine.compile(
+        OperationMapping(
+          operation: 'wake',
+          kind: 'remote-v2.wake',
+          parameters: {
+            'code': 224,
+            'portMetadata': 'remoteWakePort',
+            'fallbackPorts': {'Smart TV Pro': wakePort.port},
+          },
+        ),
+      );
+      expect(engine.canWakeOffline(device, mapping), isTrue);
+      expect(
+        engine.canWakeOffline(copyDevice(device, metadata: {}), mapping),
+        isFalse,
+      );
+      await engine.wakeOffline(device, mapping, credentials: credentials);
+      await knocked.timeout(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(recorder.drain().last, {
+        'remoteV2': {
+          '10': {'1': 224, '2': 3},
+        },
+      });
+    },
+  );
+
   test(
     'reuses the pinned identity, negotiates features and sends codes',
     () async {

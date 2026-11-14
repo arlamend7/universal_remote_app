@@ -15,12 +15,14 @@ final class IntegrationProviderSource {
     required this.engines,
     required this.network,
     required this.createController,
+    required this.credentials,
     this.allowDevelopment = false,
   });
 
   final ProtocolEngineRegistry engines;
   final DiscoveryNetwork network;
   final RemoteBase Function(RemoteDevice device) createController;
+  final CredentialStore credentials;
   final bool allowDevelopment;
 
   /// One definition per provider family, skipping invalid rule sets.
@@ -87,6 +89,7 @@ final class IntegrationProviderSource {
       providerId,
       json,
       engine: engine as OfflineWakeEngine,
+      credentials: credentials,
       operation: engines.compile(
         source.engine,
         OperationMapping.fromJson('wake', mapping),

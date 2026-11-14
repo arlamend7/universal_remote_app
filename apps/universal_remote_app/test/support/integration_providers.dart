@@ -26,6 +26,7 @@ ProviderRegistry integrationProviders(CredentialStore credentials) {
   final registry = ProviderRegistry();
   final source = IntegrationProviderSource(
     engines: engines,
+    credentials: credentials,
     network: const IoDiscoveryNetwork(),
     createController: (device) {
       final definition = definitions.firstWhere(

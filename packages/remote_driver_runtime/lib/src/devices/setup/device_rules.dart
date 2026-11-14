@@ -54,7 +54,7 @@ final class DeviceRules {
   static void _wake(Map<String, Object?> json) {
     IntegrationJson.keys(
       json,
-      const {'kind', 'mapping', 'requiresCapability', 'message'},
+      const {'kind', 'mapping', 'requiresCapability', 'message', 'fallback'},
       required: const {'kind'},
     );
     if (!const {'wake-on-lan', 'engine'}.contains(json['kind'])) {
@@ -62,6 +62,10 @@ final class DeviceRules {
     }
     if (json['requiresCapability'] != null) {
       parseRemoteCapability(json['requiresCapability']);
+    }
+    if (json['fallback'] != null &&
+        (json['kind'] != 'engine' || json['fallback'] != 'wake-on-lan')) {
+      throw const FormatException('Unknown wake fallback.');
     }
   }
 }

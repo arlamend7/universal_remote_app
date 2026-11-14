@@ -7,7 +7,7 @@
   "endpoint": {"scheme": "tls", "port": 6466, "keepObservedPort": true},
   "name": {"metadata": "name", "fallback": "Android TV"},
   "category": "television",
-  "metadata": {"advertisedPeerIdentity": "{peer}", "correlationIdentity": "{observed:txt.bt}"},
+  "metadata": {"advertisedPeerIdentity": "{peer}", "correlationIdentity": "{observed:txt.bt}", "remoteWakePort": "{observed:txt.wp}"},
   "addressProbe": {"kind": "peer-identity-pair", "ports": [6466, 6467]},
   "unicastProbe": {"kind": "peer-identity", "metadata": ["verifiedPeerIdentity", "advertisedPeerIdentity"]}
 }

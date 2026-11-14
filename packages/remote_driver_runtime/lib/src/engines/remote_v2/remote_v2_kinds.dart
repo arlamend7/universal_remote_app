@@ -1,6 +1,7 @@
 /// Operation kinds executed by the Android TV Remote v2 engine.
 abstract final class RemoteV2Kinds {
   static const key = 'remote-v2.key';
+  static const wake = 'remote-v2.wake';
   static const text = 'remote-v2.text';
   static const submit = 'remote-v2.submit';
   static const appLink = 'remote-v2.app-link';
@@ -13,6 +14,7 @@ abstract final class RemoteV2Kinds {
 
   static const all = {
     key,
+    wake,
     text,
     submit,
     appLink,

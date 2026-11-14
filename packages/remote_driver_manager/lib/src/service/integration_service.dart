@@ -64,6 +64,7 @@ final class IntegrationService {
     _providers = IntegrationProviderSource(
       engines: engines,
       network: network,
+      credentials: credentials,
       createController: (device) => GenericTvController(
         device,
         planner: planner,

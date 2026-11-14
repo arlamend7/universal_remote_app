@@ -150,6 +150,7 @@ void main() {
             RokuEcpEngine(),
           ]),
           network: const IoDiscoveryNetwork(),
+          credentials: _NoCredentials(),
           createController: (_) => throw UnimplementedError(),
           allowDevelopment: development,
         );
@@ -176,4 +177,15 @@ void main() {
     expect(roku.wake?.canWakeDevice(device), isTrue);
     expect(roku.connection, isNull);
   });
+}
+
+final class _NoCredentials implements CredentialStore {
+  @override
+  Future<String?> read(String id) async => null;
+
+  @override
+  Future<void> write(String id, String key) async {}
+
+  @override
+  Future<void> delete(String id) async {}
 }

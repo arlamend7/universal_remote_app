@@ -24,6 +24,7 @@ ProviderDefinition<RemoteBase> lgIntegrationProvider({
   );
   return IntegrationProviderSource(
     engines: engines,
+    credentials: credentials,
     network: const IoDiscoveryNetwork(),
     createController:
         createController ??
